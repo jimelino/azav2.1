@@ -275,14 +275,14 @@ const Citas = () => {
             <h2>Agendar Nueva Cita</h2>
             <form onSubmit={handleAgendarCita}>
               <div className="form-group">
-                <label>Paciente</label>
+                <label>Usuario</label>
                 <select
                   value={nuevaCita.paciente_id}
                   onChange={e => setNuevaCita({...nuevaCita, paciente_id: e.target.value})}
                   className="form-control"
                   required
                 >
-                  <option value="">Selecciona un paciente</option>
+                  <option value="">Selecciona un usuario</option>
                   {pacientes.map(pac => (
                     <option key={pac.id} value={pac.id}>
                       {pac.nombre_completo || pac.nombre}

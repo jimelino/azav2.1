@@ -9,7 +9,7 @@ import LucideIcon from '../LucideIcon';
 
 const ESPECIALISTA_NAV_ITEMS = [
   { path: '/especialista', icon: 'home', label: 'Inicio' },
-  { path: '/especialista/pacientes', icon: 'users', label: 'Mis Pacientes' },
+  { path: '/especialista/pacientes', icon: 'users', label: 'Mis Usuarios' },
   { path: '/especialista/citas', icon: 'calendar', label: 'Mis Citas' },
   { path: '/especialista/agenda', icon: 'calendar-days', label: 'Agenda' },
   { path: '/especialista/chat', icon: 'message', label: 'Mensajes' },

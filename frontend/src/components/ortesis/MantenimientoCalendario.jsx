@@ -148,7 +148,7 @@ const MantenimientoCalendario = ({ pacienteId, onBack }) => {
         <div className="ortesis-empty">
           <LucideIcon name="wrench" size={32} />
           <h4>Sin registros de mantenimiento</h4>
-          <p>No se han registrado ajustes para este paciente</p>
+          <p>No se han registrado ajustes para este usuario</p>
         </div>
       )}
 

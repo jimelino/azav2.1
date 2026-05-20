@@ -26,8 +26,8 @@ import ActividadACTPaciente from '../../components/neuropsicologia/ActividadACTP
 import CuestionariosHistorial from '../../components/neuropsicologia/CuestionariosHistorial';
 import DispositivosPacientes from '../../components/ortesis/DispositivosPacientes';
 import SeguimientoAdaptacion from '../../components/ortesis/SeguimientoAdaptacion';
-import MantenimientoCalendario from '../../components/ortesis/MantenimientoCalendario';
-import MedicionesAjustes from '../../components/ortesis/MedicionesAjustes';
+import MantenimientoAjustes from '../../components/ortesis/MantenimientoAjustes';
+import MedicionesMunon from '../../components/ortesis/MedicionesMunon';
 import LucideIcon from '../../components/LucideIcon';
 import { Line } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Filler, Title, Tooltip, Legend } from 'chart.js';
@@ -51,10 +51,10 @@ const AREAS_CONFIG = {
     icon: 'dumbbell',
     color: '#E65100',
     modulos: [
-      { id: 'ejercicios', nombre: 'Ejercicios de Pacientes', icon: 'dumbbell', descripcion: 'Ver rutinas y progreso', view: 'mod-ejercicios' },
-      { id: 'evaluaciones', nombre: 'Evaluaciones', icon: 'bar-chart', descripcion: 'Evaluaciones físicas de pacientes', view: 'mod-evaluaciones' },
-      { id: 'planes', nombre: 'Planes de Tratamiento', icon: 'clipboard', descripcion: 'Gestionar planes de pacientes', view: 'mod-planes' },
-      { id: 'progreso', nombre: 'Progreso', icon: 'trending-up', descripcion: 'Ver progreso de pacientes', view: 'mod-progreso' },
+      { id: 'ejercicios', nombre: 'Ejercicios de Usuarios', icon: 'dumbbell', descripcion: 'Ver rutinas y progreso', view: 'mod-ejercicios' },
+      { id: 'evaluaciones', nombre: 'Evaluaciones', icon: 'bar-chart', descripcion: 'Evaluaciones físicas de usuarios', view: 'mod-evaluaciones' },
+      { id: 'planes', nombre: 'Planes de Tratamiento', icon: 'clipboard', descripcion: 'Gestionar planes de usuarios', view: 'mod-planes' },
+      { id: 'progreso', nombre: 'Progreso', icon: 'trending-up', descripcion: 'Ver progreso de usuarios', view: 'mod-progreso' },
     ],
     herramientas: [
       { nombre: 'Calculadora de ROM', icon: 'compass' },
@@ -67,12 +67,12 @@ const AREAS_CONFIG = {
     icon: 'salad',
     color: '#2E7D32',
     modulos: [
-      { id: 'planes-nutricionales', nombre: 'Planes Nutricionales', icon: 'utensils', descripcion: 'Ver dietas de pacientes', view: 'mod-planes-nutricionales' },
-      { id: 'seguimiento-peso', nombre: 'Seguimiento de Peso', icon: 'chart-line', descripcion: 'Ver peso de pacientes', view: 'mod-seguimiento-peso' },
+      { id: 'planes-nutricionales', nombre: 'Planes Nutricionales', icon: 'utensils', descripcion: 'Ver dietas de usuarios', view: 'mod-planes-nutricionales' },
+      { id: 'seguimiento-peso', nombre: 'Seguimiento de Peso', icon: 'chart-line', descripcion: 'Ver peso de usuarios', view: 'mod-seguimiento-peso' },
       { id: 'historial-alimenticio', nombre: 'Historial Alimenticio', icon: 'salad', descripcion: 'Ver registros de alimentación', view: 'mod-historial-alimenticio' },
-      { id: 'imc-pacientes', nombre: 'IMC de Pacientes', icon: 'scale', descripcion: 'Ver índice de masa corporal', view: 'mod-imc' },
+      { id: 'imc-pacientes', nombre: 'IMC de Usuarios', icon: 'scale', descripcion: 'Ver índice de masa corporal', view: 'mod-imc' },
       { id: 'calculadora-calorica', nombre: 'Calculadora Calórica', icon: 'target', descripcion: 'Calcular requerimiento calórico', view: 'mod-calculadora-calorica' },
-      { id: 'historial-planes', nombre: 'Historial de Planes', icon: 'file-text', descripcion: 'Ver planes asignados al paciente', view: 'mod-historial-planes' },
+      { id: 'historial-planes', nombre: 'Historial de Planes', icon: 'file-text', descripcion: 'Ver planes asignados al usuario', view: 'mod-historial-planes' },
       { id: 'catalogo-recetas', nombre: 'Catálogo de Recetas', icon: 'book-open', descripcion: 'Gestionar recetas del catálogo', view: 'mod-catalogo-recetas' },
       { id: 'generador-plan', nombre: 'Generar Plan', icon: 'cooking-pot', descripcion: 'Crear plan desde recetas', view: 'mod-generador-plan' },
     ],
@@ -87,9 +87,9 @@ const AREAS_CONFIG = {
     color: '#C62828',
     modulos: [
       { id: 'consultas', nombre: 'Historial Consultas', icon: 'stethoscope', descripcion: 'Ver historial de consultas', view: 'mod-consultas' },
-      { id: 'signos-vitales', nombre: 'Signos Vitales', icon: 'heart-pulse', descripcion: 'Ver signos vitales de pacientes', view: 'mod-signos-vitales' },
-      { id: 'estudios', nombre: 'Estudios Clínicos', icon: 'microscope', descripcion: 'Ver estudios de pacientes', view: 'mod-estudios' },
-      { id: 'recetas-medicas', nombre: 'Recetas Médicas', icon: 'pill', descripcion: 'Generar recetas para pacientes', view: 'mod-recetas' },
+      { id: 'signos-vitales', nombre: 'Signos Vitales', icon: 'heart-pulse', descripcion: 'Ver signos vitales de usuarios', view: 'mod-signos-vitales' },
+      { id: 'estudios', nombre: 'Estudios Clínicos', icon: 'microscope', descripcion: 'Ver estudios de usuarios', view: 'mod-estudios' },
+      { id: 'recetas-medicas', nombre: 'Recetas Médicas', icon: 'pill', descripcion: 'Generar recetas para usuarios', view: 'mod-recetas' },
     ],
     herramientas: [
       { nombre: 'Calculadora de Dosis', icon: 'syringe' },
@@ -102,32 +102,23 @@ const AREAS_CONFIG = {
     icon: 'brain',
     color: '#6A1B9A',
     modulos: [
-      { id: 'evaluaciones-cognitivas', nombre: 'Evaluaciones Cognitivas', icon: 'target', descripcion: 'Ver tests de pacientes', view: 'mod-evaluaciones-cognitivas' },
-      { id: 'ejercicios-mentales', nombre: 'Ejercicios Mentales', icon: 'target', descripcion: 'Ver actividades de pacientes', view: 'mod-ejercicios-mentales' },
-      { id: 'memoria', nombre: 'Registro de Memoria', icon: 'pen-line', descripcion: 'Ver seguimiento cognitivo', view: 'mod-memoria' },
+      { id: 'evaluaciones-neuro', nombre: 'Evaluaciones Neuropsicológicas', icon: 'target', descripcion: 'Evaluaciones y cuestionarios', view: 'mod-evaluaciones-neuro' },
+      { id: 'herramientas-act', nombre: 'Herramientas ACT', icon: 'sparkles', descripcion: 'Ver actividades de usuarios', view: 'mod-herramientas-act' },
       { id: 'emocional', nombre: 'Estado Emocional', icon: 'smile', descripcion: 'Ver evaluación emocional', view: 'mod-emocional' },
     ],
-    herramientas: [
-      { nombre: 'Test Mini-Mental', icon: 'clipboard' },
-      { nombre: 'Escala de Ansiedad', icon: 'frown' },
-      { nombre: 'Test de Memoria', icon: 'brain' },
-    ]
+    herramientas: []
   },
   ortesis: {
     nombre: 'Ortesis y Prótesis',
     icon: 'accessibility',
     color: '#1565C0',
     modulos: [
-      { id: 'dispositivos', nombre: 'Dispositivos', icon: 'accessibility', descripcion: 'Ver dispositivos de pacientes', view: 'mod-dispositivos' },
+      { id: 'dispositivos', nombre: 'Dispositivos', icon: 'accessibility', descripcion: 'Ver dispositivos de usuarios', view: 'mod-dispositivos' },
       { id: 'adaptacion', nombre: 'Adaptación', icon: 'wrench', descripcion: 'Ver seguimiento de adaptación', view: 'mod-adaptacion' },
-      { id: 'mantenimiento', nombre: 'Mantenimiento', icon: 'hammer', descripcion: 'Ver calendario de mantenimiento', view: 'mod-mantenimiento' },
-      { id: 'medidas', nombre: 'Medidas y Ajustes', icon: 'clipboard', descripcion: 'Ver registro de medidas', view: 'mod-medidas' },
+      { id: 'mantenimiento', nombre: 'Mantenimiento y Ajustes', icon: 'hammer', descripcion: 'Historial de mantenimiento y ajustes', view: 'mod-mantenimiento' },
+      { id: 'mediciones', nombre: 'Mediciones del Muñón', icon: 'ruler', descripcion: 'Registro de medidas del muñón', view: 'mod-mediciones-munon' },
     ],
-    herramientas: [
-      { nombre: 'Guía de Tallas', icon: 'clipboard' },
-      { nombre: 'Materiales', icon: 'wrench' },
-      { nombre: 'Proveedores', icon: 'hospital' },
-    ]
+    herramientas: []
   },
 };
 
@@ -262,7 +253,7 @@ const RecetasMedicasView = ({ pacienteId, pacienteNombre, faseActual, areaColor,
   return (
     <section className="module-view">
       <div className="module-header">
-        <button className="back-btn" onClick={onBack}>← Cambiar paciente</button>
+        <button className="back-btn" onClick={onBack}>← Cambiar usuario</button>
         <h2 className="module-title"><LucideIcon name="pill" size={22} /> Recetas de {pacienteNombre}</h2>
       </div>
 
@@ -369,7 +360,7 @@ const RecetasMedicasView = ({ pacienteId, pacienteNombre, faseActual, areaColor,
           ) : (
             <div className="empty-state">
               <span className="empty-icon"><LucideIcon name="pill" size={32} /></span>
-              <p>{filtro === 'todos' ? 'No hay medicamentos registrados para este paciente' : `No hay medicamentos ${filtro}`}</p>
+              <p>{filtro === 'todos' ? 'No hay medicamentos registrados para este usuario' : `No hay medicamentos ${filtro}`}</p>
               <button className="btn-primary" onClick={openCreate} style={{ background: areaColor, marginTop: '12px' }}>
                 <LucideIcon name="plus" size={16} /> Prescribir Medicamento
               </button>
@@ -505,6 +496,7 @@ const EspecialistaDashboard = () => {
   const [loadingPacienteData, setLoadingPacienteData] = useState(false);
   const [dashboardData, setDashboardData] = useState({
     todayCitas: [],
+    proximasCitas: [],
     pacientesActivos: 0,
     seguimientosPendientes: 0,
     mensajesNuevos: 0,
@@ -591,11 +583,17 @@ const EspecialistaDashboard = () => {
     setIsLoading(true);
     try {
       const especialistaId = user?.especialista_id || user?.id;
-      const [citasRes, pacientesRes, mensajesRes] = await Promise.all([
+      const [citasRes, pacientesRes, mensajesRes, citasFuturasRes] = await Promise.all([
         api.get(`/especialistas/${especialistaId}/citas-hoy`).catch(() => ({ data: null })),
         api.get(`/especialistas/${especialistaId}/pacientes`).catch(() => ({ data: null })),
         api.get(`/mensajes/no-leidos/${especialistaId}`).catch(() => ({ data: null })),
+        api.get(`/citas/especialista/${especialistaId}`).catch(() => ({ data: null })),
       ]);
+
+      // Separar las citas futuras (> hoy) de las de hoy para evitar duplicados en la UI
+      const hoyStr = new Date().toISOString().split('T')[0];
+      const todasFuturas = citasFuturasRes.data?.citas || [];
+      const proximas = todasFuturas.filter(c => c.fecha > hoyStr);
 
       setDashboardData({
         todayCitas: citasRes.data?.citas || [],
@@ -603,6 +601,7 @@ const EspecialistaDashboard = () => {
         seguimientosPendientes: pacientesRes.data?.pendientes || 0,
         mensajesNuevos: mensajesRes.data?.total || 0,
         pacientes: pacientesRes.data?.pacientes || [],
+        proximasCitas: proximas,
       });
     } catch (error) {
       console.error('Error cargando datos:', error);
@@ -895,17 +894,30 @@ const EspecialistaDashboard = () => {
 
   // Guardar nueva cita
   const handleGuardarCita = async () => {
-    if (!citaForm.paciente_id || !citaForm.fecha || !citaForm.hora_inicio || !citaForm.tipo_cita_id) {
-      alert('Completa todos los campos requeridos');
+    // Validación granular: decir exactamente qué falta
+    const faltantes = [];
+    if (!citaForm.paciente_id)  faltantes.push('Usuario');
+    if (!citaForm.fecha)        faltantes.push('Fecha');
+    if (!citaForm.tipo_cita_id) faltantes.push('Tipo de cita');
+    if (!citaForm.hora_inicio)  faltantes.push('Horario');
+    if (faltantes.length > 0) {
+      alert('Faltan campos: ' + faltantes.join(', '));
       return;
     }
 
     try {
       const especialistaId = user?.especialista_id || user?.id;
-      await api.post('/citas/especialista', {
-        ...citaForm,
-        especialista_id: especialistaId
-      });
+      const payload = {
+        paciente_id: parseInt(citaForm.paciente_id, 10),
+        especialista_id: parseInt(especialistaId, 10),
+        fecha: citaForm.fecha,
+        hora_inicio: citaForm.hora_inicio,
+        tipo_cita_id: parseInt(citaForm.tipo_cita_id, 10),
+        motivo: citaForm.motivo || null,
+      };
+      console.log('[crearCita] enviando', payload);
+      const res = await api.post('/citas/especialista', payload);
+      console.log('[crearCita] respuesta', res);
 
       alert('Cita agendada exitosamente');
 
@@ -922,8 +934,11 @@ const EspecialistaDashboard = () => {
       // Recargar datos
       loadData();
     } catch (error) {
-      console.error('Error agendando cita:', error);
-      alert('Error al agendar la cita. Por favor intenta de nuevo.');
+      // El interceptor de api.js rechaza con error.response?.data ya desempaquetado.
+      // Puede llegar como { message, ... } o como Error con message.
+      console.error('[crearCita] error completo:', error);
+      const msg = error?.message || error?.response?.data?.message || 'Error desconocido';
+      alert('Error al agendar la cita: ' + msg);
     }
   };
 
@@ -971,7 +986,7 @@ const EspecialistaDashboard = () => {
             <span className="stat-icon"><LucideIcon name="users" size={18} /></span>
             <div className="stat-info">
               <span className="stat-value">{dashboardData.pacientesActivos}</span>
-              <span className="stat-label">Pacientes</span>
+              <span className="stat-label">Usuarios</span>
             </div>
           </div>
           <div className="quick-stat-card" onClick={() => setActiveView('agenda')}>
@@ -1055,6 +1070,7 @@ const EspecialistaDashboard = () => {
       </section>
 
       {/* Herramientas rápidas */}
+      {areaConfig.herramientas.length > 0 && (
       <section className="quick-tools">
         <h2 className="section-title"><LucideIcon name="hammer" size={22} /> Herramientas Rápidas</h2>
         <div className="tools-grid">
@@ -1071,6 +1087,7 @@ const EspecialistaDashboard = () => {
           ))}
         </div>
       </section>
+      )}
     </>
   );
 
@@ -1078,21 +1095,21 @@ const EspecialistaDashboard = () => {
   const renderPacientes = () => (
     <section className="patients-view">
       <div className="section-header">
-        <h2 className="section-title"><LucideIcon name="users" size={22} /> Mis Pacientes</h2>
-        <span className="patient-count">{dashboardData.pacientes.length} pacientes</span>
+        <h2 className="section-title"><LucideIcon name="users" size={22} /> Mis Usuarios</h2>
+        <span className="patient-count">{dashboardData.pacientes.length} usuarios</span>
       </div>
 
       {dashboardData.pacientes.length === 0 ? (
         <div className="empty-state">
           <span className="empty-icon"><LucideIcon name="users" size={32} /></span>
-          <p>No tienes pacientes asignados</p>
+          <p>No tienes usuarios asignados</p>
         </div>
       ) : (
         <div className="patients-list">
           {dashboardData.pacientes.map((paciente) => (
             <div key={paciente.id} className="patient-card-full">
               <div className="patient-avatar" style={{ background: areaConfig.color }}>
-                {paciente.nombre?.charAt(0) || 'P'}
+                {paciente.nombre?.charAt(0) || 'U'}
               </div>
               <div className="patient-details">
                 <h3 className="patient-name">{paciente.nombre}</h3>
@@ -1177,6 +1194,43 @@ const EspecialistaDashboard = () => {
             ))}
           </div>
         )}
+
+        {/* Próximas citas (fechas futuras) */}
+        <h3 className="subsection-title" style={{ marginTop: 'var(--spacing-lg, 24px)' }}>
+          Próximas Citas ({dashboardData.proximasCitas.length})
+        </h3>
+        {dashboardData.proximasCitas.length === 0 ? (
+          <div className="empty-state">
+            <span className="empty-icon"><LucideIcon name="calendar" size={32} /></span>
+            <p>No tienes citas programadas para los próximos días</p>
+          </div>
+        ) : (
+          <div className="agenda-list">
+            {dashboardData.proximasCitas.map((cita) => (
+              <div key={cita.id} className="agenda-item" style={{ '--status-color': getStatusColor(cita.estado) }}>
+                <div className="agenda-time">
+                  <span className="time-date" style={{ fontSize: '13px', color: 'var(--text-secondary)', display: 'block' }}>
+                    {new Date(cita.fecha + 'T00:00:00').toLocaleDateString('es-MX', { weekday: 'short', day: '2-digit', month: 'short' })}
+                  </span>
+                  <span className="time-hour">{cita.hora_inicio}</span>
+                </div>
+                <div className="agenda-details">
+                  <h4 className="agenda-patient">{cita.paciente_nombre}</h4>
+                  <p className="agenda-type">{cita.tipo_cita}</p>
+                  {cita.motivo && <p className="agenda-reason">{cita.motivo}</p>}
+                </div>
+                <div className="agenda-status">
+                  <span className={`status-badge ${cita.estado}`}>{cita.estado}</span>
+                </div>
+                <div className="agenda-actions">
+                  <Link to={`/especialista/pacientes/${cita.paciente_id}/expediente`} className="btn-small">
+                    Expediente
+                  </Link>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );
@@ -1190,13 +1244,13 @@ const EspecialistaDashboard = () => {
       </div>
 
       <div className="followups-info">
-        <p>Pacientes que no han tenido cita en la última semana:</p>
+        <p>Usuarios que no han tenido cita en la última semana:</p>
       </div>
 
       {dashboardData.pacientes.filter(p => !p.ultima_cita || new Date(p.ultima_cita) < new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)).length === 0 ? (
         <div className="empty-state success">
           <span className="empty-icon"><LucideIcon name="circle-check" size={32} /></span>
-          <p>Todos los pacientes están al día con sus citas</p>
+          <p>Todos los usuarios están al día con sus citas</p>
         </div>
       ) : (
         <div className="followups-list">
@@ -1205,7 +1259,7 @@ const EspecialistaDashboard = () => {
             .map((paciente) => (
               <div key={paciente.id} className="followup-card">
                 <div className="followup-avatar" style={{ background: areaConfig.color }}>
-                  {paciente.nombre?.charAt(0) || 'P'}
+                  {paciente.nombre?.charAt(0) || 'U'}
                 </div>
                 <div className="followup-info">
                   <h3>{paciente.nombre}</h3>
@@ -1294,7 +1348,7 @@ const EspecialistaDashboard = () => {
               <div className="chat-placeholder">
                 <span className="chat-placeholder-icon"><LucideIcon name="message" size={32} /></span>
                 <p>Selecciona una conversación para ver los mensajes</p>
-                <p className="text-muted">O inicia una nueva conversación con un paciente</p>
+                <p className="text-muted">O inicia una nueva conversación con un usuario</p>
               </div>
             ) : (
               <>
@@ -1412,11 +1466,11 @@ const EspecialistaDashboard = () => {
       </div>
 
       <div className="patient-selector">
-        <h3>Selecciona un paciente para ver sus datos:</h3>
+        <h3>Selecciona un usuario para ver sus datos:</h3>
         {dashboardData.pacientes.length === 0 ? (
           <div className="empty-state">
             <span className="empty-icon"><LucideIcon name="users" size={32} /></span>
-            <p>No tienes pacientes asignados</p>
+            <p>No tienes usuarios asignados</p>
           </div>
         ) : (
           <div className="patients-selector-grid">
@@ -1428,7 +1482,7 @@ const EspecialistaDashboard = () => {
                 style={{ '--area-color': areaConfig.color }}
               >
                 <div className="patient-avatar-small">
-                  {paciente.nombre?.charAt(0) || 'P'}
+                  {paciente.nombre?.charAt(0) || 'U'}
                 </div>
                 <div className="patient-info-small">
                   <span className="patient-name">{paciente.nombre}</span>
@@ -1452,7 +1506,7 @@ const EspecialistaDashboard = () => {
       <section className="module-view">
         <div className="module-header">
           <button className="back-btn" onClick={handleBackToPatientList}>
-            ← Cambiar paciente
+            ← Cambiar usuario
           </button>
           <h2 className="module-title"><LucideIcon name="stethoscope" size={22} /> Consultas de {selectedPaciente.nombre}</h2>
         </div>
@@ -1496,7 +1550,7 @@ const EspecialistaDashboard = () => {
               ) : (
                 <div className="empty-state">
                   <span className="empty-icon"><LucideIcon name="clipboard" size={32} /></span>
-                  <p>No hay consultas registradas para este paciente</p>
+                  <p>No hay consultas registradas para este usuario</p>
                 </div>
               )}
             </div>
@@ -1558,7 +1612,7 @@ const EspecialistaDashboard = () => {
       <section className="module-view">
         <div className="module-header">
           <button className="back-btn" onClick={handleBackToPatientList}>
-            ← Cambiar paciente
+            ← Cambiar usuario
           </button>
           <h2 className="module-title"><LucideIcon name="heart-pulse" size={22} /> Signos Vitales de {selectedPaciente.nombre}</h2>
         </div>
@@ -1893,7 +1947,7 @@ const EspecialistaDashboard = () => {
       <section className="module-view">
         <div className="module-header">
           <button className="back-btn" onClick={handleBackToPatientList}>
-            ← Cambiar paciente
+            ← Cambiar usuario
           </button>
           <h2 className="module-title"><LucideIcon name="microscope" size={22} /> Estudios de {selectedPaciente.nombre}</h2>
         </div>
@@ -1944,7 +1998,7 @@ const EspecialistaDashboard = () => {
               ) : (
                 <div className="empty-state">
                   <span className="empty-icon"><LucideIcon name="microscope" size={32} /></span>
-                  <p>No hay estudios registrados para este paciente</p>
+                  <p>No hay estudios registrados para este usuario</p>
                 </div>
               )}
             </div>
@@ -2018,7 +2072,7 @@ const EspecialistaDashboard = () => {
 
       // Módulos de Fisioterapia
       case 'mod-ejercicios':
-        if (!selectedPaciente) return renderPatientSelector('Ejercicios de Pacientes', 'dumbbell');
+        if (!selectedPaciente) return renderPatientSelector('Ejercicios de Usuarios', 'dumbbell');
         return <EjerciciosPacientes pacienteId={selectedPaciente.id} onBack={handleBackToPatientList} />;
       case 'mod-evaluaciones':
         if (!selectedPaciente) return renderPatientSelector('Evaluaciones Físicas', 'bar-chart');
@@ -2027,7 +2081,7 @@ const EspecialistaDashboard = () => {
         if (!selectedPaciente) return renderPatientSelector('Planes de Tratamiento', 'clipboard');
         return <PlanesTratamiento pacienteId={selectedPaciente.id} onBack={handleBackToPatientList} />;
       case 'mod-progreso':
-        if (!selectedPaciente) return renderPatientSelector('Progreso de Pacientes', 'trending-up');
+        if (!selectedPaciente) return renderPatientSelector('Progreso de Usuarios', 'trending-up');
         return <ProgresoPacientes pacienteId={selectedPaciente.id} onBack={handleBackToPatientList} />;
       case 'mod-planes-nutricionales': return renderPlanesNutricionales();
       case 'mod-seguimiento-peso':
@@ -2037,7 +2091,7 @@ const EspecialistaDashboard = () => {
         if (!selectedPaciente) return renderPatientSelector('Historial Alimenticio', 'salad');
         return <HistorialAlimenticio pacienteId={selectedPaciente.id} onBack={handleBackToPatientList} />;
       case 'mod-imc':
-        if (!selectedPaciente) return renderPatientSelector('IMC de Pacientes', 'scale');
+        if (!selectedPaciente) return renderPatientSelector('IMC de Usuarios', 'scale');
         return <IMCPacientes pacienteId={selectedPaciente.id} onBack={handleBackToPatientList} />;
       case 'mod-calculadora-calorica':
         if (!selectedPaciente) return renderPatientSelector('Calculadora Calórica', 'target');
@@ -2053,15 +2107,12 @@ const EspecialistaDashboard = () => {
           onBack={() => setActiveView('inicio')}
           onPlanCreated={() => setActiveView('mod-planes-nutricionales')}
         />;
-      case 'mod-evaluaciones-cognitivas':
-        if (!selectedPaciente) return renderPatientSelector('Evaluaciones Cognitivas', 'target');
+      case 'mod-evaluaciones-neuro':
+        if (!selectedPaciente) return renderPatientSelector('Evaluaciones Neuropsicológicas', 'target');
         return <EvaluacionesCognitivas pacienteId={selectedPaciente.id} onBack={handleBackToPatientList} />;
-      case 'mod-ejercicios-mentales':
+      case 'mod-herramientas-act':
         if (!selectedPaciente) return renderPatientSelector('Herramientas ACT', 'sparkles');
         return <ActividadACTPaciente pacienteId={selectedPaciente.id} onBack={handleBackToPatientList} />;
-      case 'mod-memoria':
-        if (!selectedPaciente) return renderPatientSelector('Cuestionarios Psicológicos', 'clipboard-list');
-        return <CuestionariosHistorial pacienteId={selectedPaciente.id} onBack={handleBackToPatientList} />;
       case 'mod-emocional':
         if (!selectedPaciente) return renderPatientSelector('Estado Emocional', 'heart');
         return <EstadoEmocionalPaciente pacienteId={selectedPaciente.id} onBack={handleBackToPatientList} />;
@@ -2072,11 +2123,11 @@ const EspecialistaDashboard = () => {
         if (!selectedPaciente) return renderPatientSelector('Seguimiento de Adaptación', 'wrench');
         return <SeguimientoAdaptacion pacienteId={selectedPaciente.id} onBack={handleBackToPatientList} />;
       case 'mod-mantenimiento':
-        if (!selectedPaciente) return renderPatientSelector('Mantenimiento', 'hammer');
-        return <MantenimientoCalendario pacienteId={selectedPaciente.id} onBack={handleBackToPatientList} />;
-      case 'mod-medidas':
-        if (!selectedPaciente) return renderPatientSelector('Medidas y Ajustes', 'clipboard');
-        return <MedicionesAjustes pacienteId={selectedPaciente.id} onBack={handleBackToPatientList} />;
+        if (!selectedPaciente) return renderPatientSelector('Mantenimiento y Ajustes', 'hammer');
+        return <MantenimientoAjustes pacienteId={selectedPaciente.id} onBack={handleBackToPatientList} />;
+      case 'mod-mediciones-munon':
+        if (!selectedPaciente) return renderPatientSelector('Mediciones del Muñón', 'ruler');
+        return <MedicionesMunon pacienteId={selectedPaciente.id} onBack={handleBackToPatientList} />;
 
       default: return renderInicio();
     }
@@ -2154,7 +2205,7 @@ const EspecialistaDashboard = () => {
           onClick={() => setActiveView('pacientes')}
         >
           <span className="nav-icon"><LucideIcon name="users" size={20} /></span>
-          <span className="nav-label">Pacientes</span>
+          <span className="nav-label">Usuarios</span>
         </button>
         <button
           className={`nav-item ${activeView === 'mensajes' ? 'active' : ''}`}
@@ -2186,7 +2237,7 @@ const EspecialistaDashboard = () => {
             </div>
             <div className="modal-body">
               <div className="form-group">
-                <label>Peso del paciente (kg)</label>
+                <label>Peso del usuario (kg)</label>
                 <input
                   type="number"
                   value={dosisForm.peso}
@@ -2436,7 +2487,7 @@ const EspecialistaDashboard = () => {
             </div>
             <div className="modal-body">
               <p className="modal-subtitle">
-                Paciente: <strong>{selectedPaciente?.nombre}</strong>
+                Usuario: <strong>{selectedPaciente?.nombre}</strong>
               </p>
 
               <div className="form-group">
@@ -2529,13 +2580,13 @@ const EspecialistaDashboard = () => {
             </div>
             <div className="modal-body">
               <p className="modal-subtitle">
-                Selecciona un paciente para iniciar una conversación:
+                Selecciona un usuario para iniciar una conversación:
               </p>
 
               {dashboardData.pacientes.length === 0 ? (
                 <div className="empty-state">
                   <span className="empty-icon"><LucideIcon name="users" size={32} /></span>
-                  <p>No tienes pacientes asignados</p>
+                  <p>No tienes usuarios asignados</p>
                 </div>
               ) : (
                 <div className="pacientes-chat-list">
@@ -2581,14 +2632,14 @@ const EspecialistaDashboard = () => {
             </div>
             <div className="modal-body">
               <div className="form-group">
-                <label>Paciente *</label>
+                <label>Usuario *</label>
                 <select
                   value={citaForm.paciente_id}
                   onChange={e => setCitaForm({...citaForm, paciente_id: e.target.value})}
                   className="form-input"
                   required
                 >
-                  <option value="">Seleccionar paciente</option>
+                  <option value="">Seleccionar usuario</option>
                   {dashboardData.pacientes.map((paciente) => (
                     <option key={paciente.id} value={paciente.id}>
                       {paciente.nombre}

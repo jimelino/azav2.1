@@ -210,7 +210,7 @@ const Expediente = () => {
   }
 
   const esPaciente = rol === 'paciente';
-  const titulo = esPaciente ? 'Mi Expediente' : `Expediente de ${resumen?.paciente?.nombre_completo || 'Paciente'}`;
+  const titulo = esPaciente ? 'Mi Expediente' : `Expediente de ${resumen?.paciente?.nombre_completo || 'Usuario'}`;
   const subtitulo = esPaciente
     ? 'Tu resumen de salud y documentos'
     : resumen?.paciente?.fase_nombre || 'Resumen completo';

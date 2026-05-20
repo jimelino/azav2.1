@@ -17,7 +17,7 @@ return [
     'upload' => [
         'max_file_size' => $_ENV['MAX_FILE_SIZE'] ?? 5242880, // 5MB
         'allowed_image_types' => explode(',', $_ENV['ALLOWED_IMAGE_TYPES'] ?? 'jpg,jpeg,png,gif'),
-        'upload_path' => __DIR__ . '/../public/uploads/'
+        'upload_path' => $_ENV['UPLOAD_PATH'] ?? __DIR__ . '/../public/uploads/'
     ],
 
     'security' => [

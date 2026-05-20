@@ -291,7 +291,7 @@ const LoginForm = () => {
               <Link
                 to="/solicitud"
                 className="btn-solicitud-admision"
-                onFocus={() => handleFieldFocus('solicitud', 'Enlace para solicitar admisión como paciente nuevo')}
+                onFocus={() => handleFieldFocus('solicitud', 'Enlace para solicitar admisión como usuario nuevo')}
               >
                 <LucideIcon name="clipboard-list" size={20} />
                 Solicitar Admisión

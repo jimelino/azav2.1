@@ -53,7 +53,7 @@ const BaseLayout = ({
     switch (role) {
       case 'admin': return 'Administrador';
       case 'especialista': return 'Especialista';
-      default: return 'Paciente';
+      default: return 'Usuario';
     }
   };
 

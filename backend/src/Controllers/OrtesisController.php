@@ -588,6 +588,160 @@ class OrtesisController
     }
 
     // =====================================================
+    // MEDICIONES DEL MUÑÓN
+    // =====================================================
+
+    public function getMedicionesMunon($pacienteId)
+    {
+        try {
+            $mediciones = $this->db->query(
+                "SELECT mm.*, u.nombre_completo as especialista_nombre
+                 FROM mediciones_munon mm
+                 LEFT JOIN usuarios u ON mm.registrado_por = u.id
+                 WHERE mm.paciente_id = ?
+                 ORDER BY mm.fecha DESC",
+                [$pacienteId]
+            )->fetchAll();
+
+            return Response::success($mediciones);
+        } catch (\Exception $e) {
+            error_log('Error getting mediciones munon: ' . $e->getMessage());
+            return Response::error('Error al obtener mediciones', 500);
+        }
+    }
+
+    public function crearMedicionMunon($pacienteId, $data)
+    {
+        try {
+            $user = \App\Middleware\AuthMiddleware::getCurrentUser();
+
+            $this->db->query(
+                "INSERT INTO mediciones_munon
+                 (paciente_id, fecha, circunferencia_proximal, circunferencia_media, circunferencia_distal,
+                  longitud, condicion_piel, temperatura_local, sensibilidad, notas, registrado_por)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                [
+                    $pacienteId,
+                    $data['fecha'] ?? date('Y-m-d'),
+                    $data['circunferencia_proximal'] ?? null,
+                    $data['circunferencia_media'] ?? null,
+                    $data['circunferencia_distal'] ?? null,
+                    $data['longitud'] ?? null,
+                    $data['condicion_piel'] ?? 'sana',
+                    $data['temperatura_local'] ?? null,
+                    $data['sensibilidad'] ?? 'normal',
+                    $data['notas'] ?? null,
+                    $user['id']
+                ]
+            );
+
+            $id = $this->db->lastInsertId();
+            return Response::success(['id' => $id], 'Medición registrada exitosamente', 201);
+        } catch (\Exception $e) {
+            error_log('Error creating medicion munon: ' . $e->getMessage());
+            return Response::error('Error al registrar medición', 500);
+        }
+    }
+
+    // =====================================================
+    // PROTOCOLO DE USO PROGRESIVO
+    // =====================================================
+
+    public function getProtocoloUsoRegistros($pacienteId)
+    {
+        try {
+            $registros = $this->db->query(
+                "SELECT * FROM protocolo_uso_registros
+                 WHERE paciente_id = ?
+                 ORDER BY fecha DESC
+                 LIMIT 60",
+                [$pacienteId]
+            )->fetchAll();
+
+            return Response::success($registros);
+        } catch (\Exception $e) {
+            error_log('Error getting protocolo uso: ' . $e->getMessage());
+            return Response::error('Error al obtener registros de uso', 500);
+        }
+    }
+
+    public function crearRegistroUso($pacienteId, $data)
+    {
+        try {
+            $this->db->query(
+                "INSERT INTO protocolo_uso_registros
+                 (paciente_id, fecha, horas_uso, dolor_nivel, molestias, actividades_realizadas, tolerancia)
+                 VALUES (?, ?, ?, ?, ?, ?, ?)
+                 ON DUPLICATE KEY UPDATE
+                 horas_uso = VALUES(horas_uso), dolor_nivel = VALUES(dolor_nivel),
+                 molestias = VALUES(molestias), actividades_realizadas = VALUES(actividades_realizadas),
+                 tolerancia = VALUES(tolerancia), updated_at = NOW()",
+                [
+                    $pacienteId,
+                    $data['fecha'] ?? date('Y-m-d'),
+                    $data['horas_uso'],
+                    $data['dolor_nivel'] ?? 0,
+                    $data['molestias'] ?? null,
+                    $data['actividades_realizadas'] ?? null,
+                    $data['tolerancia'] ?? 'buena'
+                ]
+            );
+
+            $id = $this->db->lastInsertId();
+            return Response::success(['id' => $id], 'Registro guardado exitosamente', 201);
+        } catch (\Exception $e) {
+            error_log('Error creating registro uso: ' . $e->getMessage());
+            return Response::error('Error al guardar registro', 500);
+        }
+    }
+
+    public function getProtocoloConfig($pacienteId)
+    {
+        try {
+            $config = $this->db->query(
+                "SELECT * FROM protocolo_uso_config WHERE paciente_id = ? LIMIT 1",
+                [$pacienteId]
+            )->fetch();
+
+            return Response::success($config);
+        } catch (\Exception $e) {
+            error_log('Error getting protocolo config: ' . $e->getMessage());
+            return Response::error('Error al obtener configuración', 500);
+        }
+    }
+
+    public function guardarProtocoloConfig($pacienteId, $data)
+    {
+        try {
+            $user = \App\Middleware\AuthMiddleware::getCurrentUser();
+
+            $this->db->query(
+                "INSERT INTO protocolo_uso_config
+                 (paciente_id, semana_actual, horas_objetivo, incremento_semanal, horas_maximo, notas, creado_por)
+                 VALUES (?, ?, ?, ?, ?, ?, ?)
+                 ON DUPLICATE KEY UPDATE
+                 semana_actual = VALUES(semana_actual), horas_objetivo = VALUES(horas_objetivo),
+                 incremento_semanal = VALUES(incremento_semanal), horas_maximo = VALUES(horas_maximo),
+                 notas = VALUES(notas), updated_at = NOW()",
+                [
+                    $pacienteId,
+                    $data['semana_actual'] ?? 1,
+                    $data['horas_objetivo'] ?? 2,
+                    $data['incremento_semanal'] ?? 1,
+                    $data['horas_maximo'] ?? 12,
+                    $data['notas'] ?? null,
+                    $user['id']
+                ]
+            );
+
+            return Response::success(null, 'Protocolo guardado exitosamente');
+        } catch (\Exception $e) {
+            error_log('Error saving protocolo config: ' . $e->getMessage());
+            return Response::error('Error al guardar protocolo', 500);
+        }
+    }
+
+    // =====================================================
     // CONTENIDO EDUCATIVO COMPLETO
     // =====================================================
 

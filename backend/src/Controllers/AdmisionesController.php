@@ -5,11 +5,13 @@ namespace App\Controllers;
 use App\Services\DatabaseService;
 use App\Middleware\AuthMiddleware;
 use App\Utils\Response;
+use App\Services\EmailService;
 use App\Utils\Validator;
 
 class AdmisionesController
 {
     private $db;
+    private $emailService;
     private $uploadDir;
     private $docsOficialesDir;
     private $allowedExtensions = ['pdf', 'jpg', 'jpeg', 'png', 'docx', 'doc'];
@@ -18,6 +20,7 @@ class AdmisionesController
     public function __construct()
     {
         $this->db = DatabaseService::getInstance();
+        $this->emailService = new EmailService();
         $this->uploadDir = __DIR__ . '/../../uploads/admisiones/';
         $this->docsOficialesDir = __DIR__ . '/../../uploads/documentos_oficiales/';
     }
@@ -51,8 +54,9 @@ class AdmisionesController
                 "INSERT INTO solicitudes_admision
                  (nombre_completo, telefono, email, edad, sexo, ciudad, estado_procedencia,
                   tipo_servicio, tipo_amputacion, causa_amputacion, tiene_protesis_previa,
-                  tiempo_desde_amputacion, notas_clinicas, semestre)
-                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                  tiempo_desde_amputacion, herida_consolidada, herida_infeccion, padece_cronico,
+                  notas_clinicas, semestre)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                 [
                     $data['nombre_completo'],
                     $data['telefono'],
@@ -66,17 +70,32 @@ class AdmisionesController
                     $data['causa_amputacion'],
                     $data['tiene_protesis_previa'] ?? 0,
                     $data['tiempo_desde_amputacion'] ?? null,
+                    $data['herida_consolidada'] ?? null,
+                    $data['herida_infeccion'] ?? null,
+                    $data['padece_cronico'] ?? null,
                     $data['notas_clinicas'] ?? null,
                     $semestre
                 ]
             );
 
             $id = $this->db->lastInsertId();
+            $folio = 'SOL-' . str_pad($id, 5, '0', STR_PAD_LEFT);
+
+            // Enviar correo de confirmación
+            try {
+                $this->emailService->sendAdmisionSolicitudRecibida([
+                    'id' => $id,
+                    'nombre_completo' => $data['nombre_completo'],
+                    'email' => $data['email'] ?? null
+                ]);
+            } catch (\Exception $emailErr) {
+                error_log('Error enviando email de solicitud recibida: ' . $emailErr->getMessage());
+            }
 
             return Response::success([
                 'id' => $id,
-                'folio' => 'SOL-' . str_pad($id, 5, '0', STR_PAD_LEFT)
-            ], 'Solicitud registrada exitosamente. Tu folio es SOL-' . str_pad($id, 5, '0', STR_PAD_LEFT), 201);
+                'folio' => $folio
+            ], 'Solicitud registrada exitosamente. Tu folio es ' . $folio, 201);
         } catch (\Exception $e) {
             error_log('Error creating solicitud: ' . $e->getMessage());
             return Response::error('Error al registrar la solicitud', 500);
@@ -149,11 +168,16 @@ class AdmisionesController
             $cats = array_column($categorias, 'categoria');
             $completo = in_array('laboratorios', $cats) && in_array('radiografias', $cats) && in_array('comprobante_domicilio', $cats);
 
-            if ($completo && in_array($solicitud['estado'], ['documentos_pendientes', 'screening_aprobado'])) {
+            if ($completo && in_array($solicitud['estado'], ['documentos_pendientes', 'pago_confirmado'])) {
                 $this->db->query(
                     "UPDATE solicitudes_admision SET estado = 'documentos_recibidos', updated_at = NOW() WHERE id = ?",
                     [$solicitud['id']]
                 );
+                // Enviar email de documentos recibidos
+                $solCompleta = $this->db->query("SELECT * FROM solicitudes_admision WHERE id = ?", [$solicitud['id']])->fetch();
+                if ($solCompleta) {
+                    $this->emailService->sendAdmisionDocumentosRecibidos($solCompleta);
+                }
             }
 
             return Response::success([
@@ -498,6 +522,16 @@ class AdmisionesController
 
             $this->db->query($sql, $params);
 
+            // Enviar email según el nuevo estado
+            $solicitud = $this->db->query("SELECT * FROM solicitudes_admision WHERE id = ?", [$id])->fetch();
+            if ($solicitud) {
+                if ($nuevoEstado === 'screening_aprobado') {
+                    $this->emailService->sendAdmisionScreeningAprobado($solicitud);
+                } elseif ($nuevoEstado === 'preconsulta_completada') {
+                    // No email específico aquí, admin decide admitir o rechazar
+                }
+            }
+
             return Response::success(null, 'Estado actualizado');
         } catch (\Exception $e) {
             error_log('Error updating estado: ' . $e->getMessage());
@@ -536,64 +570,53 @@ class AdmisionesController
     }
 
     /**
-     * Enviar referencia de pago
+     * Marcar como pagado - confirma pago, genera link de documentos y envía email
+     * Nuevo flujo: Screening → Pago → Documentos
      */
-    public function enviarReferenciaPago($id, $data)
+    public function marcarPagado($id)
     {
         try {
             $user = AuthMiddleware::getCurrentUser();
 
-            if (empty($data['referencia_pago'])) {
-                return Response::error('Referencia de pago requerida', 422);
+            $solicitud = $this->db->query(
+                "SELECT * FROM solicitudes_admision WHERE id = ?", [$id]
+            )->fetch();
+
+            if (!$solicitud) {
+                return Response::error('Solicitud no encontrada', 404);
             }
 
+            // Registrar pago como confirmado directamente
             $this->db->query(
-                "INSERT INTO pagos_admision (solicitud_id, referencia_pago, monto, enviado_por, notas)
-                 VALUES (?, ?, ?, ?, ?)",
-                [
-                    $id,
-                    $data['referencia_pago'],
-                    $data['monto'] ?? null,
-                    $user['id'],
-                    $data['notas'] ?? null
-                ]
+                "INSERT INTO pagos_admision (solicitud_id, referencia_pago, estado, enviado_por, confirmado_por, fecha_confirmacion)
+                 VALUES (?, 'Confirmado por admin', 'confirmado', ?, ?, NOW())",
+                [$id, $user['id'], $user['id']]
             );
 
+            // Generar token de documentos automáticamente (72h)
+            $token = bin2hex(random_bytes(32));
+            $expira = date('Y-m-d H:i:s', strtotime('+72 hours'));
+
             $this->db->query(
-                "UPDATE solicitudes_admision SET estado = 'pago_pendiente', updated_at = NOW() WHERE id = ?",
-                [$id]
+                "UPDATE solicitudes_admision
+                 SET estado = 'pago_confirmado', token_documentos = ?, token_expira_en = ?, updated_at = NOW()
+                 WHERE id = ?",
+                [$token, $expira, $id]
             );
 
-            return Response::success(null, 'Referencia de pago enviada');
+            $frontendUrl = $_ENV['FRONTEND_URL'] ?? 'https://dtai.uteq.edu.mx/~azaria';
+            $link = $frontendUrl . '/admisiones/documentos/' . $token;
+
+            // Enviar email con link de documentos
+            $this->emailService->sendAdmisionPagoConfirmado($solicitud, $link);
+
+            return Response::success([
+                'token' => $token,
+                'link' => $link,
+                'expira_en' => $expira
+            ], 'Pago confirmado. Se envió email con enlace de documentos.');
         } catch (\Exception $e) {
-            error_log('Error sending pago ref: ' . $e->getMessage());
-            return Response::error('Error al enviar referencia de pago', 500);
-        }
-    }
-
-    /**
-     * Confirmar pago
-     */
-    public function confirmarPago($id)
-    {
-        try {
-            $user = AuthMiddleware::getCurrentUser();
-
-            $this->db->query(
-                "UPDATE pagos_admision SET estado = 'confirmado', confirmado_por = ?, fecha_confirmacion = NOW()
-                 WHERE solicitud_id = ? AND estado = 'pendiente'
-                 ORDER BY id DESC LIMIT 1",
-                [$user['id'], $id]
-            );
-
-            $this->db->query(
-                "UPDATE solicitudes_admision SET estado = 'pago_confirmado', updated_at = NOW() WHERE id = ?",
-                [$id]
-            );
-
-            return Response::success(null, 'Pago confirmado');
-        } catch (\Exception $e) {
-            error_log('Error confirming pago: ' . $e->getMessage());
+            error_log('Error marking as paid: ' . $e->getMessage());
             return Response::error('Error al confirmar pago', 500);
         }
     }
@@ -614,6 +637,12 @@ class AdmisionesController
                  WHERE id = ?",
                 [$data['fecha'], $data['hora'], $id]
             );
+
+            // Enviar email de preconsulta programada
+            $solicitud = $this->db->query("SELECT * FROM solicitudes_admision WHERE id = ?", [$id])->fetch();
+            if ($solicitud) {
+                $this->emailService->sendAdmisionPreconsultaProgramada($solicitud, $data['fecha'], $data['hora']);
+            }
 
             return Response::success(null, 'Preconsulta programada');
         } catch (\Exception $e) {
@@ -684,6 +713,12 @@ class AdmisionesController
                 ]
             );
 
+            // Enviar email de bienvenida con credenciales
+            $this->emailService->sendAdmisionAdmitido($solicitud, [
+                'email' => $email,
+                'password' => $tempPassword
+            ]);
+
             return Response::success([
                 'usuario_id' => $usuarioId,
                 'paciente_id' => $pacienteId,
@@ -704,6 +739,9 @@ class AdmisionesController
         try {
             $user = AuthMiddleware::getCurrentUser();
 
+            // Obtener solicitud antes de actualizar para enviar email
+            $solicitud = $this->db->query("SELECT * FROM solicitudes_admision WHERE id = ?", [$id])->fetch();
+
             $this->db->query(
                 "UPDATE solicitudes_admision
                  SET estado = 'rechazado', decision_notas = ?, decision_por = ?, decision_fecha = NOW(), updated_at = NOW()
@@ -714,6 +752,11 @@ class AdmisionesController
                     $id
                 ]
             );
+
+            // Enviar email de rechazo
+            if ($solicitud) {
+                $this->emailService->sendAdmisionRechazado($solicitud, $data['notas'] ?? '');
+            }
 
             return Response::success(null, 'Solicitud rechazada');
         } catch (\Exception $e) {
@@ -743,6 +786,13 @@ class AdmisionesController
             $preconsultas = $this->db->query(
                 "SELECT COUNT(*) as total FROM solicitudes_admision
                  WHERE semestre = ? AND estado IN ('preconsulta_programada','preconsulta_completada','admitido','rechazado')",
+                [$semestre]
+            )->fetch();
+
+            // Preconsultas donde el paciente SÍ asistió (completada, admitido o rechazado post-preconsulta)
+            $preconsultasAsistidas = $this->db->query(
+                "SELECT COUNT(*) as total FROM solicitudes_admision
+                 WHERE semestre = ? AND estado IN ('preconsulta_completada','admitido')",
                 [$semestre]
             )->fetch();
 
@@ -794,10 +844,16 @@ class AdmisionesController
                 [$semestre]
             )->fetch();
 
+            $totalAsistidas = (int)($preconsultasAsistidas['total'] ?? 0);
+            $costoPreconsulta = 500;
+
             return Response::success([
                 'semestre' => $semestre,
                 'total_solicitudes' => (int)($total['total'] ?? 0),
                 'total_preconsultas' => (int)($preconsultas['total'] ?? 0),
+                'preconsultas_asistidas' => $totalAsistidas,
+                'ingresos_preconsultas' => $totalAsistidas * $costoPreconsulta,
+                'costo_preconsulta' => $costoPreconsulta,
                 'total_admitidos' => (int)($admitidos['total'] ?? 0),
                 'tasa_admision' => $preconsultas['total'] > 0
                     ? round(($admitidos['total'] / $preconsultas['total']) * 100, 1) : 0,

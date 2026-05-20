@@ -123,7 +123,7 @@ const HistorialPlanes = ({ pacienteId, especialistaId, onBack }) => {
                   {plan.calorias_diarias > 0 && (
                     <span><LucideIcon name="flame" size={14} /> {Math.round(plan.calorias_diarias)} kcal</span>
                   )}
-                  <span><LucideIcon name="users" size={14} /> {plan.pacientes_asignados || 0} pacientes</span>
+                  <span><LucideIcon name="users" size={14} /> {plan.pacientes_asignados || 0} usuarios</span>
                   <span><LucideIcon name="calendar" size={14} /> {new Date(plan.created_at).toLocaleDateString('es-MX')}</span>
                 </div>
                 <button className="hist-planes-btn-detalle" onClick={() => verDetalle(plan.id)}>
@@ -171,7 +171,7 @@ const HistorialPlanes = ({ pacienteId, especialistaId, onBack }) => {
 
               {detallePlan.pacientes_asignados?.length > 0 && (
                 <div className="hist-planes-modal-section">
-                  <h4>Pacientes Asignados</h4>
+                  <h4>Usuarios Asignados</h4>
                   <div className="hist-planes-pacientes-list">
                     {detallePlan.pacientes_asignados.map(p => (
                       <div key={p.id} className="hist-planes-paciente-item">

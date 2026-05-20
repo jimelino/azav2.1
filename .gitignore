@@ -18,6 +18,11 @@ backend/storage/logs/*.log
 # Uploads
 backend/public/uploads/*
 !backend/public/uploads/.gitkeep
+backend/uploads/admisiones/
+backend/uploads/expediente/
+backend/uploads/planes_nutricionales/
+backend/uploads/comunidad/
+backend/uploads/perfiles/
 
 # IDE
 .vscode/
@@ -48,3 +53,7 @@ coverage/
 .php_cs.cache
 .php-cs-fixer.cache
 backend/.env.production
+
+# Deploy / SSH helpers personales (no compartir, contienen rutas/credenciales)
+deploy_temp.py
+.claude/tmp_*.py

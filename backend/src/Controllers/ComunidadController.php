@@ -26,6 +26,7 @@ class ComunidadController
     public function getFeed($userId, $filters = [])
     {
         $publicaciones = Publicacion::getFeed($userId, $filters);
+        $publicaciones = array_map([$this, 'resolveImageUrl'], $publicaciones);
         return Response::success($publicaciones);
     }
 
@@ -38,7 +39,18 @@ class ComunidadController
             return Response::error('Publicación no encontrada', 404);
         }
 
+        $publicacion = $this->resolveImageUrl($publicacion);
         return Response::success($publicacion);
+    }
+
+    // Convertir ruta relativa de imagen a URL completa
+    private function resolveImageUrl($item)
+    {
+        if (!empty($item['imagen_url']) && !str_starts_with($item['imagen_url'], 'http')) {
+            $baseUrl = rtrim($_ENV['APP_URL'] ?? 'http://localhost:8000', '/');
+            $item['imagen_url'] = $baseUrl . '/uploads/' . $item['imagen_url'];
+        }
+        return $item;
     }
 
     // CREAR PUBLICACIÓN
@@ -83,6 +95,17 @@ class ComunidadController
     // ACTUALIZAR PUBLICACIÓN
     public function actualizarPublicacion($id, $data)
     {
+        $currentUser = \App\Middleware\AuthMiddleware::getCurrentUser();
+        $publicacion = Publicacion::find($id);
+
+        if (!$publicacion) {
+            return Response::error('Publicación no encontrada', 404);
+        }
+
+        if ($publicacion['usuario_id'] != $currentUser['id']) {
+            return Response::error('No tienes permiso para editar esta publicación', 403);
+        }
+
         if (isset($_FILES['imagen'])) {
             $imagePath = $this->fileUploadService->upload($_FILES['imagen'], 'comunidad');
             $data['imagen'] = $imagePath;
@@ -91,7 +114,9 @@ class ComunidadController
         $result = Publicacion::update($id, $data);
 
         if ($result) {
-            return Response::success(null, 'Publicación actualizada exitosamente');
+            $updated = Publicacion::find($id);
+            $updated = $this->resolveImageUrl($updated);
+            return Response::success($updated, 'Publicación actualizada exitosamente');
         }
 
         return Response::error('Error al actualizar publicación', 500);
@@ -100,6 +125,17 @@ class ComunidadController
     // ELIMINAR PUBLICACIÓN
     public function eliminarPublicacion($id)
     {
+        $currentUser = \App\Middleware\AuthMiddleware::getCurrentUser();
+        $publicacion = Publicacion::find($id);
+
+        if (!$publicacion) {
+            return Response::error('Publicación no encontrada', 404);
+        }
+
+        if ($publicacion['usuario_id'] != $currentUser['id']) {
+            return Response::error('No tienes permiso para eliminar esta publicación', 403);
+        }
+
         $result = Publicacion::delete($id);
 
         if ($result) {
@@ -157,7 +193,7 @@ class ComunidadController
     {
         $validator = new Validator($data);
         $validator->required(['usuario_id', 'publicacion_id', 'tipo_reaccion'])
-                  ->in('tipo_reaccion', [REACCION_ME_GUSTA, REACCION_APOYO, REACCION_GRACIAS, REACCION_CELEBRAR]);
+                  ->in('tipo_reaccion', ['me_gusta', 'me_inspira', 'me_identifico', 'me_motiva', 'apoyo', 'gracias', 'celebrar']);
 
         if (!$validator->passes()) {
             return Response::error($validator->errors(), 422);

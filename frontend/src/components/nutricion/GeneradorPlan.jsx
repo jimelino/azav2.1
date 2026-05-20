@@ -511,7 +511,7 @@ const GeneradorPlan = ({ especialistaId, onBack, onPlanCreated }) => {
           </div>
           <div>
             <h3>Vista Previa</h3>
-            <p>Así se verá el plan para tus pacientes</p>
+            <p>Así se verá el plan para tus usuarios</p>
           </div>
         </div>
 

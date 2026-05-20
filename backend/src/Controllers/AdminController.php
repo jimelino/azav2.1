@@ -86,6 +86,16 @@ class AdminController
             return Response::error('Faltan datos requeridos', 422);
         }
 
+        // La contraseña la define el administrador en el formulario.
+        // (El flujo de generación aleatoria vive solo en AdmisionesController::admitirPaciente,
+        //  cuando se admite a un paciente a partir de una solicitud externa.)
+        if (empty($data['password'])) {
+            return Response::error('La contraseña es requerida', 422);
+        }
+        if (strlen($data['password']) < 6) {
+            return Response::error('La contraseña debe tener al menos 6 caracteres', 422);
+        }
+
         // Verificar que el email no exista
         $exists = $this->db->query(
             "SELECT id FROM usuarios WHERE email = ?",
@@ -96,9 +106,7 @@ class AdminController
             return Response::error('El email ya está registrado', 422);
         }
 
-        // Generar contraseña temporal
-        $tempPassword = 'Azaria' . rand(1000, 9999);
-        $passwordHash = password_hash($tempPassword, PASSWORD_DEFAULT);
+        $passwordHash = password_hash($data['password'], PASSWORD_DEFAULT);
 
         $this->db->query(
             "INSERT INTO usuarios (email, password_hash, nombre_completo, fecha_nacimiento, rol_id, area_medica_id, activo, created_at)
@@ -124,8 +132,7 @@ class AdminController
         }
 
         return Response::success([
-            'id' => $userId,
-            'password_temporal' => $tempPassword
+            'id' => $userId
         ], 'Usuario creado exitosamente', 201);
     }
 
@@ -209,6 +216,157 @@ class AdminController
         )->fetchAll();
 
         return Response::success(['especialistas' => $especialistas]);
+    }
+
+    // ===== ASIGNACIONES ESPECIALISTA-PACIENTE =====
+
+    /**
+     * GET /api/admin/pacientes
+     * Lista todos los pacientes para usarse como catálogo en el panel de asignación.
+     */
+    public function getPacientes()
+    {
+        $pacientes = $this->db->query(
+            "SELECT p.id AS paciente_id, u.id AS usuario_id, u.email, u.nombre_completo AS nombre,
+                    u.fecha_nacimiento, u.activo,
+                    f.nombre AS fase_actual,
+                    (SELECT COUNT(*) FROM asignaciones_especialista ae
+                     WHERE ae.paciente_id = p.id AND ae.activo = 1) AS especialistas_asignados
+             FROM pacientes p
+             INNER JOIN usuarios u ON p.usuario_id = u.id
+             LEFT JOIN fases_tratamiento f ON p.fase_actual_id = f.id
+             ORDER BY u.nombre_completo"
+        )->fetchAll();
+
+        return Response::success(['pacientes' => $pacientes]);
+    }
+
+    /**
+     * GET /api/admin/especialistas/{id}/asignaciones
+     * Devuelve los pacientes actualmente asignados (activos) a un especialista.
+     */
+    public function getAsignacionesEspecialista($especialistaId)
+    {
+        $asignaciones = $this->db->query(
+            "SELECT ae.id, ae.paciente_id, ae.especialista_id, ae.area_medica_id,
+                    ae.fecha_asignacion, ae.notas,
+                    u.nombre_completo AS paciente_nombre, u.email AS paciente_email
+             FROM asignaciones_especialista ae
+             INNER JOIN pacientes p ON ae.paciente_id = p.id
+             INNER JOIN usuarios u ON p.usuario_id = u.id
+             WHERE ae.especialista_id = ? AND ae.activo = 1
+             ORDER BY u.nombre_completo",
+            [$especialistaId]
+        )->fetchAll();
+
+        return Response::success(['asignaciones' => $asignaciones]);
+    }
+
+    /**
+     * POST /api/admin/asignaciones
+     * Body: { paciente_id, especialista_id, notas? }
+     * El area_medica_id se toma del especialista. Si ya existe una asignación activa
+     * para esa tupla (paciente, especialista), devuelve conflict 409.
+     */
+    public function crearAsignacion($data)
+    {
+        if (empty($data['paciente_id']) || empty($data['especialista_id'])) {
+            return Response::error('paciente_id y especialista_id son requeridos', 422);
+        }
+
+        $pacienteId     = (int) $data['paciente_id'];
+        $especialistaId = (int) $data['especialista_id'];
+
+        // El especialista debe existir y tener area_medica_id asignada
+        $especialista = $this->db->query(
+            "SELECT id, area_medica_id FROM usuarios WHERE id = ? AND rol_id = 2",
+            [$especialistaId]
+        )->fetch();
+        if (!$especialista) {
+            return Response::error('Especialista no encontrado', 404);
+        }
+        if (empty($especialista['area_medica_id'])) {
+            return Response::error('El especialista no tiene área médica asignada', 422);
+        }
+
+        // El paciente debe existir
+        $paciente = $this->db->query(
+            "SELECT id FROM pacientes WHERE id = ?",
+            [$pacienteId]
+        )->fetch();
+        if (!$paciente) {
+            return Response::error('Paciente no encontrado', 404);
+        }
+
+        // Regla de negocio (unique key): un paciente solo puede tener UN especialista
+        // activo por área médica. Si ya hay otro especialista activo en la misma área,
+        // lo transferimos (desactivamos el anterior) y creamos la nueva asignación.
+        $areaId = (int) $especialista['area_medica_id'];
+        $existente = $this->db->query(
+            "SELECT id, especialista_id FROM asignaciones_especialista
+             WHERE paciente_id = ? AND area_medica_id = ? AND activo = 1",
+            [$pacienteId, $areaId]
+        )->fetch();
+
+        if ($existente) {
+            if ((int) $existente['especialista_id'] === $especialistaId) {
+                return Response::error('Esta asignación ya existe', 409);
+            }
+            // Transferencia: desactivamos la anterior
+            $this->db->query(
+                "UPDATE asignaciones_especialista
+                 SET activo = 0, fecha_fin = CURDATE()
+                 WHERE id = ?",
+                [(int) $existente['id']]
+            );
+        }
+
+        $adminId = $GLOBALS['current_user']['id'] ?? null;
+
+        $this->db->query(
+            "INSERT INTO asignaciones_especialista
+                (paciente_id, especialista_id, area_medica_id, activo, fecha_asignacion, asignado_por, notas)
+             VALUES (?, ?, ?, 1, CURDATE(), ?, ?)",
+            [
+                $pacienteId,
+                $especialistaId,
+                $areaId,
+                $adminId,
+                $data['notas'] ?? null,
+            ]
+        );
+
+        return Response::success([
+            'id' => (int) $this->db->lastInsertId(),
+            'paciente_id'     => $pacienteId,
+            'especialista_id' => $especialistaId,
+            'area_medica_id'  => $areaId,
+            'transferido_de'  => $existente ? (int) $existente['especialista_id'] : null,
+        ], $existente ? 'Paciente transferido al nuevo especialista' : 'Asignación creada', 201);
+    }
+
+    /**
+     * DELETE /api/admin/asignaciones/{id}
+     * Soft delete: activo=0, fecha_fin=hoy. Preserva el histórico.
+     */
+    public function eliminarAsignacion($id)
+    {
+        $existe = $this->db->query(
+            "SELECT id FROM asignaciones_especialista WHERE id = ? AND activo = 1",
+            [$id]
+        )->fetch();
+        if (!$existe) {
+            return Response::error('Asignación no encontrada o ya inactiva', 404);
+        }
+
+        $this->db->query(
+            "UPDATE asignaciones_especialista
+             SET activo = 0, fecha_fin = CURDATE()
+             WHERE id = ?",
+            [$id]
+        );
+
+        return Response::success(null, 'Asignación eliminada');
     }
 
     // ===== MÉTRICAS DE BLOG/COMUNIDAD =====

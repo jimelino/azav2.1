@@ -8,7 +8,7 @@ class ComentarioComunidad {
     public static function find($id) {
         $db = DatabaseService::getInstance();
         return $db->query(
-            "SELECT c.*, u.nombre_completo as autor_nombre, u.avatar
+            "SELECT c.*, u.nombre_completo as autor_nombre, u.nombre_anonimo
              FROM " . self::$table . " c
              LEFT JOIN usuarios u ON c.usuario_id = u.id
              WHERE c.id = ?",
@@ -29,7 +29,7 @@ class ComentarioComunidad {
     public static function getByPublicacion($publicacionId) {
         $db = DatabaseService::getInstance();
         return $db->query(
-            "SELECT c.*, u.nombre_completo as autor_nombre, u.avatar
+            "SELECT c.*, u.nombre_completo as autor_nombre, u.nombre_anonimo
              FROM " . self::$table . " c
              LEFT JOIN usuarios u ON c.usuario_id = u.id
              WHERE c.publicacion_id = ? AND c.estado = 'aprobado'
@@ -52,13 +52,14 @@ class ComentarioComunidad {
             ]
         );
 
+        $id = $db->lastInsertId();
+
         // Actualizar contador de comentarios en la publicación
         $db->query(
             "UPDATE publicaciones_comunidad SET total_comentarios = total_comentarios + 1 WHERE id = ?",
             [$data['publicacion_id']]
         );
 
-        $id = $db->lastInsertId();
         return self::find($id);
     }
 

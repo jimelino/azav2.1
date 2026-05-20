@@ -218,7 +218,7 @@ const PlanesTratamiento = ({ pacienteId, onBack }) => {
             <div className="empty-state">
               <LucideIcon name="clipboard" size={48} />
               <h3>Sin planes de tratamiento</h3>
-              <p>Crea un plan de rehabilitación para este paciente.</p>
+              <p>Crea un plan de rehabilitación para este usuario.</p>
               <button className="btn-primary" onClick={nuevoPlan}>
                 <LucideIcon name="plus" size={16} /> Nuevo Plan
               </button>

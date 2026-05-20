@@ -1,0 +1,1226 @@
+// ============================================
+// AZARIA - Diagrama de Base de Datos
+// dbdiagram.io - Pegar este contenido completo
+// ============================================
+
+// ---- MÓDULO 1: AUTENTICACIÓN Y USUARIOS ----
+
+Table roles {
+  id int [pk, increment]
+  nombre varchar
+  descripcion varchar
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table areas_medicas {
+  id int [pk, increment]
+  nombre varchar
+  descripcion varchar
+  icono varchar
+  color varchar
+  activo tinyint
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table usuarios {
+  id int [pk, increment]
+  email varchar [unique]
+  password_hash varchar
+  pin_hash varchar
+  nombre_completo varchar
+  fecha_nacimiento date
+  rol_id int [ref: > roles.id]
+  area_medica_id int [ref: > areas_medicas.id]
+  activo tinyint
+  primer_acceso tinyint
+  email_verificado tinyint
+  usar_pin tinyint
+  mantener_sesion tinyint
+  intentos_fallidos int
+  bloqueado_hasta datetime
+  perfil_publico tinyint
+  mostrar_nombre_real tinyint
+  nombre_anonimo varchar
+  ultimo_acceso datetime
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table sesiones {
+  id int [pk, increment]
+  usuario_id int [ref: > usuarios.id]
+  token_hash varchar [unique]
+  dispositivo varchar
+  navegador varchar
+  sistema_operativo varchar
+  ip_address varchar
+  es_confiable tinyint
+  ultima_actividad datetime
+  expira_en datetime
+  created_at timestamp
+}
+
+Table tokens_recuperacion {
+  id int [pk, increment]
+  usuario_id int [ref: > usuarios.id]
+  token_hash varchar [unique]
+  expira_en datetime
+  usado tinyint
+  created_at timestamp
+}
+
+Table log_accesos {
+  id bigint [pk, increment]
+  usuario_id int [ref: > usuarios.id]
+  accion varchar
+  modulo varchar
+  descripcion text
+  ip_address varchar
+  user_agent varchar
+  created_at timestamp
+}
+
+Table log_auditoria {
+  id bigint [pk, increment]
+  usuario_id int [ref: > usuarios.id]
+  accion varchar
+  modulo varchar
+  descripcion text
+  datos_anteriores json
+  datos_nuevos json
+  ip_address varchar
+  user_agent varchar
+  created_at timestamp
+}
+
+// ---- MÓDULO 2: PACIENTES Y FASES ----
+
+Table fases_tratamiento {
+  id int [pk, increment]
+  nombre varchar
+  descripcion text
+  numero_fase int
+  activo tinyint
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table pacientes {
+  id int [pk, increment]
+  usuario_id int [unique, ref: > usuarios.id]
+  numero_expediente varchar
+  sexo enum
+  peso_actual decimal
+  altura decimal
+  tipo_amputacion varchar
+  nivel_amputacion varchar
+  fecha_amputacion date
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table historial_fases {
+  id bigint [pk, increment]
+  paciente_id int [ref: > pacientes.id]
+  fase_id int [ref: > fases_tratamiento.id]
+  fecha_inicio date
+  fecha_fin date
+  notas text
+  created_at timestamp
+}
+
+Table asignaciones_especialista {
+  id int [pk, increment]
+  paciente_id int [ref: > pacientes.id]
+  especialista_id int [ref: > usuarios.id]
+  area_medica_id int [ref: > areas_medicas.id]
+  fecha_inicio date
+  fecha_fin date
+  notas text
+  activo tinyint
+  created_at timestamp
+  updated_at timestamp
+}
+
+// ---- MÓDULO 3: NUTRICIÓN ----
+
+Table tipos_comida {
+  id int [pk, increment]
+  nombre varchar
+  descripcion varchar
+  hora_recomendada time
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table registro_comidas {
+  id bigint [pk, increment]
+  paciente_id int [ref: > pacientes.id]
+  fecha date
+  tipo_comida varchar
+  descripcion text
+  calorias decimal
+  carbohidratos decimal
+  proteinas decimal
+  grasas decimal
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table checklist_comidas {
+  id int [pk, increment]
+  paciente_id int [ref: > pacientes.id]
+  fecha date
+  desayuno_realizado tinyint
+  media_manana_realizado tinyint
+  almuerzo_realizado tinyint
+  merienda_realizado tinyint
+  cena_realizado tinyint
+  snacks_realizados tinyint
+}
+
+Table recetas {
+  id int [pk, increment]
+  nombre varchar
+  descripcion text
+  ingredientes json
+  instrucciones text
+  tiempo_preparacion int
+  porciones int
+  calorias decimal
+  proteinas decimal
+  carbohidratos decimal
+  grasas decimal
+  fibra decimal
+  tags json
+  creado_por int [ref: > usuarios.id]
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table recetas_asignadas {
+  id int [pk, increment]
+  paciente_id int [ref: > pacientes.id]
+  receta_id int [ref: > recetas.id]
+  especialista_id int [ref: > usuarios.id]
+  notas text
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table recetas_favoritas {
+  id int [pk, increment]
+  paciente_id int [ref: > pacientes.id]
+  receta_id int [ref: > recetas.id]
+  created_at timestamp
+}
+
+Table cuestionarios_nutricion {
+  id int [pk, increment]
+  paciente_id int [ref: > pacientes.id]
+  fecha date
+  preguntas json
+  respuestas json
+  puntaje int
+  created_at timestamp
+}
+
+Table registro_agua {
+  id bigint [pk, increment]
+  paciente_id int [ref: > pacientes.id]
+  fecha date
+  cantidad decimal
+  vasos int
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table objetivos_nutricion {
+  id bigint [pk, increment]
+  paciente_id int [unique, ref: > pacientes.id]
+  calorias int
+  carbohidratos int
+  proteinas int
+  grasas int
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table planes_nutricionales {
+  id int [pk, increment]
+  especialista_id int [ref: > usuarios.id]
+  nombre varchar
+  descripcion text
+  archivo_pdf varchar
+  archivo_nombre varchar
+  contenido_json json
+  calorias_diarias int
+  proteinas_g int
+  carbohidratos_g int
+  grasas_g int
+  fibra_g int
+  estado varchar
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table planes_nutricionales_paciente {
+  id int [pk, increment]
+  plan_id int [ref: > planes_nutricionales.id]
+  paciente_id int [ref: > pacientes.id]
+  especialista_id int [ref: > usuarios.id]
+  notas_personalizadas text
+  ajustes_json json
+  fecha_inicio date
+  fecha_fin date
+  activo tinyint
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table plan_comidas {
+  id int [pk, increment]
+  plan_id int [ref: > planes_nutricionales.id]
+  receta_id int [ref: > recetas.id]
+  dia_semana enum
+  tipo_comida enum
+  hora_sugerida time
+  nombre_plato varchar
+  descripcion text
+  ingredientes json
+  calorias decimal
+  proteinas_g decimal
+  carbohidratos_g decimal
+  grasas_g decimal
+  orden int
+  imagen_url varchar
+  instrucciones_json json
+  created_at timestamp
+}
+
+Table seguimiento_plan_nutricional {
+  id int [pk, increment]
+  asignacion_id int [ref: > planes_nutricionales_paciente.id]
+  paciente_id int [ref: > pacientes.id]
+  comida_id int [ref: > plan_comidas.id]
+  fecha date
+  tipo_comida varchar
+  cumplido tinyint
+  notas text
+  foto_url varchar
+  created_at timestamp
+}
+
+Table mediciones_antropometricas {
+  id int [pk, increment]
+  paciente_id int [ref: > pacientes.id]
+  especialista_id int [ref: > usuarios.id]
+  peso decimal
+  talla decimal
+  imc decimal
+  circunferencia_cintura decimal
+  circunferencia_cadera decimal
+  notas text
+  fecha_medicion date
+  created_at timestamp
+}
+
+// ---- MÓDULO 4: MEDICINA ----
+
+Table momentos_medicion {
+  id int [pk, increment]
+  nombre varchar
+  descripcion varchar
+  icono varchar
+  created_at timestamp
+}
+
+Table bitacora_glucosa {
+  id bigint [pk, increment]
+  paciente_id int [ref: > pacientes.id]
+  momento_medicion_id int [ref: > momentos_medicion.id]
+  valor decimal
+  notas text
+  fecha date
+  hora time
+  created_at timestamp
+}
+
+Table bitacora_presion {
+  id bigint [pk, increment]
+  paciente_id int [ref: > pacientes.id]
+  momento_medicion_id int [ref: > momentos_medicion.id]
+  sistolica int
+  diastolica int
+  pulso int
+  notas text
+  fecha date
+  hora time
+  created_at timestamp
+}
+
+Table ubicaciones_dolor {
+  id int [pk, increment]
+  nombre varchar
+  descripcion varchar
+  zona_cuerpo varchar
+  created_at timestamp
+}
+
+Table tipos_dolor {
+  id int [pk, increment]
+  nombre varchar
+  descripcion varchar
+  icono varchar
+  created_at timestamp
+}
+
+Table bitacora_dolor {
+  id bigint [pk, increment]
+  paciente_id int [ref: > pacientes.id]
+  ubicacion_id int [ref: > ubicaciones_dolor.id]
+  tipo_id int [ref: > tipos_dolor.id]
+  intensidad int
+  descripcion text
+  causa_probable varchar
+  notas text
+  fecha date
+  hora time
+  created_at timestamp
+}
+
+Table medicamentos_paciente {
+  id int [pk, increment]
+  paciente_id int [ref: > pacientes.id]
+  nombre varchar
+  dosis varchar
+  unidad varchar
+  prescrito_por varchar
+  fecha_inicio date
+  fecha_fin date
+  indicaciones text
+  efectos_secundarios text
+  activo tinyint
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table horarios_medicamento {
+  id int [pk, increment]
+  medicamento_id int [ref: > medicamentos_paciente.id]
+  hora time
+  dias json
+}
+
+Table registro_medicamentos {
+  id bigint [pk, increment]
+  paciente_id int [ref: > pacientes.id]
+  medicamento_id int [ref: > medicamentos_paciente.id]
+  fecha date
+  hora_programada time
+  hora_real time
+  tomado tinyint
+  notas text
+  created_at timestamp
+}
+
+Table alertas_medicas {
+  id int [pk, increment]
+  paciente_id int [ref: > pacientes.id]
+  creado_por int [ref: > usuarios.id]
+  tipo enum
+  descripcion text
+  valor_disparador varchar
+  url_asociada varchar
+  estado enum
+  fecha_resolucion datetime
+  notas_resolucion text
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table bitacora_hba1c {
+  id bigint [pk, increment]
+  paciente_id int [ref: > pacientes.id]
+  valor decimal
+  notas text
+  fecha date
+  created_at timestamp
+}
+
+// ---- MÓDULO 5: FISIOTERAPIA ----
+
+Table categorias_ejercicio {
+  id int [pk, increment]
+  nombre varchar
+  descripcion varchar
+  icono varchar
+  created_at timestamp
+}
+
+Table niveles_ejercicio {
+  id int [pk, increment]
+  nombre varchar
+  numero_nivel int
+  descripcion varchar
+  created_at timestamp
+}
+
+Table videos_ejercicios {
+  id int [pk, increment]
+  categoria_id int [ref: > categorias_ejercicio.id]
+  nivel_id int [ref: > niveles_ejercicio.id]
+  titulo varchar
+  descripcion text
+  url_video varchar
+  url_miniatura varchar
+  duracion_segundos int
+  instrucciones text
+  notas_seguridad text
+  visitas int
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table videos_asignados {
+  id int [pk, increment]
+  paciente_id int [ref: > pacientes.id]
+  video_id int [ref: > videos_ejercicios.id]
+  especialista_id int [ref: > usuarios.id]
+  fecha_asignacion date
+  notas text
+  obligatorio tinyint
+  created_at timestamp
+}
+
+Table registro_videos {
+  id bigint [pk, increment]
+  paciente_id int [ref: > pacientes.id]
+  video_id int [ref: > videos_ejercicios.id]
+  fecha_visto date
+  duracion_vista int
+  completado tinyint
+  created_at timestamp
+}
+
+Table guias_cuidado {
+  id int [pk, increment]
+  titulo varchar
+  tipo varchar
+  contenido text
+  orden int
+  publicado tinyint
+  pasos json
+  tips json
+  advertencias json
+  creado_por int [ref: > usuarios.id]
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table evaluaciones_fisicas {
+  id int [pk, increment]
+  paciente_id int [ref: > pacientes.id]
+  especialista_id int [ref: > usuarios.id]
+  fecha date
+  rom_rodilla_flex int
+  rom_rodilla_ext int
+  rom_cadera_flex int
+  rom_cadera_ext int
+  rom_tobillo_dorsi int
+  rom_tobillo_plantar int
+  fuerza_cuadriceps int
+  fuerza_isquiotibiales int
+  fuerza_gluteos int
+  fuerza_core int
+  dolor_reposo int
+  dolor_movimiento int
+  dolor_carga int
+  equilibrio_estatico int
+  equilibrio_dinamico int
+  marcha_patron varchar
+  marcha_velocidad decimal
+  observaciones text
+  notas_plan text
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table planes_tratamiento {
+  id int [pk, increment]
+  paciente_id int [ref: > pacientes.id]
+  especialista_id int [ref: > usuarios.id]
+  nombre varchar
+  objetivo text
+  duracion_semanas int
+  frecuencia_semanal int
+  estado enum
+  notas text
+  fecha_inicio date
+  fecha_fin date
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table plan_tratamiento_ejercicios {
+  id int [pk, increment]
+  plan_id int [ref: > planes_tratamiento.id]
+  video_id int [ref: > videos_ejercicios.id]
+  orden int
+  series int
+  repeticiones int
+  duracion_segundos int
+  descanso_segundos int
+  notas text
+}
+
+// ---- MÓDULO 6: ORTESIS ----
+
+Table tipos_dispositivo {
+  id int [pk, increment]
+  nombre varchar
+  descripcion varchar
+  icono varchar
+  created_at timestamp
+}
+
+Table dispositivos_paciente {
+  id int [pk, increment]
+  paciente_id int [ref: > pacientes.id]
+  tipo_dispositivo_id int [ref: > tipos_dispositivo.id]
+  fecha_entrega date
+  marca varchar
+  modelo varchar
+  numero_serie varchar
+  notas text
+  activo tinyint
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table historial_ajustes {
+  id int [pk, increment]
+  dispositivo_id int [ref: > dispositivos_paciente.id]
+  realizado_por int [ref: > usuarios.id]
+  tipo_ajuste varchar
+  descripcion text
+  fecha_ajuste date
+  notas text
+  created_at timestamp
+}
+
+Table checklist_protesis {
+  id int [pk, increment]
+  paciente_id int [ref: > pacientes.id]
+  fecha date
+  limpieza_realizada tinyint
+  inspeccion_visual tinyint
+  ajuste_correcto tinyint
+  comodidad_uso tinyint
+  problemas_detectados text
+}
+
+Table reportes_problemas {
+  id int [pk, increment]
+  dispositivo_id int [ref: > dispositivos_paciente.id]
+  paciente_id int [ref: > pacientes.id]
+  atendido_por int [ref: > usuarios.id]
+  descripcion text
+  severidad enum
+  estado enum
+  fecha_reporte date
+  fecha_resolucion date
+  notas_resolucion text
+  created_at timestamp
+}
+
+Table mediciones_munon {
+  id int [pk, increment]
+  paciente_id int [ref: > usuarios.id]
+  registrado_por int [ref: > usuarios.id]
+  fecha date
+  circunferencia_proximal decimal
+  circunferencia_media decimal
+  circunferencia_distal decimal
+  longitud decimal
+  condicion_piel enum
+  temperatura_local decimal
+  sensibilidad enum
+  notas text
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table protocolo_uso_config {
+  id int [pk, increment]
+  paciente_id int [unique, ref: > usuarios.id]
+  creado_por int [ref: > usuarios.id]
+  semana_actual int
+  horas_objetivo decimal
+  incremento_semanal decimal
+  horas_maximo decimal
+  notas text
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table protocolo_uso_registros {
+  id int [pk, increment]
+  paciente_id int [ref: > usuarios.id]
+  fecha date
+  horas_uso decimal
+  dolor_nivel int
+  molestias text
+  actividades_realizadas text
+  tolerancia enum
+  created_at timestamp
+  updated_at timestamp
+}
+
+// ---- MÓDULO 7: NEUROPSICOLOGÍA ----
+
+Table emociones {
+  id int [pk, increment]
+  nombre varchar
+  icono varchar
+  color varchar
+  created_at timestamp
+}
+
+Table registro_animo {
+  id bigint [pk, increment]
+  paciente_id int [ref: > pacientes.id]
+  fecha date
+  nivel_energia int
+  nivel_ansiedad int
+  nivel_motivacion int
+  notas text
+  created_at timestamp
+}
+
+Table registro_animo_emociones {
+  id int [pk, increment]
+  registro_id bigint [ref: > registro_animo.id]
+  emocion_id int [ref: > emociones.id]
+}
+
+Table cuestionarios_bienestar {
+  id int [pk, increment]
+  paciente_id int [ref: > pacientes.id]
+  fecha date
+  tipo_cuestionario varchar
+  preguntas json
+  respuestas json
+  puntaje int
+  interpretacion text
+  created_at timestamp
+}
+
+Table resultados_cuestionarios {
+  id bigint [pk, increment]
+  paciente_id int [ref: > pacientes.id]
+  tipo_cuestionario varchar
+  puntuacion_total int
+  puntuacion_detalle json
+  interpretacion text
+  fecha date
+  created_at timestamp
+}
+
+Table act_sesiones {
+  id bigint [pk, increment]
+  paciente_id int [ref: > pacientes.id]
+  categoria varchar
+  herramienta varchar
+  completado tinyint
+  notas_usuario text
+  fecha date
+  created_at timestamp
+}
+
+Table evaluaciones_neuropsicologicas {
+  id int [pk, increment]
+  paciente_id int [ref: > pacientes.id]
+  especialista_id int [ref: > usuarios.id]
+  fecha date
+  notas text
+  atencion_sostenida int
+  atencion_selectiva int
+  atencion_dividida int
+  memoria_trabajo int
+  memoria_corto_plazo int
+  memoria_largo_plazo int
+  funcion_ejecutiva int
+  planificacion int
+  flexibilidad_cognitiva int
+  control_inhibitorio int
+  velocidad_procesamiento int
+  orientacion_temporal int
+  orientacion_espacial int
+  lenguaje_comprension int
+  lenguaje_expresion int
+  calculo int
+  praxias int
+  gnosias int
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table act_asignaciones {
+  id bigint [pk, increment]
+  paciente_id int [ref: > usuarios.id]
+  especialista_id int [ref: > usuarios.id]
+  herramienta_id varchar
+  herramienta_nombre varchar
+  categoria varchar
+  notas_especialista text
+  contenido json
+  es_personalizada tinyint
+  tipo_actividad varchar
+  prioridad enum
+  estado enum
+  fecha_completada datetime
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table cuestionarios_personalizados {
+  id bigint [pk, increment]
+  especialista_id int [ref: > usuarios.id]
+  titulo varchar
+  descripcion text
+  tipo varchar
+  archivo_url varchar
+  archivo_nombre varchar
+  preguntas json
+  asignado_a json
+  activo tinyint
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table respuestas_cuestionarios {
+  id bigint [pk, increment]
+  cuestionario_id bigint [ref: > cuestionarios_personalizados.id]
+  paciente_id int [ref: > pacientes.id]
+  respuestas json
+  puntaje_total int
+  completado tinyint
+  created_at timestamp
+}
+
+// ---- MÓDULO 8: CITAS ----
+
+Table tipos_cita {
+  id int [pk, increment]
+  nombre varchar
+  descripcion varchar
+  icono varchar
+  color varchar
+  duracion_minutos int
+  created_at timestamp
+}
+
+Table disponibilidad_especialista {
+  id int [pk, increment]
+  especialista_id int [ref: > usuarios.id]
+  dia_semana int
+  hora_inicio time
+  hora_fin time
+  activo tinyint
+  created_at timestamp
+}
+
+Table citas {
+  id int [pk, increment]
+  paciente_id int [ref: > pacientes.id]
+  especialista_id int [ref: > usuarios.id]
+  tipo_cita_id int [ref: > tipos_cita.id]
+  fecha date
+  hora time
+  duracion_minutos int
+  estado enum
+  lugar varchar
+  notas_paciente text
+  notas_especialista text
+  url_video varchar
+  es_virtual tinyint
+  recordatorio_enviado tinyint
+  created_at timestamp
+  updated_at timestamp
+}
+
+// ---- MÓDULO 9: CHAT ----
+
+Table conversaciones {
+  id int [pk, increment]
+  paciente_id int [ref: > pacientes.id]
+  especialista_id int [ref: > usuarios.id]
+  asunto varchar
+  estado enum
+  ultimo_mensaje datetime
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table mensajes_chat {
+  id bigint [pk, increment]
+  conversacion_id int [ref: > conversaciones.id]
+  usuario_id int [ref: > usuarios.id]
+  mensaje text
+  archivo_url varchar
+  leido tinyint
+  leido_en datetime
+  created_at timestamp
+  updated_at timestamp
+}
+
+// ---- MÓDULO 10: RECORDATORIOS ----
+
+Table tipos_recordatorio {
+  id int [pk, increment]
+  nombre varchar
+  descripcion varchar
+  icono varchar
+  color varchar
+  created_at timestamp
+}
+
+Table recordatorios {
+  id int [pk, increment]
+  paciente_id int [ref: > pacientes.id]
+  tipo_recordatorio_id int [ref: > tipos_recordatorio.id]
+  titulo varchar
+  descripcion text
+  fecha_hora datetime
+  repeticion enum
+  activo tinyint
+  notificacion_enviada tinyint
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table historial_recordatorios {
+  id bigint [pk, increment]
+  recordatorio_id int [ref: > recordatorios.id]
+  fecha_enviado datetime
+  fecha_completado datetime
+  completado tinyint
+  notas text
+  created_at timestamp
+}
+
+// ---- MÓDULO 11: BLOG ----
+
+Table etiquetas {
+  id int [pk, increment]
+  nombre varchar
+  slug varchar
+  created_at timestamp
+}
+
+Table articulos {
+  id int [pk, increment]
+  autor_id int [ref: > usuarios.id]
+  titulo varchar
+  slug varchar
+  contenido text
+  resumen text
+  imagen_destacada varchar
+  estado enum
+  visitas int
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table articulos_etiquetas {
+  id int [pk, increment]
+  articulo_id int [ref: > articulos.id]
+  etiqueta_id int [ref: > etiquetas.id]
+}
+
+Table likes_articulo {
+  id int [pk, increment]
+  articulo_id int [ref: > articulos.id]
+  usuario_id int [ref: > usuarios.id]
+  created_at timestamp
+}
+
+Table articulos_favoritos {
+  id int [pk, increment]
+  usuario_id int [ref: > usuarios.id]
+  articulo_id int [ref: > articulos.id]
+  created_at timestamp
+}
+
+Table comentarios_articulo {
+  id int [pk, increment]
+  articulo_id int [ref: > articulos.id]
+  usuario_id int [ref: > usuarios.id]
+  contenido text
+  estado enum
+  created_at timestamp
+  updated_at timestamp
+}
+
+// ---- MÓDULO 12: FAQs ----
+
+Table faqs {
+  id int [pk, increment]
+  pregunta text
+  respuesta text
+  categoria varchar
+  orden int
+  activo tinyint
+  votos_positivos int
+  votos_negativos int
+  creado_por int [ref: > usuarios.id]
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table votos_faq {
+  id int [pk, increment]
+  faq_id int [ref: > faqs.id]
+  usuario_id int [ref: > usuarios.id]
+  voto int
+  created_at timestamp
+}
+
+// ---- MÓDULO 13: COMUNIDAD ----
+
+Table temas_comunidad {
+  id int [pk, increment]
+  nombre varchar
+  descripcion varchar
+  icono varchar
+  color varchar
+  activo tinyint
+  created_at timestamp
+}
+
+Table publicaciones_comunidad {
+  id int [pk, increment]
+  usuario_id int [ref: > usuarios.id]
+  tema_id int [ref: > temas_comunidad.id]
+  titulo varchar
+  contenido text
+  imagen_url varchar
+  visible_publico tinyint
+  estado enum
+  visitas int
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table imagenes_publicacion {
+  id int [pk, increment]
+  publicacion_id int [ref: > publicaciones_comunidad.id]
+  url_imagen varchar
+  descripcion varchar
+  orden int
+  created_at timestamp
+}
+
+Table tipos_reaccion {
+  id int [pk, increment]
+  nombre varchar
+  emoji varchar
+  icono varchar
+  created_at timestamp
+}
+
+Table reacciones_publicacion {
+  id int [pk, increment]
+  publicacion_id int [ref: > publicaciones_comunidad.id]
+  usuario_id int [ref: > usuarios.id]
+  tipo_reaccion_id int [ref: > tipos_reaccion.id]
+  created_at timestamp
+}
+
+Table comentarios_comunidad {
+  id int [pk, increment]
+  publicacion_id int [ref: > publicaciones_comunidad.id]
+  usuario_id int [ref: > usuarios.id]
+  contenido text
+  visible_publico tinyint
+  estado enum
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table reportes_contenido {
+  id int [pk, increment]
+  publicacion_id int [ref: > publicaciones_comunidad.id]
+  usuario_id int [ref: > usuarios.id]
+  evaluado_por int [ref: > usuarios.id]
+  razon varchar
+  descripcion text
+  estado enum
+  notas_moderacion text
+  created_at timestamp
+  updated_at timestamp
+}
+
+// ---- MÓDULO 14: NOTIFICACIONES Y CONFIG ----
+
+Table notificaciones {
+  id int [pk, increment]
+  usuario_id int [ref: > usuarios.id]
+  tipo varchar
+  titulo varchar
+  mensaje text
+  icono varchar
+  color varchar
+  referencia_id int
+  referencia_tipo varchar
+  leida tinyint
+  leida_en datetime
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table preferencias_notificacion {
+  id int [pk, increment]
+  usuario_id int [unique, ref: > usuarios.id]
+  notif_recordatorios tinyint
+  notif_citas tinyint
+  notif_mensajes tinyint
+  notif_comunidad tinyint
+  notif_blog tinyint
+  notif_sonido tinyint
+  notif_vibracion tinyint
+  frecuencia_email enum
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table configuracion_usuario {
+  id bigint [pk, increment]
+  usuario_id int [unique, ref: > usuarios.id]
+  notif_recordatorios_medicamentos tinyint
+  notif_recordatorios_ejercicios tinyint
+  notif_recordatorios_citas tinyint
+  notif_mensajes_chat tinyint
+  notif_actualizaciones_blog tinyint
+  notif_comunidad tinyint
+  notif_sonido tinyint
+  notif_vibracion tinyint
+  perfil_visible_comunidad tinyint
+  mostrar_nombre_real tinyint
+  permitir_mensajes_pacientes tinyint
+  updated_at timestamp
+}
+
+Table configuracion_sistema {
+  id int [pk, increment]
+  clave varchar [unique]
+  valor text
+  tipo enum
+  descripcion text
+  modificable tinyint
+  created_at timestamp
+  updated_at timestamp
+}
+
+// ---- MÓDULO 15: EXPEDIENTE ----
+
+Table archivos_expediente {
+  id bigint [pk, increment]
+  paciente_id int [ref: > pacientes.id]
+  subido_por int [ref: > usuarios.id]
+  nombre_original varchar
+  nombre_archivo varchar
+  tipo_archivo varchar
+  tamano int
+  categoria varchar
+  descripcion text
+  fecha_estudio date
+  created_at timestamp
+}
+
+Table expediente_compartido {
+  id bigint [pk, increment]
+  paciente_id int [ref: > pacientes.id]
+  token varchar [unique]
+  expira_en datetime
+  created_at timestamp
+}
+
+// ---- MÓDULO 16: ADMISIONES ----
+
+Table solicitudes_admision {
+  id int [pk, increment]
+  nombre_completo varchar
+  telefono varchar
+  email varchar
+  edad int
+  sexo enum
+  ciudad varchar
+  estado_procedencia varchar
+  tipo_servicio enum
+  tipo_amputacion varchar
+  causa_amputacion varchar
+  tiene_protesis_previa tinyint
+  tiempo_desde_amputacion varchar
+  herida_consolidada enum
+  herida_infeccion enum
+  padece_cronico enum
+  notas_clinicas text
+  estado enum
+  token_documentos varchar
+  token_expira_en datetime
+  screening_por int [ref: > usuarios.id]
+  screening_notas text
+  screening_fecha datetime
+  fecha_preconsulta date
+  hora_preconsulta time
+  preconsulta_notas text
+  decision_por int [ref: > usuarios.id]
+  decision_notas text
+  decision_fecha datetime
+  usuario_id int [ref: > usuarios.id]
+  paciente_id int [ref: > pacientes.id]
+  semestre varchar
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table documentos_admision {
+  id int [pk, increment]
+  solicitud_id int [ref: > solicitudes_admision.id]
+  nombre_original varchar
+  nombre_archivo varchar
+  tipo_archivo varchar
+  tamano int
+  categoria enum
+  descripcion text
+  created_at timestamp
+}
+
+Table pagos_admision {
+  id int [pk, increment]
+  solicitud_id int [ref: > solicitudes_admision.id]
+  referencia_pago varchar
+  monto decimal
+  estado enum
+  enviado_por int [ref: > usuarios.id]
+  confirmado_por int [ref: > usuarios.id]
+  fecha_envio datetime
+  fecha_confirmacion datetime
+  notas text
+  created_at timestamp
+}
+
+Table documentos_oficiales {
+  id int [pk, increment]
+  tipo enum
+  nombre_original varchar
+  nombre_archivo varchar
+  version int
+  activo tinyint
+  subido_por int [ref: > usuarios.id]
+  created_at timestamp
+}

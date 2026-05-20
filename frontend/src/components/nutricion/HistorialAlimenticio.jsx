@@ -123,7 +123,7 @@ const HistorialAlimenticio = ({ pacienteId, onBack }) => {
             <div className="hist-alim-empty">
               <LucideIcon name="utensils" size={40} />
               <h3>No hay registros para este dia</h3>
-              <p>El paciente no ha registrado comidas en esta fecha.</p>
+              <p>El usuario no ha registrado comidas en esta fecha.</p>
             </div>
           ) : (
             <div className="hist-alim-meals">

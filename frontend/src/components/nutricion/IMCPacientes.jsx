@@ -124,7 +124,7 @@ const IMCPacientes = ({ pacienteId, onBack }) => {
           </button>
           <div className="imc-pac-header-title">
             <LucideIcon name="activity" size={24} />
-            <h2>IMC de Paciente</h2>
+            <h2>IMC de Usuario</h2>
           </div>
         </div>
       </div>

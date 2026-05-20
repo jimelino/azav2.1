@@ -234,7 +234,7 @@ const Chat = () => {
     const roles = {
       1: 'Administrador',
       2: 'Especialista',
-      3: 'Paciente'
+      3: 'Usuario'
     };
     return roles[rolId] || 'Usuario';
   };
@@ -327,7 +327,7 @@ const Chat = () => {
               <p className="help-text">
                 {(user?.rol_id === 3 || user?.rol === 'paciente')
                   ? 'Usa el botón + para contactar a tu especialista'
-                  : 'Tus pacientes pueden contactarte aquí'}
+                  : 'Tus usuarios pueden contactarte aquí'}
               </p>
             </div>
           )}

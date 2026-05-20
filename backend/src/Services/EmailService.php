@@ -165,6 +165,337 @@ class EmailService
         return $this->send($email, $subject, $body);
     }
 
+    // =====================================================
+    // EMAILS DE ADMISIONES
+    // =====================================================
+
+    /**
+     * Email al aprobar screening - informar que debe esperar referencia de pago
+     */
+    /**
+     * Email de confirmación al recibir la solicitud
+     */
+    public function sendAdmisionSolicitudRecibida($solicitud)
+    {
+        $email = $solicitud['email'] ?? null;
+        if (!$email) {
+            $this->log("Admision solicitud recibida - sin email", $solicitud);
+            return true;
+        }
+
+        $nombre = $solicitud['nombre_completo'] ?? 'Solicitante';
+        $folio = 'SOL-' . str_pad($solicitud['id'], 5, '0', STR_PAD_LEFT);
+        $subject = "Solicitud recibida - $folio - Azaria UIOP";
+        $body = $this->getAdmisionTemplate('solicitud_recibida', [
+            'nombre' => $nombre,
+            'folio' => $folio
+        ]);
+
+        return $this->send($email, $subject, $body);
+    }
+
+    public function sendAdmisionScreeningAprobado($solicitud)
+    {
+        $email = $solicitud['email'] ?? null;
+        if (!$email) {
+            $this->log("Admision screening aprobado - sin email", $solicitud);
+            return true;
+        }
+
+        $nombre = $solicitud['nombre_completo'] ?? 'Solicitante';
+        $folio = 'SOL-' . str_pad($solicitud['id'], 5, '0', STR_PAD_LEFT);
+        $subject = "Solicitud aprobada - Siguiente paso: Pago - $folio";
+        $body = $this->getAdmisionTemplate('screening_aprobado', [
+            'nombre' => $nombre,
+            'folio' => $folio
+        ]);
+
+        return $this->send($email, $subject, $body);
+    }
+
+    /**
+     * Email al confirmar pago - solicitar documentos con link de subida
+     */
+    public function sendAdmisionPagoConfirmado($solicitud, $linkDocumentos = null)
+    {
+        $email = $solicitud['email'] ?? null;
+        if (!$email) {
+            $this->log("Admision pago confirmado - sin email", $solicitud);
+            return true;
+        }
+
+        $nombre = $solicitud['nombre_completo'] ?? 'Solicitante';
+        $folio = 'SOL-' . str_pad($solicitud['id'], 5, '0', STR_PAD_LEFT);
+        $subject = "Pago confirmado - Sube tus documentos - $folio";
+        $body = $this->getAdmisionTemplate('pago_confirmado', [
+            'nombre' => $nombre,
+            'folio' => $folio,
+            'link_documentos' => $linkDocumentos
+        ]);
+
+        return $this->send($email, $subject, $body);
+    }
+
+    /**
+     * Email al recibir documentos completos
+     */
+    public function sendAdmisionDocumentosRecibidos($solicitud)
+    {
+        $email = $solicitud['email'] ?? null;
+        if (!$email) {
+            $this->log("Admision docs recibidos - sin email", $solicitud);
+            return true;
+        }
+
+        $nombre = $solicitud['nombre_completo'] ?? 'Solicitante';
+        $folio = 'SOL-' . str_pad($solicitud['id'], 5, '0', STR_PAD_LEFT);
+        $subject = "Documentos recibidos - $folio";
+        $body = $this->getAdmisionTemplate('documentos_recibidos', [
+            'nombre' => $nombre,
+            'folio' => $folio
+        ]);
+
+        return $this->send($email, $subject, $body);
+    }
+
+    /**
+     * Email al programar preconsulta
+     */
+    public function sendAdmisionPreconsultaProgramada($solicitud, $fecha, $hora)
+    {
+        $email = $solicitud['email'] ?? null;
+        if (!$email) {
+            $this->log("Admision preconsulta - sin email", $solicitud);
+            return true;
+        }
+
+        $nombre = $solicitud['nombre_completo'] ?? 'Solicitante';
+        $folio = 'SOL-' . str_pad($solicitud['id'], 5, '0', STR_PAD_LEFT);
+        $subject = "Preconsulta programada - $folio";
+        $body = $this->getAdmisionTemplate('preconsulta_programada', [
+            'nombre' => $nombre,
+            'folio' => $folio,
+            'fecha' => $this->formatearFecha($fecha),
+            'hora' => $hora
+        ]);
+
+        return $this->send($email, $subject, $body);
+    }
+
+    /**
+     * Email al admitir al paciente
+     */
+    public function sendAdmisionAdmitido($solicitud, $credentials)
+    {
+        $email = $solicitud['email'] ?? null;
+        if (!$email) {
+            $this->log("Admision admitido - sin email", $solicitud);
+            return true;
+        }
+
+        $nombre = $solicitud['nombre_completo'] ?? 'Solicitante';
+        $folio = 'SOL-' . str_pad($solicitud['id'], 5, '0', STR_PAD_LEFT);
+        $subject = "¡Bienvenido a Azaria! - Admisión confirmada - $folio";
+        $body = $this->getAdmisionTemplate('admitido', [
+            'nombre' => $nombre,
+            'folio' => $folio,
+            'email_acceso' => $credentials['email'],
+            'password' => $credentials['password']
+        ]);
+
+        return $this->send($email, $subject, $body);
+    }
+
+    /**
+     * Email al rechazar solicitud
+     */
+    public function sendAdmisionRechazado($solicitud, $motivo = '')
+    {
+        $email = $solicitud['email'] ?? null;
+        if (!$email) {
+            $this->log("Admision rechazado - sin email", $solicitud);
+            return true;
+        }
+
+        $nombre = $solicitud['nombre_completo'] ?? 'Solicitante';
+        $folio = 'SOL-' . str_pad($solicitud['id'], 5, '0', STR_PAD_LEFT);
+        $subject = "Actualización de tu solicitud - $folio";
+        $body = $this->getAdmisionTemplate('rechazado', [
+            'nombre' => $nombre,
+            'folio' => $folio,
+            'motivo' => $motivo
+        ]);
+
+        return $this->send($email, $subject, $body);
+    }
+
+    /**
+     * Template para emails de admisiones
+     */
+    private function getAdmisionTemplate($tipo, $data)
+    {
+        $configs = [
+            'solicitud_recibida'   => ['color' => '#0097A7', 'icon' => '📩', 'title' => 'Solicitud Recibida'],
+            'screening_aprobado'   => ['color' => '#0097A7', 'icon' => '✅', 'title' => 'Solicitud Aprobada'],
+            'pago_confirmado'      => ['color' => '#4CAF50', 'icon' => '💳', 'title' => 'Pago Confirmado'],
+            'documentos_recibidos' => ['color' => '#2196F3', 'icon' => '📄', 'title' => 'Documentos Recibidos'],
+            'preconsulta_programada' => ['color' => '#FF9800', 'icon' => '📅', 'title' => 'Preconsulta Programada'],
+            'admitido'             => ['color' => '#4CAF50', 'icon' => '🎉', 'title' => '¡Admisión Confirmada!'],
+            'rechazado'            => ['color' => '#F44336', 'icon' => '📋', 'title' => 'Actualización de Solicitud'],
+        ];
+
+        $cfg = $configs[$tipo] ?? ['color' => '#0097A7', 'icon' => '📋', 'title' => 'Notificación'];
+        $supportEmail = $this->config['support']['email'];
+        $supportPhone = $this->config['support']['phone'];
+
+        $linkEstatus = 'https://dtai.uteq.edu.mx/~azaria/admisiones/estatus';
+
+        $contenido = '';
+        switch ($tipo) {
+            case 'solicitud_recibida':
+                $contenido = "
+                    <p>Hemos recibido tu solicitud de admisión con el folio <strong>{$data['folio']}</strong>.</p>
+                    <div class='details'>
+                        <p><strong>¿Qué sigue?</strong></p>
+                        <p>Nuestro equipo revisará tu información y te notificaremos sobre los siguientes pasos del proceso de admisión.</p>
+                    </div>
+                    <p style='margin-top:15px;'>Puedes consultar el estatus de tu solicitud en cualquier momento:</p>
+                    <div style='text-align:center;margin:20px 0;'>
+                        <a href='{$linkEstatus}' style='display:inline-block;background:{$cfg['color']};color:white;padding:14px 28px;text-decoration:none;border-radius:8px;font-weight:bold;font-size:16px;'>
+                            Consultar Estatus
+                        </a>
+                    </div>
+                    <p style='font-size:13px;color:#666;text-align:center;'>Usa tu folio <strong>{$data['folio']}</strong> y tu correo electrónico o teléfono para consultar.</p>";
+                break;
+
+            case 'screening_aprobado':
+                $contenido = "
+                    <p>Tu solicitud <strong>{$data['folio']}</strong> ha sido <strong>aprobada</strong> en la etapa de evaluación inicial.</p>
+                    <div class='details'>
+                        <p><strong>Siguiente paso: Pago</strong></p>
+                        <p>Espera a que te llegue la referencia de pago por parte de nuestro equipo.
+                           Te contactaremos por teléfono o correo con los datos para realizar tu pago.</p>
+                    </div>
+                    <p style='margin-top:15px;'>Una vez que realices el pago y sea confirmado, te enviaremos un enlace para subir tus documentos.</p>";
+                break;
+
+            case 'pago_confirmado':
+                $contenido = "
+                    <p>Tu pago para la solicitud <strong>{$data['folio']}</strong> ha sido <strong>confirmado</strong> exitosamente.</p>
+                    <div class='details'>
+                        <p><strong>Siguiente paso: Subir Documentos</strong></p>
+                        <p>Ahora necesitamos que subas los siguientes documentos:</p>
+                        <ul style='margin:8px 0;padding-left:20px;'>
+                            <li>Estudios de laboratorio</li>
+                            <li>Radiografías</li>
+                            <li>Comprobante de domicilio</li>
+                        </ul>
+                    </div>"
+                    . (!empty($data['link_documentos']) ?
+                        "<div style='text-align:center;margin:20px 0;'>
+                            <a href='{$data['link_documentos']}' style='display:inline-block;background:{$cfg['color']};color:white;padding:14px 28px;text-decoration:none;border-radius:8px;font-weight:bold;font-size:16px;'>
+                                Subir Documentos
+                            </a>
+                        </div>
+                        <p style='font-size:13px;color:#666;text-align:center;'>Este enlace es válido por 72 horas.</p>" : "
+                        <p style='margin-top:12px;'>Te enviaremos el enlace para subir tus documentos en breve.</p>")
+                    . "<p style='margin-top:15px;'>Si tienes dudas sobre los documentos requeridos, no dudes en contactarnos.</p>";
+                break;
+
+            case 'documentos_recibidos':
+                $contenido = "
+                    <p>Hemos recibido correctamente todos tus documentos para la solicitud <strong>{$data['folio']}</strong>.</p>
+                    <div class='details'>
+                        <p><strong>Siguiente paso: Preconsulta</strong></p>
+                        <p>Nuestro equipo revisará tu documentación y te contactaremos para programar tu preconsulta médica.</p>
+                    </div>
+                    <p style='margin-top:15px;'>Estamos avanzando con tu proceso. Te notificaremos cuando tu preconsulta sea programada.</p>";
+                break;
+
+            case 'preconsulta_programada':
+                $contenido = "
+                    <p>Tu preconsulta para la solicitud <strong>{$data['folio']}</strong> ha sido programada.</p>
+                    <div class='details'>
+                        <p>📅 <strong>Fecha:</strong> {$data['fecha']}</p>
+                        <p>🕐 <strong>Hora:</strong> {$data['hora']}</p>
+                    </div>
+                    <p style='margin-top:15px;'><strong>Recuerda:</strong></p>
+                    <ul style='padding-left:20px;'>
+                        <li>Llega 15 minutos antes de tu cita</li>
+                        <li>Trae una identificación oficial</li>
+                        <li>Si necesitas reagendar, contáctanos con anticipación</li>
+                    </ul>";
+                break;
+
+            case 'admitido':
+                $contenido = "
+                    <p>¡Felicidades! Tu solicitud <strong>{$data['folio']}</strong> ha sido <strong>aprobada</strong>.
+                       Has sido admitido en el programa de rehabilitación de Azaria.</p>
+                    <div class='details'>
+                        <p><strong>Tus credenciales de acceso a la plataforma:</strong></p>
+                        <p>📧 <strong>Email:</strong> {$data['email_acceso']}</p>
+                        <p>🔑 <strong>Contraseña temporal:</strong> {$data['password']}</p>
+                    </div>
+                    <p style='margin-top:15px;'><strong>Importante:</strong></p>
+                    <ul style='padding-left:20px;'>
+                        <li>Inicia sesión lo antes posible</li>
+                        <li>Configura tu PIN de acceso rápido</li>
+                        <li>Cambia tu contraseña temporal por una segura</li>
+                    </ul>
+                    <p style='margin-top:15px;'>Estamos encantados de tenerte en el programa. Tu equipo de especialistas estará contigo en cada paso.</p>";
+                break;
+
+            case 'rechazado':
+                $contenido = "
+                    <p>Lamentamos informarte que tu solicitud <strong>{$data['folio']}</strong> no ha podido ser aprobada en esta ocasión.</p>"
+                    . (!empty($data['motivo']) ? "
+                    <div class='details'>
+                        <p><strong>Observaciones:</strong></p>
+                        <p>{$data['motivo']}</p>
+                    </div>" : "")
+                    . "<p style='margin-top:15px;'>Si tienes preguntas sobre esta decisión o deseas más información, no dudes en contactarnos.
+                       Estamos aquí para orientarte.</p>";
+                break;
+        }
+
+        return "
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset='UTF-8'>
+            <style>
+                body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; }
+                .container { max-width: 600px; margin: 0 auto; }
+                .header { background: {$cfg['color']}; color: white; padding: 24px; text-align: center; }
+                .header h1 { margin: 0; font-size: 22px; }
+                .content { padding: 24px; background: #f9f9f9; }
+                .details { background: white; padding: 16px; border-radius: 8px; margin: 16px 0;
+                           border-left: 4px solid {$cfg['color']}; }
+                .details p { margin: 6px 0; }
+                .details ul { margin: 8px 0; }
+                .footer { text-align: center; padding: 20px; font-size: 12px; color: #666;
+                          border-top: 1px solid #eee; }
+            </style>
+        </head>
+        <body>
+            <div class='container'>
+                <div class='header'>
+                    <h1>{$cfg['icon']} {$cfg['title']}</h1>
+                </div>
+                <div class='content'>
+                    <p>Hola <strong>{$data['nombre']}</strong>,</p>
+                    $contenido
+                </div>
+                <div class='footer'>
+                    <p>Azaria - Unidad de Investigación en Órtesis y Prótesis</p>
+                    <p>ENES Juriquilla, UNAM</p>
+                    <p>📧 {$supportEmail} | 📞 {$supportPhone}</p>
+                </div>
+            </div>
+        </body>
+        </html>";
+    }
+
     /**
      * Enviar email via SMTP (PHPMailer)
      */

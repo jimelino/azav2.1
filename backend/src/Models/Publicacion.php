@@ -8,7 +8,7 @@ class Publicacion {
     public static function find($id) {
         $db = DatabaseService::getInstance();
         return $db->query(
-            "SELECT p.*, u.nombre_completo as autor_nombre, u.avatar, t.nombre as tema_nombre, t.icono as tema_icono
+            "SELECT p.*, u.nombre_completo as autor_nombre, t.nombre as tema_nombre, t.icono as tema_icono
              FROM " . self::$table . " p
              LEFT JOIN usuarios u ON p.usuario_id = u.id
              LEFT JOIN temas_comunidad t ON p.tema_id = t.id
@@ -32,7 +32,7 @@ class Publicacion {
     public static function getFeed($userId, $filters = []) {
         $db = DatabaseService::getInstance();
 
-        $query = "SELECT p.*, u.nombre_completo as autor_nombre, u.avatar, t.nombre as tema_nombre, t.icono as tema_icono
+        $query = "SELECT p.*, u.nombre_completo as autor_nombre, t.nombre as tema_nombre, t.icono as tema_icono
                   FROM " . self::$table . " p
                   LEFT JOIN usuarios u ON p.usuario_id = u.id
                   LEFT JOIN temas_comunidad t ON p.tema_id = t.id
@@ -52,16 +52,22 @@ class Publicacion {
     public static function create($data) {
         $db = DatabaseService::getInstance();
 
+        // Mapear estado: la constante dice 'aprobado' pero la tabla espera 'aprobada'
+        $estado = $data['estado'] ?? 'aprobada';
+        if ($estado === 'aprobado') $estado = 'aprobada';
+        if ($estado === 'rechazado') $estado = 'rechazada';
+
         $db->query(
-            "INSERT INTO " . self::$table . " (usuario_id, tema_id, titulo, contenido, es_anonimo, estado, created_at)
-             VALUES (?, ?, ?, ?, ?, ?, NOW())",
+            "INSERT INTO " . self::$table . " (usuario_id, tema_id, titulo, contenido, imagen_url, es_anonimo, estado, created_at)
+             VALUES (?, ?, ?, ?, ?, ?, ?, NOW())",
             [
                 $data['usuario_id'],
                 $data['tema_id'] ?? 9,
                 $data['titulo'] ?? null,
                 $data['contenido'],
+                $data['imagen'] ?? null,
                 $data['es_anonimo'] ?? 0,
-                $data['estado'] ?? 'pendiente'
+                $estado
             ]
         );
 
@@ -112,7 +118,7 @@ class Publicacion {
     public static function getByTema($temaId) {
         $db = DatabaseService::getInstance();
         return $db->query(
-            "SELECT p.*, u.nombre_completo as autor_nombre, u.avatar
+            "SELECT p.*, u.nombre_completo as autor_nombre
              FROM " . self::$table . " p
              LEFT JOIN usuarios u ON p.usuario_id = u.id
              WHERE p.tema_id = ? AND p.estado = 'aprobada'

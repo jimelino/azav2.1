@@ -16,8 +16,8 @@ const FONT_SCALES = [
 const AGE_PROFILES = [
   { value: 'child', label: 'Niño/a (10-15)', icon: 'user', description: 'Colores vibrantes, interfaz amigable' },
   { value: 'young-adult', label: 'Joven (16-40)', icon: 'user', description: 'Diseño moderno estándar' },
-  { value: 'adult', label: 'Adulto (41-60)', icon: 'user-round', description: 'Texto ligeramente más grande' },
-  { value: 'senior', label: 'Adulto mayor (61+)', icon: 'user-round', description: 'Máxima legibilidad y contraste' },
+  { value: 'adult', label: 'Adulto (41-55)', icon: 'user-round', description: 'Texto y botones más grandes' },
+  { value: 'senior', label: 'Adulto mayor (56+)', icon: 'user-round', description: 'Máxima legibilidad, botones grandes, responsivo' },
 ];
 
 const AccessibilityPanel = () => {

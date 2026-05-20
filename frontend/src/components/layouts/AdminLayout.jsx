@@ -11,7 +11,7 @@ const ADMIN_NAV_ITEMS = [
   { path: '/admin', icon: 'bar-chart', label: 'Panel Admin' },
   { path: '/admin/usuarios', icon: 'users', label: 'Usuarios' },
   { path: '/admin/especialistas', icon: 'stethoscope', label: 'Especialistas' },
-  { path: '/admin/pacientes', icon: 'hospital', label: 'Pacientes' },
+  { path: '/admin/pacientes', icon: 'hospital', label: 'Usuarios' },
   { path: '/admin/reportes', icon: 'trending-up', label: 'Reportes' },
   { path: '/admin/citas', icon: 'calendar', label: 'Citas' },
   { path: '/admin/contenido', icon: 'pen-line', label: 'Contenido' },

@@ -195,7 +195,7 @@ const EvaluacionesFisicas = ({ pacienteId, onBack }) => {
             <div className="empty-state">
               <LucideIcon name="bar-chart" size={48} />
               <h3>Sin evaluaciones</h3>
-              <p>Registra la primera evaluación física de este paciente.</p>
+              <p>Registra la primera evaluación física de este usuario.</p>
               <button className="btn-primary" onClick={nuevaEvaluacion}>
                 <LucideIcon name="plus" size={16} /> Nueva Evaluación
               </button>

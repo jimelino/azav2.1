@@ -26,13 +26,14 @@ const ESTADO_LABELS = {
 const PIPELINE_STEPS = [
   { key: 'solicitud_recibida', label: 'Recibida' },
   { key: 'screening_aprobado', label: 'Screening' },
-  { key: 'documentos_recibidos', label: 'Documentos' },
   { key: 'pago_confirmado', label: 'Pago' },
+  { key: 'documentos_recibidos', label: 'Documentos' },
   { key: 'preconsulta_completada', label: 'Preconsulta' },
   { key: 'admitido', label: 'Admitido' }
 ];
 
 const TIPO_SERVICIO_LABELS = {
+  ortesis: 'Órtesis a Público General',
   protesis_publico: 'Prótesis a Público General',
   protocolo_protesis: 'Protocolo de Prótesis'
 };
@@ -183,8 +184,16 @@ const AdmisionesTab = () => {
               <td style="padding:8px 12px;text-align:center;font-weight:700;font-size:14px;">${reporte.tasa_admision || 0}%</td>
             </tr>
             <tr style="border-bottom:1px solid #e0e0e0;background:#f9f9f9;">
-              <td style="padding:8px 12px;font-size:13px;">Total Preconsultas Realizadas</td>
+              <td style="padding:8px 12px;font-size:13px;">Total Preconsultas Programadas</td>
               <td style="padding:8px 12px;text-align:center;font-weight:700;font-size:14px;">${reporte.total_preconsultas || 0}</td>
+            </tr>
+            <tr style="border-bottom:1px solid #e0e0e0;">
+              <td style="padding:8px 12px;font-size:13px;">Preconsultas Asistidas (pagadas)</td>
+              <td style="padding:8px 12px;text-align:center;font-weight:700;font-size:14px;">${reporte.preconsultas_asistidas || 0}</td>
+            </tr>
+            <tr style="border-bottom:2px solid #4CAF50;background:#f0fff0;">
+              <td style="padding:8px 12px;font-size:13px;font-weight:700;color:#2e7d32;">Ingresos por Preconsultas ($${reporte.costo_preconsulta || 500} c/u)</td>
+              <td style="padding:8px 12px;text-align:center;font-weight:700;font-size:15px;color:#2e7d32;">$${((reporte.ingresos_preconsultas || 0)).toLocaleString('es-MX')} MXN</td>
             </tr>
           </tbody>
         </table>
@@ -392,27 +401,11 @@ const AdmisionesTab = () => {
     }
   };
 
-  const handleEnviarPago = async () => {
+  const handleMarcarPagado = async () => {
     setProcesando(true);
     try {
-      await api.post(`/admin/admisiones/${detalle.solicitud.id}/pago`, {
-        referencia_pago: modalData.referencia_pago,
-        monto: modalData.monto || null,
-        notas: modalData.notas || ''
-      });
-      setModal(null);
-      cargarDetalle(detalle.solicitud.id);
-    } catch (err) {
-      console.error('Error:', err);
-    } finally {
-      setProcesando(false);
-    }
-  };
-
-  const handleConfirmarPago = async () => {
-    setProcesando(true);
-    try {
-      await api.put(`/admin/admisiones/${detalle.solicitud.id}/pago/confirmar`);
+      const res = await api.post(`/admin/admisiones/${detalle.solicitud.id}/pagado`);
+      setLinkGenerado(res?.data || null);
       cargarDetalle(detalle.solicitud.id);
     } catch (err) {
       console.error('Error:', err);
@@ -537,11 +530,12 @@ const AdmisionesTab = () => {
   };
 
   const getPipelineIndex = (estado) => {
+    // Flujo: Recibida(0) → Screening(1) → Pago(2) → Documentos(3) → Preconsulta(4) → Admitido(5)
     const map = {
       solicitud_recibida: 0,
       screening_aprobado: 1, screening_rechazado: -1,
-      documentos_pendientes: 1, documentos_recibidos: 2,
-      pago_pendiente: 2, pago_confirmado: 3,
+      pago_pendiente: 1, pago_confirmado: 2,
+      documentos_pendientes: 2, documentos_recibidos: 3,
       preconsulta_programada: 3, preconsulta_completada: 4,
       admitido: 5, rechazado: -1
     };
@@ -560,10 +554,9 @@ const AdmisionesTab = () => {
           { key: 'todos', label: 'Todos', cls: 'todos' },
           { key: 'solicitud_recibida', label: 'Recibidas', cls: 'recibida' },
           { key: 'screening_aprobado', label: 'Aprobadas', cls: 'aprobado' },
+          { key: 'pago_confirmado', label: 'Pagados', cls: 'pago' },
           { key: 'documentos_pendientes', label: 'Docs Pend.', cls: 'docs' },
           { key: 'documentos_recibidos', label: 'Docs Recibidos', cls: 'docs' },
-          { key: 'pago_pendiente', label: 'Pago Pend.', cls: 'pago' },
-          { key: 'pago_confirmado', label: 'Pago Conf.', cls: 'pago' },
           { key: 'preconsulta_programada', label: 'Preconsulta', cls: 'preconsulta' },
           { key: 'admitido', label: 'Admitidos', cls: 'admitido' },
           { key: 'rechazado', label: 'Rechazados', cls: 'rechazado' }
@@ -880,7 +873,7 @@ const AdmisionesTab = () => {
         {/* Resultado admisión */}
         {resultadoAdmision && (
           <div className="admisiones-info-card">
-            <h3><LucideIcon name="check-circle" size={18} /> Paciente Admitido</h3>
+            <h3><LucideIcon name="check-circle" size={18} /> Usuario Admitido</h3>
             <div className="temp-password-display">
               <span className="label">Contraseña temporal:</span>
               <span className="password">{resultadoAdmision.password_temporal}</span>
@@ -913,30 +906,23 @@ const AdmisionesTab = () => {
         )}
 
         {estado === 'screening_aprobado' && (
-          <button className="admisiones-accion-btn btn-generar-link" onClick={handleGenerarLink} disabled={procesando}>
-            <LucideIcon name="link" size={16} /> {procesando ? 'Generando...' : 'Generar Link de Documentos'}
+          <button className="admisiones-accion-btn btn-confirmar-pago" onClick={handleMarcarPagado} disabled={procesando}>
+            <LucideIcon name="check-circle" size={16} /> {procesando ? 'Procesando...' : 'Marcar como Pagado'}
           </button>
         )}
 
-        {(estado === 'documentos_pendientes' || estado === 'documentos_recibidos') && !sol.token_documentos && (
-          <button className="admisiones-accion-btn btn-generar-link" onClick={handleGenerarLink} disabled={procesando}>
-            <LucideIcon name="link" size={16} /> Regenerar Link de Documentos
-          </button>
+        {(estado === 'pago_confirmado' || estado === 'documentos_pendientes') && (
+          <>
+            <p style={{ fontSize: '14px', color: 'var(--text-secondary)', marginBottom: '8px' }}>
+              Esperando documentos del solicitante. Se envió email con enlace de subida.
+            </p>
+            <button className="admisiones-accion-btn btn-generar-link" onClick={handleGenerarLink} disabled={procesando}>
+              <LucideIcon name="link" size={16} /> Regenerar Link de Documentos
+            </button>
+          </>
         )}
 
         {estado === 'documentos_recibidos' && (
-          <button className="admisiones-accion-btn btn-pago" onClick={() => { setModal('pago'); setModalData({ referencia_pago: '', monto: '', notas: '' }); }}>
-            <LucideIcon name="credit-card" size={16} /> Enviar Ref. de Pago
-          </button>
-        )}
-
-        {estado === 'pago_pendiente' && (
-          <button className="admisiones-accion-btn btn-confirmar-pago" onClick={handleConfirmarPago} disabled={procesando}>
-            <LucideIcon name="check-circle" size={16} /> {procesando ? 'Confirmando...' : 'Confirmar Pago'}
-          </button>
-        )}
-
-        {estado === 'pago_confirmado' && (
           <button className="admisiones-accion-btn btn-preconsulta" onClick={() => { setModal('preconsulta'); setModalData({ fecha: '', hora: '' }); }}>
             <LucideIcon name="calendar" size={16} /> Programar Preconsulta
           </button>
@@ -951,7 +937,7 @@ const AdmisionesTab = () => {
         {estado === 'preconsulta_completada' && (
           <>
             <button className="admisiones-accion-btn btn-admitir" onClick={() => { setModal('admitir'); setModalData({ notas: '', fecha_nacimiento: '' }); }}>
-              <LucideIcon name="user-plus" size={16} /> Admitir Paciente
+              <LucideIcon name="user-plus" size={16} /> Admitir Usuario
             </button>
             <button className="admisiones-accion-btn btn-rechazar" onClick={() => { setModal('rechazar'); setModalData({ notas: '' }); }}>
               <LucideIcon name="x" size={16} /> Rechazar
@@ -1006,7 +992,16 @@ const AdmisionesTab = () => {
               </div>
               <div className="reporte-metrica-card">
                 <span className="valor">{reporte.total_preconsultas}</span>
-                <span className="label">Preconsultas</span>
+                <span className="label">Preconsultas Programadas</span>
+              </div>
+              <div className="reporte-metrica-card">
+                <span className="valor">{reporte.preconsultas_asistidas || 0}</span>
+                <span className="label">Preconsultas Asistidas</span>
+              </div>
+              <div className="reporte-metrica-card" style={{ borderColor: '#4CAF50' }}>
+                <span className="valor" style={{ color: '#4CAF50' }}>${(reporte.ingresos_preconsultas || 0).toLocaleString('es-MX')}</span>
+                <span className="label">Ingresos Preconsultas</span>
+                <span className="sublabel" style={{ fontSize: '12px', color: 'var(--text-muted)' }}>${reporte.costo_preconsulta || 500} x preconsulta asistida</span>
               </div>
               <div className="reporte-metrica-card">
                 <span className="valor">{reporte.total_admitidos}</span>
@@ -1194,48 +1189,6 @@ const AdmisionesTab = () => {
             </>
           )}
 
-          {modal === 'pago' && (
-            <>
-              <h3>Enviar Referencia de Pago</h3>
-              <div className="admisiones-modal-group">
-                <label>Referencia de Pago *</label>
-                <input
-                  type="text"
-                  value={modalData.referencia_pago}
-                  onChange={e => setModalData({ ...modalData, referencia_pago: e.target.value })}
-                  placeholder="Número de referencia"
-                />
-              </div>
-              <div className="admisiones-modal-group">
-                <label>Monto (opcional)</label>
-                <input
-                  type="number"
-                  value={modalData.monto}
-                  onChange={e => setModalData({ ...modalData, monto: e.target.value })}
-                  placeholder="0.00"
-                />
-              </div>
-              <div className="admisiones-modal-group">
-                <label>Notas</label>
-                <textarea
-                  value={modalData.notas}
-                  onChange={e => setModalData({ ...modalData, notas: e.target.value })}
-                  placeholder="Instrucciones de pago..."
-                />
-              </div>
-              <div className="admisiones-modal-actions">
-                <button className="admisiones-modal-btn modal-btn-cancel" onClick={() => setModal(null)}>Cancelar</button>
-                <button
-                  className="admisiones-modal-btn modal-btn-confirm"
-                  onClick={handleEnviarPago}
-                  disabled={procesando || !modalData.referencia_pago}
-                >
-                  {procesando ? 'Enviando...' : 'Enviar Referencia'}
-                </button>
-              </div>
-            </>
-          )}
-
           {modal === 'preconsulta' && (
             <>
               <h3>Programar Preconsulta</h3>
@@ -1294,9 +1247,9 @@ const AdmisionesTab = () => {
 
           {modal === 'admitir' && (
             <>
-              <h3>Admitir Paciente</h3>
+              <h3>Admitir Usuario</h3>
               <p style={{ fontSize: '14px', color: 'var(--text-secondary)', marginBottom: '12px' }}>
-                Se creará un usuario y paciente en el sistema con una contraseña temporal.
+                Se creará un usuario en el sistema con una contraseña temporal.
               </p>
               <div className="admisiones-modal-group">
                 <label>Fecha de Nacimiento</label>

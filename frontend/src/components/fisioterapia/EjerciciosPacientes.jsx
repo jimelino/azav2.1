@@ -91,7 +91,7 @@ const EjerciciosPacientes = ({ pacienteId, onBack }) => {
       <section className="module-view ejercicios-pacientes">
         <div className="module-header">
           <button className="back-btn" onClick={onBack}><LucideIcon name="arrow-left" size={18} /> Volver</button>
-          <h2 className="module-title"><LucideIcon name="dumbbell" size={22} /> Ejercicios de Pacientes</h2>
+          <h2 className="module-title"><LucideIcon name="dumbbell" size={22} /> Ejercicios de Usuarios</h2>
         </div>
         <div className="loading-state"><div className="loading-spinner"></div><p>Cargando ejercicios...</p></div>
       </section>
@@ -102,7 +102,7 @@ const EjerciciosPacientes = ({ pacienteId, onBack }) => {
     <section className="module-view ejercicios-pacientes">
       <div className="module-header">
         <button className="back-btn" onClick={onBack}><LucideIcon name="arrow-left" size={18} /> Volver</button>
-        <h2 className="module-title"><LucideIcon name="dumbbell" size={22} /> Ejercicios de Pacientes</h2>
+        <h2 className="module-title"><LucideIcon name="dumbbell" size={22} /> Ejercicios de Usuarios</h2>
       </div>
 
       <div className="tabs-nav">
@@ -124,7 +124,7 @@ const EjerciciosPacientes = ({ pacienteId, onBack }) => {
               <div className="empty-state">
                 <LucideIcon name="dumbbell" size={48} />
                 <h3>Sin ejercicios asignados</h3>
-                <p>Ve al catálogo para asignar videos de ejercicio a este paciente.</p>
+                <p>Ve al catálogo para asignar videos de ejercicio a este usuario.</p>
                 <button className="btn-primary" onClick={() => setActiveTab('catalogo')}>
                   <LucideIcon name="plus" size={16} /> Ir al Catálogo
                 </button>
@@ -240,7 +240,7 @@ const EjerciciosPacientes = ({ pacienteId, onBack }) => {
               <div className="empty-state">
                 <LucideIcon name="clock" size={48} />
                 <h3>Sin historial</h3>
-                <p>El paciente aún no ha realizado ejercicios registrados.</p>
+                <p>El usuario aún no ha realizado ejercicios registrados.</p>
               </div>
             ) : (
               <div className="historial-list">

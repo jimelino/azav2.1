@@ -188,13 +188,13 @@ export const AccessibilityProvider = ({ children }) => {
         fontScale: 'md',
         voiceSpeed: 1,
       };
-    } else if (age >= 41 && age <= 60) {
+    } else if (age >= 41 && age <= 55) {
       profile = {
         ageMode: 'adult',
         fontScale: 'md',
         voiceSpeed: 0.9,
       };
-    } else if (age >= 61) {
+    } else if (age >= 56) {
       profile = {
         ageMode: 'senior',
         fontScale: 'lg',

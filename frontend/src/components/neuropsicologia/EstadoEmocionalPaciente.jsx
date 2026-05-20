@@ -4,27 +4,32 @@ import api from '../../services/api';
 import './NeuropsicologiaEsp.css';
 
 const EMOCIONES_CONFIG = {
-  feliz: { icon: 'smile', color: '#4CAF50', label: 'Feliz' },
-  tranquilo: { icon: 'cloud', color: '#2196F3', label: 'Tranquilo' },
-  neutral: { icon: 'minus-circle', color: '#9E9E9E', label: 'Neutral' },
-  ansioso: { icon: 'alert-triangle', color: '#FF9800', label: 'Ansioso' },
-  triste: { icon: 'frown', color: '#5C6BC0', label: 'Triste' },
-  enojado: { icon: 'flame', color: '#F44336', label: 'Enojado' },
-  frustrado: { icon: 'x-circle', color: '#E91E63', label: 'Frustrado' },
-  agradecido: { icon: 'heart', color: '#2E7D32', label: 'Agradecido' },
-  // Backend emotion names
-  alegria: { icon: 'smile', color: '#4CAF50', label: 'Alegría' },
-  calma: { icon: 'cloud', color: '#2196F3', label: 'Calma' },
-  ansiedad: { icon: 'alert-triangle', color: '#FF9800', label: 'Ansiedad' },
-  tristeza: { icon: 'frown', color: '#5C6BC0', label: 'Tristeza' },
-  frustracion: { icon: 'x-circle', color: '#E91E63', label: 'Frustración' },
-  esperanza: { icon: 'sun', color: '#FFC107', label: 'Esperanza' },
-  miedo: { icon: 'shield-alert', color: '#795548', label: 'Miedo' },
-  enojo: { icon: 'flame', color: '#F44336', label: 'Enojo' },
-  gratitud: { icon: 'heart', color: '#2E7D32', label: 'Gratitud' },
-  confusion: { icon: 'help-circle', color: '#607D8B', label: 'Confusión' },
-  motivacion: { icon: 'zap', color: '#FF5722', label: 'Motivación' },
-  soledad: { icon: 'user-minus', color: '#9C27B0', label: 'Soledad' },
+  // Emociones universales
+  enojo: { icon: 'flame', color: '#C62828', label: 'Enojo' },
+  desprecio: { icon: 'eye-off', color: '#880E4F', label: 'Desprecio' },
+  asco: { icon: 'ban', color: '#558B2F', label: 'Asco' },
+  disfrute: { icon: 'smile', color: '#F9A825', label: 'Disfrute' },
+  miedo: { icon: 'shield-alert', color: '#6A1B9A', label: 'Miedo' },
+  tristeza: { icon: 'cloud-rain', color: '#283593', label: 'Tristeza' },
+  sorpresa: { icon: 'zap', color: '#00897B', label: 'Sorpresa' },
+  // Mapeo de nombres legacy del backend
+  feliz: { icon: 'smile', color: '#F9A825', label: 'Disfrute' },
+  tranquilo: { icon: 'smile', color: '#F9A825', label: 'Disfrute' },
+  neutral: { icon: 'zap', color: '#00897B', label: 'Sorpresa' },
+  ansioso: { icon: 'shield-alert', color: '#6A1B9A', label: 'Miedo' },
+  triste: { icon: 'cloud-rain', color: '#283593', label: 'Tristeza' },
+  enojado: { icon: 'flame', color: '#C62828', label: 'Enojo' },
+  frustrado: { icon: 'flame', color: '#C62828', label: 'Enojo' },
+  agradecido: { icon: 'smile', color: '#F9A825', label: 'Disfrute' },
+  alegria: { icon: 'smile', color: '#F9A825', label: 'Disfrute' },
+  calma: { icon: 'smile', color: '#F9A825', label: 'Disfrute' },
+  ansiedad: { icon: 'shield-alert', color: '#6A1B9A', label: 'Miedo' },
+  frustracion: { icon: 'flame', color: '#C62828', label: 'Enojo' },
+  esperanza: { icon: 'smile', color: '#F9A825', label: 'Disfrute' },
+  gratitud: { icon: 'smile', color: '#F9A825', label: 'Disfrute' },
+  confusion: { icon: 'zap', color: '#00897B', label: 'Sorpresa' },
+  motivacion: { icon: 'smile', color: '#F9A825', label: 'Disfrute' },
+  soledad: { icon: 'cloud-rain', color: '#283593', label: 'Tristeza' },
 };
 
 const NIVEL_LABELS = {
@@ -87,7 +92,7 @@ const EstadoEmocionalPaciente = ({ pacienteId, onBack }) => {
     <div className="neuro-esp-module">
       <div className="neuro-esp-header">
         <button className="neuro-back-btn" onClick={onBack}>
-          <LucideIcon name="arrow-left" size={18} /> Cambiar paciente
+          <LucideIcon name="arrow-left" size={18} /> Cambiar usuario
         </button>
         <h2><LucideIcon name="heart" size={22} /> Estado Emocional</h2>
       </div>
@@ -101,7 +106,7 @@ const EstadoEmocionalPaciente = ({ pacienteId, onBack }) => {
         <div className="neuro-empty">
           <LucideIcon name="heart" size={40} />
           <p>No hay registros de estado emocional</p>
-          <p className="neuro-empty-sub">El paciente aún no ha registrado su estado de ánimo.</p>
+          <p className="neuro-empty-sub">El usuario aún no ha registrado su estado de ánimo.</p>
         </div>
       ) : (
         <>

@@ -150,7 +150,7 @@ const SeguimientoAdaptacion = ({ pacienteId, onBack }) => {
           <div className="ortesis-empty">
             <LucideIcon name="clipboard" size={32} />
             <h4>Sin registros de checklist</h4>
-            <p>El paciente aún no ha completado su checklist diario de prótesis</p>
+            <p>El usuario aún no ha completado su checklist diario de prótesis</p>
           </div>
         )}
 

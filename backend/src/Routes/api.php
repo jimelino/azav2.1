@@ -391,6 +391,43 @@ route('GET', '/api/neuropsicologia/cuestionarios/historial/(\d+)', function($pac
     $controller->getHistorialCuestionarios($pacienteId);
 }, ['auth']);
 
+// Cuestionarios personalizados (especialista)
+route('GET', '/api/neuropsicologia/cuestionarios-personalizados', function() {
+    $controller = new NeuropsicologiaController();
+    $controller->getCuestionariosPersonalizados();
+}, ['auth']);
+
+route('POST', '/api/neuropsicologia/cuestionarios-personalizados', function() {
+    $controller = new NeuropsicologiaController();
+    $controller->crearCuestionarioPersonalizado();
+}, ['auth']);
+
+route('DELETE', '/api/neuropsicologia/cuestionarios-personalizados/(\d+)', function($id) {
+    $controller = new NeuropsicologiaController();
+    $controller->eliminarCuestionarioPersonalizado($id);
+}, ['auth']);
+
+route('GET', '/api/neuropsicologia/cuestionarios-personalizados/(\d+)/respuestas', function($id) {
+    $controller = new NeuropsicologiaController();
+    $controller->getRespuestasCuestionario($id);
+}, ['auth']);
+
+// Cuestionarios para el usuario (paciente)
+route('GET', '/api/neuropsicologia/mis-cuestionarios/(\d+)', function($pacienteId) {
+    $controller = new NeuropsicologiaController();
+    $controller->getCuestionariosPaciente($pacienteId);
+}, ['auth']);
+
+route('POST', '/api/neuropsicologia/mis-cuestionarios/responder', function() {
+    $controller = new NeuropsicologiaController();
+    $controller->guardarRespuestaCuestionario(json_decode(file_get_contents('php://input'), true));
+}, ['auth']);
+
+route('GET', '/api/neuropsicologia/mis-cuestionarios/historial/(\d+)', function($pacienteId) {
+    $controller = new NeuropsicologiaController();
+    $controller->getHistorialRespuestas($pacienteId);
+}, ['auth']);
+
 // Sesiones ACT
 route('POST', '/api/neuropsicologia/act/sesion', function() {
     $controller = new NeuropsicologiaController();
@@ -400,6 +437,34 @@ route('POST', '/api/neuropsicologia/act/sesion', function() {
 route('GET', '/api/neuropsicologia/act/historial/(\d+)', function($pacienteId) {
     $controller = new NeuropsicologiaController();
     $controller->getHistorialACT($pacienteId);
+}, ['auth']);
+
+// Asignaciones ACT (especialista)
+route('GET', '/api/neuropsicologia/act/asignaciones/(\d+)', function($pacienteId) {
+    $controller = new NeuropsicologiaController();
+    $controller->getAsignacionesACT($pacienteId);
+}, ['auth']);
+
+route('POST', '/api/neuropsicologia/act/asignar', function() {
+    $data = json_decode(file_get_contents('php://input'), true);
+    $controller = new NeuropsicologiaController();
+    $controller->asignarHerramientaACT($data);
+}, ['auth']);
+
+route('DELETE', '/api/neuropsicologia/act/asignaciones/(\d+)', function($asignacionId) {
+    $controller = new NeuropsicologiaController();
+    $controller->eliminarAsignacionACT($asignacionId);
+}, ['auth']);
+
+route('PUT', '/api/neuropsicologia/act/asignaciones/(\d+)/completar', function($asignacionId) {
+    $controller = new NeuropsicologiaController();
+    $controller->completarAsignacionACT($asignacionId);
+}, ['auth']);
+
+route('PUT', '/api/neuropsicologia/act/asignaciones/(\d+)/estado', function($asignacionId) {
+    $data = json_decode(file_get_contents('php://input'), true);
+    $controller = new NeuropsicologiaController();
+    $controller->cambiarEstadoAsignacionACT($asignacionId, $data);
 }, ['auth']);
 
 // Evaluación neuropsicológica (perfil cognitivo)
@@ -542,6 +607,41 @@ route('GET', '/api/ortesis/guias', function() {
     $controller->getGuias();
 }, ['auth']);
 
+// Mediciones del muñón
+route('GET', '/api/ortesis/mediciones-munon/(\d+)', function($pacienteId) {
+    $controller = new OrtesisController();
+    $controller->getMedicionesMunon($pacienteId);
+}, ['auth']);
+
+route('POST', '/api/ortesis/mediciones-munon/(\d+)', function($pacienteId) {
+    $data = json_decode(file_get_contents('php://input'), true);
+    $controller = new OrtesisController();
+    $controller->crearMedicionMunon($pacienteId, $data);
+}, ['auth']);
+
+// Protocolo de uso progresivo
+route('GET', '/api/ortesis/protocolo-uso/(\d+)', function($pacienteId) {
+    $controller = new OrtesisController();
+    $controller->getProtocoloUsoRegistros($pacienteId);
+}, ['auth']);
+
+route('POST', '/api/ortesis/protocolo-uso/(\d+)', function($pacienteId) {
+    $data = json_decode(file_get_contents('php://input'), true);
+    $controller = new OrtesisController();
+    $controller->crearRegistroUso($pacienteId, $data);
+}, ['auth']);
+
+route('GET', '/api/ortesis/protocolo-uso/(\d+)/config', function($pacienteId) {
+    $controller = new OrtesisController();
+    $controller->getProtocoloConfig($pacienteId);
+}, ['auth']);
+
+route('POST', '/api/ortesis/protocolo-uso/(\d+)/config', function($pacienteId) {
+    $data = json_decode(file_get_contents('php://input'), true);
+    $controller = new OrtesisController();
+    $controller->guardarProtocoloConfig($pacienteId, $data);
+}, ['auth']);
+
 // RUTAS DE CITAS
 route('GET', '/api/citas', function() {
     $user = AuthMiddleware::getCurrentUser();
@@ -637,8 +737,11 @@ route('GET', '/api/comunidad/feed', function() {
 }, ['auth']);
 
 route('POST', '/api/comunidad/publicaciones', function() {
+    $user = AuthMiddleware::getCurrentUser();
+    $data = array_merge($_POST, $_FILES);
+    $data['usuario_id'] = $user['id'];
     $controller = new ComunidadController();
-    $controller->crearPublicacion(array_merge($_POST, $_FILES));
+    $controller->crearPublicacion($data);
 }, ['auth']);
 
 route('GET', '/api/comunidad/publicaciones/(\d+)', function($id) {
@@ -680,6 +783,37 @@ route('POST', '/api/comunidad/reportar', function() {
     $data['usuario_id'] = $user['id'];
     $controller = new ComunidadController();
     $controller->reportarContenido($data);
+}, ['auth']);
+
+// Eliminar comentario
+route('DELETE', '/api/comunidad/comentarios/(\d+)', function($id) {
+    $controller = new ComunidadController();
+    $controller->eliminarComentario($id);
+}, ['auth']);
+
+// Reacciones de una publicacion
+route('GET', '/api/comunidad/publicaciones/(\d+)/reacciones', function($id) {
+    $controller = new ComunidadController();
+    $controller->getReacciones($id);
+}, ['auth']);
+
+// Reaccion con tipo especifico
+route('POST', '/api/comunidad/publicaciones/(\d+)/reaccion', function($id) {
+    $user = AuthMiddleware::getCurrentUser();
+    $data = json_decode(file_get_contents('php://input'), true);
+    $controller = new ComunidadController();
+    $controller->reaccionar([
+        'usuario_id' => $user['id'],
+        'publicacion_id' => $id,
+        'tipo_reaccion' => $data['tipo_reaccion'] ?? 'me_gusta'
+    ]);
+}, ['auth']);
+
+// Temas de comunidad
+route('GET', '/api/comunidad/temas', function() {
+    $db = \App\Services\DatabaseService::getInstance();
+    $temas = $db->query("SELECT * FROM temas_comunidad WHERE activo = 1 ORDER BY orden")->fetchAll();
+    \App\Utils\Response::success($temas);
 }, ['auth']);
 
 // ===== RUTAS DE ADMINISTRACIÓN =====
@@ -726,6 +860,27 @@ route('PUT', '/api/admin/especialistas/(\d+)', function($id) {
 route('DELETE', '/api/admin/especialistas/(\d+)', function($id) {
     $controller = new AdminController();
     $controller->deleteUsuario($id);
+}, ['auth', 'role:administrador']);
+
+// Asignaciones especialista-paciente (gestión admin)
+route('GET', '/api/admin/pacientes', function() {
+    $controller = new AdminController();
+    $controller->getPacientes();
+}, ['auth', 'role:administrador']);
+
+route('GET', '/api/admin/especialistas/(\d+)/asignaciones', function($especialistaId) {
+    $controller = new AdminController();
+    $controller->getAsignacionesEspecialista($especialistaId);
+}, ['auth', 'role:administrador']);
+
+route('POST', '/api/admin/asignaciones', function() {
+    $controller = new AdminController();
+    $controller->crearAsignacion(json_decode(file_get_contents('php://input'), true));
+}, ['auth', 'role:administrador']);
+
+route('DELETE', '/api/admin/asignaciones/(\d+)', function($id) {
+    $controller = new AdminController();
+    $controller->eliminarAsignacion($id);
 }, ['auth', 'role:administrador']);
 
 route('GET', '/api/admin/blogs/metricas', function() {
@@ -1345,16 +1500,10 @@ route('POST', '/api/admin/admisiones/(\d+)/token-documentos', function($id) {
     $controller->generarTokenDocumentos($id);
 }, ['auth', 'role:administrador']);
 
-// Enviar referencia de pago
-route('POST', '/api/admin/admisiones/(\d+)/pago', function($id) {
+// Marcar como pagado (confirma pago + genera link docs + envía email)
+route('POST', '/api/admin/admisiones/(\d+)/pagado', function($id) {
     $controller = new AdmisionesController();
-    $controller->enviarReferenciaPago($id, json_decode(file_get_contents('php://input'), true));
-}, ['auth', 'role:administrador']);
-
-// Confirmar pago
-route('PUT', '/api/admin/admisiones/(\d+)/pago/confirmar', function($id) {
-    $controller = new AdmisionesController();
-    $controller->confirmarPago($id);
+    $controller->marcarPagado($id);
 }, ['auth', 'role:administrador']);
 
 // Programar preconsulta

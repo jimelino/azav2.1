@@ -179,7 +179,7 @@ const Fases = () => {
         {/* Boton cambiar fase (solo especialista) */}
         {esEspecialista && pacienteId && (
           <button className="btn-cambiar-fase" onClick={() => setShowModal(true)}>
-            <span aria-hidden="true"><LucideIcon name="zap" size={18} /></span> Cambiar Fase del Paciente
+            <span aria-hidden="true"><LucideIcon name="zap" size={18} /></span> Cambiar Fase del Usuario
           </button>
         )}
 

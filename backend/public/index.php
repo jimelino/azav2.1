@@ -83,13 +83,17 @@ if ($normalizedUri === '' || $normalizedUri === false) {
     $normalizedUri = '/';
 }
 
-if (preg_match('#^/uploads/.+\.(jpg|jpeg|png|gif|bmp|pdf|webp)$#i', $normalizedUri)) {
-    $filePath = $projectRoot . '/' . ltrim($normalizedUri, '/');
+if (preg_match('#^/uploads/.+\.(jpg|jpeg|png|gif|bmp|pdf|webp|doc|docx)$#i', $normalizedUri)) {
+    $filePath = __DIR__ . '/' . ltrim($normalizedUri, '/');
+    if (!file_exists($filePath)) {
+        $filePath = $projectRoot . '/' . ltrim($normalizedUri, '/');
+    }
     if (file_exists($filePath)) {
         $ext = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
         $mimeTypes = [
             'jpg' => 'image/jpeg', 'jpeg' => 'image/jpeg', 'png' => 'image/png',
-            'gif' => 'image/gif', 'bmp' => 'image/bmp', 'webp' => 'image/webp', 'pdf' => 'application/pdf'
+            'gif' => 'image/gif', 'bmp' => 'image/bmp', 'webp' => 'image/webp', 'pdf' => 'application/pdf',
+            'doc' => 'application/msword', 'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
         ];
         header('Content-Type: ' . ($mimeTypes[$ext] ?? 'application/octet-stream'));
         header('Content-Length: ' . filesize($filePath));

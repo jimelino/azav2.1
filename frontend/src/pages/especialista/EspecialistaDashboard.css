@@ -4038,10 +4038,16 @@ button.section-link {
   color: var(--text-secondary);
 }
 
-[data-theme="dark"] .horario-btn {
+[data-theme="dark"] .horario-btn:not(.selected) {
   background: var(--surface-secondary);
   border-color: var(--border-color);
   color: var(--text-primary);
+}
+
+[data-theme="dark"] .horario-btn.selected {
+  background: var(--area-color, var(--color-primary));
+  border-color: var(--area-color, var(--color-primary));
+  color: #fff;
 }
 
 [data-theme="dark"] .loading-module p {

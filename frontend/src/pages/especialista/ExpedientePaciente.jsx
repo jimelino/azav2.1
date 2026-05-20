@@ -185,8 +185,8 @@ const ExpedientePaciente = () => {
   if (!paciente) {
     return (
       <div className="expediente-error" data-age-mode={settings.ageMode}>
-        <h2>Paciente no encontrado</h2>
-        <p>No tienes acceso a este paciente o no existe.</p>
+        <h2>Usuario no encontrado</h2>
+        <p>No tienes acceso a este usuario o no existe.</p>
         <button onClick={() => navigate('/especialista')} className="btn-primary">
           Volver al Dashboard
         </button>
@@ -205,7 +205,7 @@ const ExpedientePaciente = () => {
         >
           <span aria-hidden="true">←</span> Volver
         </button>
-        <h1>Expediente del Paciente</h1>
+        <h1>Expediente del Usuario</h1>
       </header>
 
       {/* Información del paciente */}
@@ -584,7 +584,7 @@ const ExpedientePaciente = () => {
             <h3>Historial de Citas</h3>
             {citas.length === 0 ? (
               <div className="empty-state">
-                <p>No hay citas registradas con este paciente.</p>
+                <p>No hay citas registradas con este usuario.</p>
               </div>
             ) : (
               <div className="citas-list">
@@ -617,13 +617,13 @@ const ExpedientePaciente = () => {
           <div className="tab-content notas-content">
             <h3>Notas de Seguimiento</h3>
             <p className="notas-description">
-              Registra observaciones importantes sobre el progreso del paciente.
+              Registra observaciones importantes sobre el progreso del usuario.
             </p>
             <textarea
               className="notas-textarea"
               value={notas}
               onChange={(e) => setNotas(e.target.value)}
-              placeholder="Escribe tus notas sobre el paciente..."
+              placeholder="Escribe tus notas sobre el usuario..."
               rows={10}
             />
             <div className="notas-actions">

@@ -349,7 +349,7 @@ const Configuracion = () => {
                   <span className="toggle-slider"></span>
                 </label>
                 <label className="config-toggle">
-                  <span>Permitir mensajes de otros pacientes</span>
+                  <span>Permitir mensajes de otros usuarios</span>
                   <input type="checkbox" checked={privacidad.permitir_mensajes_pacientes}
                     onChange={e => setPrivacidad({...privacidad, permitir_mensajes_pacientes: e.target.checked})} />
                   <span className="toggle-slider"></span>

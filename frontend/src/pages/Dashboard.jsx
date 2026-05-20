@@ -57,7 +57,7 @@ const Dashboard = () => {
     { id: 'recordatorios', nombre: 'Recordatorios', ruta: '/recordatorios', color: 'var(--color-recordatorios)', desc: 'Alarmas y avisos', voiceDesc: 'Configura tus recordatorios' },
     { id: 'ayuda', nombre: 'Ayuda', ruta: '/faqs', color: 'var(--color-faqs)', desc: 'Preguntas frecuentes', voiceDesc: 'Preguntas y respuestas comunes' },
     { id: 'blog', nombre: 'Artículos', ruta: '/blog', color: 'var(--color-blog)', desc: 'Artículos de salud', voiceDesc: 'Lee artículos sobre tu salud' },
-    { id: 'comunidad', nombre: 'Comunidad', ruta: '/comunidad', color: 'var(--color-comunidad)', desc: 'Conecta con otros', voiceDesc: 'Conecta con otros pacientes' }
+    { id: 'comunidad', nombre: 'Comunidad', ruta: '/comunidad', color: 'var(--color-comunidad)', desc: 'Conecta con otros', voiceDesc: 'Conecta con otros usuarios' }
   ];
 
   const getSaludoHora = () => {

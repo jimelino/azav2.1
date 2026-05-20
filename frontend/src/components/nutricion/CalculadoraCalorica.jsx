@@ -89,7 +89,7 @@ const CalculadoraCalorica = ({ pacienteId, onBack }) => {
 
       <div className="calc-calorica-form-card">
         <h3 className="calc-calorica-section-title">
-          <LucideIcon name="user" size={20} /> Datos del Paciente
+          <LucideIcon name="user" size={20} /> Datos del Usuario
         </h3>
 
         <div className="calc-calorica-sexo-group">
@@ -213,7 +213,7 @@ const CalculadoraCalorica = ({ pacienteId, onBack }) => {
             <div>
               <strong>TMB</strong> = Tasa Metabolica Basal (calorias en reposo absoluto).
               <strong> GET</strong> = Gasto Energetico Total (TMB x factor de actividad).
-              La formula de Mifflin-St Jeor es la mas precisa para la mayoria de pacientes.
+              La formula de Mifflin-St Jeor es la mas precisa para la mayoria de usuarios.
             </div>
           </div>
         </div>

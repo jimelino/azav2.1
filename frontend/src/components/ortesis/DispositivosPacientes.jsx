@@ -76,7 +76,7 @@ const DispositivosPacientes = ({ pacienteId, onBack }) => {
           <LucideIcon name="arrow-left" size={18} /> Volver
         </button>
         <h2 className="module-title">
-          <LucideIcon name="accessibility" size={22} /> Dispositivo del Paciente
+          <LucideIcon name="accessibility" size={22} /> Dispositivo del Usuario
         </h2>
       </div>
 
@@ -172,7 +172,7 @@ const DispositivosPacientes = ({ pacienteId, onBack }) => {
         <div className="ortesis-no-device">
           <LucideIcon name="alert-circle" size={40} />
           <h4>Sin dispositivo registrado</h4>
-          <p>Este paciente aún no tiene un dispositivo protésico asignado en el sistema.</p>
+          <p>Este usuario aún no tiene un dispositivo protésico asignado en el sistema.</p>
         </div>
       )}
 
@@ -245,7 +245,7 @@ const DispositivosPacientes = ({ pacienteId, onBack }) => {
           <div className="ortesis-empty">
             <LucideIcon name="check-circle" size={32} />
             <h4>Sin problemas reportados</h4>
-            <p>El paciente no ha reportado ningún problema con su dispositivo</p>
+            <p>El usuario no ha reportado ningún problema con su dispositivo</p>
           </div>
         )}
       </div>

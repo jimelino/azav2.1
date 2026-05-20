@@ -5,7 +5,7 @@ import AccessibilityPanel, { AccessibilityFAB } from '../components/accessibilit
 import CuestionarioActivo from '../components/neuropsicologia/CuestionarioActivo';
 import CuestionarioResultado from '../components/neuropsicologia/CuestionarioResultado';
 import ACTEjercicioActivo from '../components/neuropsicologia/ACTEjercicioActivo';
-import { CUESTIONARIOS, ACT_CATEGORIAS, getHerramientasByCategoria, getCuestionarioById, calcularPuntuacion } from '../data/neuropsicologiaData';
+import { CUESTIONARIOS, ACT_CATEGORIAS, ACT_HERRAMIENTAS, getHerramientasByCategoria, getCuestionarioById, calcularPuntuacion } from '../data/neuropsicologiaData';
 import { Bar, Line } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, PointElement, LineElement, Filler, Title, Tooltip, Legend } from 'chart.js';
 import api from '../services/api';
@@ -30,6 +30,7 @@ const Neuropsicologia = () => {
   const [categoriaSeleccionada, setCategoriaSeleccionada] = useState(null);
   const [herramientaActiva, setHerramientaActiva] = useState(null);
   const [historialACT, setHistorialACT] = useState([]);
+  const [asignacionesACT, setAsignacionesACT] = useState([]);
 
   // Cuestionarios
   const [cuestionarioActivo, setCuestionarioActivo] = useState(null);
@@ -37,23 +38,28 @@ const Neuropsicologia = () => {
   const [cuestionarioResultado, setCuestionarioResultado] = useState(null);
   const [historialCuestionarios, setHistorialCuestionarios] = useState([]);
 
+  // Cuestionarios personalizados del especialista
+  const [misCuestionarios, setMisCuestionarios] = useState([]);
+  const [cuestActivo, setCuestActivo] = useState(null);
+  const [cuestRespuestas, setCuestRespuestas] = useState([]);
+  const [enviandoResp, setEnviandoResp] = useState(false);
+
   // Perfil neuropsicológico
   const [evaluacion, setEvaluacion] = useState(null);
   const [historialEval, setHistorialEval] = useState([]);
   const [showModalEval, setShowModalEval] = useState(false);
-  const [evalForm, setEvalForm] = useState({});
+  const [evalCampos, setEvalCampos] = useState([{ nombre: '', valor: '' }]);
   const [evalNotas, setEvalNotas] = useState('');
   const [savingEval, setSavingEval] = useState(false);
 
   const emociones = [
-    { id: 'feliz', nombre: 'Feliz', icon: 'smile', color: '#2E7D32' },
-    { id: 'tranquilo', nombre: 'Tranquilo', icon: 'smile', color: '#1976D2' },
-    { id: 'neutral', nombre: 'Neutral', icon: 'meh', color: '#9E9E9E' },
-    { id: 'ansioso', nombre: 'Ansioso', icon: 'frown', color: '#E65100' },
-    { id: 'triste', nombre: 'Triste', icon: 'frown', color: '#283593' },
-    { id: 'enojado', nombre: 'Enojado', icon: 'angry', color: '#C62828' },
-    { id: 'frustrado', nombre: 'Frustrado', icon: 'angry', color: '#AD1457' },
-    { id: 'agradecido', nombre: 'Agradecido', icon: 'heart-handshake', color: '#558B2F' }
+    { id: 'enojo', nombre: 'Enojo', icon: 'flame', color: '#C62828' },
+    { id: 'desprecio', nombre: 'Desprecio', icon: 'eye-off', color: '#880E4F' },
+    { id: 'asco', nombre: 'Asco', icon: 'ban', color: '#558B2F' },
+    { id: 'disfrute', nombre: 'Disfrute', icon: 'smile', color: '#F9A825' },
+    { id: 'miedo', nombre: 'Miedo', icon: 'shield-alert', color: '#6A1B9A' },
+    { id: 'tristeza', nombre: 'Tristeza', icon: 'cloud-rain', color: '#283593' },
+    { id: 'sorpresa', nombre: 'Sorpresa', icon: 'zap', color: '#00897B' }
   ];
 
   const FUNCIONES_COGNITIVAS = [
@@ -80,7 +86,7 @@ const Neuropsicologia = () => {
   const getColorSemaforo = (valor) => {
     if (valor === null || valor === undefined) return '#6E7681';
     if (valor <= 3) return '#C62828';
-    if (valor <= 6) return '#E65100';
+    if (valor <= 6) return '#F9A825';
     return '#2E7D32';
   };
 
@@ -103,24 +109,29 @@ const Neuropsicologia = () => {
         setEstadosAnimo(response.data || []);
       } else if (activeTab === 'ejercicios') {
         try {
-          const response = await api.get(`/neuropsicologia/act/historial/${user.paciente_id}`);
-          setHistorialACT(response.data || []);
+          const [histRes, asigRes] = await Promise.all([
+            api.get(`/neuropsicologia/act/historial/${user.paciente_id}`).catch(() => ({ data: [] })),
+            api.get(`/neuropsicologia/act/asignaciones/${user.paciente_id}`).catch(() => ({ data: [] }))
+          ]);
+          setHistorialACT(histRes.data || []);
+          const rawAsig = asigRes?.data ?? asigRes;
+          setAsignacionesACT(Array.isArray(rawAsig) ? rawAsig.filter(a => a.estado === 'pendiente') : []);
         } catch (e) { /* historial no disponible aún */ }
-      } else if (activeTab === 'cuestionarios') {
-        try {
-          const response = await api.get(`/neuropsicologia/cuestionarios/historial/${user.paciente_id}`);
-          setHistorialCuestionarios(response.data || []);
-        } catch (e) { /* historial no disponible aún */ }
-      } else if (activeTab === 'perfil') {
+      } else if (activeTab === 'evaluaciones') {
         const pacId = user.paciente_id || user.id;
         try {
-          const [evalRes, histRes] = await Promise.all([
+          const [cuestionariosRes, evalRes, histRes, misC] = await Promise.all([
+            api.get(`/neuropsicologia/cuestionarios/historial/${pacId}`).catch(() => ({ data: [] })),
             api.get(`/neuropsicologia/evaluacion/${pacId}`).catch(() => ({ data: null })),
-            api.get(`/neuropsicologia/evaluacion/historial/${pacId}`).catch(() => ({ data: [] }))
+            api.get(`/neuropsicologia/evaluacion/historial/${pacId}`).catch(() => ({ data: [] })),
+            api.get(`/neuropsicologia/mis-cuestionarios/${pacId}`).catch(() => ({ data: [] }))
           ]);
+          setHistorialCuestionarios(cuestionariosRes.data || []);
           setEvaluacion(evalRes.data || evalRes?.data);
           setHistorialEval(histRes.data || []);
-        } catch (e) { /* no hay evaluaciones aún */ }
+          const rawMis = misC?.data ?? misC;
+          setMisCuestionarios(Array.isArray(rawMis) ? rawMis : []);
+        } catch (e) { /* no hay datos aún */ }
       }
     } catch (err) {
       console.error('Error al cargar datos:', err);
@@ -152,17 +163,21 @@ const Neuropsicologia = () => {
   };
 
   const mapNivelToEmocion = (nivel) => {
-    const map = { 1: 'enojado', 2: 'triste', 3: 'neutral', 4: 'tranquilo', 5: 'feliz' };
-    return map[nivel] || 'neutral';
+    const map = { 1: 'enojo', 2: 'tristeza', 3: 'sorpresa', 4: 'disfrute', 5: 'disfrute' };
+    return map[nivel] || 'sorpresa';
   };
 
   const mapBackendEmocion = (emocionBackend) => {
     if (!emocionBackend) return null;
     const map = {
-      'alegria': 'feliz', 'calma': 'tranquilo', 'gratitud': 'agradecido',
-      'confusion': 'neutral', 'ansiedad': 'ansioso', 'tristeza': 'triste',
-      'frustracion': 'frustrado', 'enojo': 'enojado', 'esperanza': 'feliz',
-      'miedo': 'ansioso', 'motivacion': 'feliz', 'soledad': 'triste'
+      'alegria': 'disfrute', 'calma': 'disfrute', 'gratitud': 'disfrute',
+      'confusion': 'sorpresa', 'ansiedad': 'miedo', 'tristeza': 'tristeza',
+      'frustracion': 'enojo', 'enojo': 'enojo', 'esperanza': 'disfrute',
+      'miedo': 'miedo', 'motivacion': 'disfrute', 'soledad': 'tristeza',
+      'asco': 'asco', 'desprecio': 'desprecio', 'sorpresa': 'sorpresa',
+      'feliz': 'disfrute', 'tranquilo': 'disfrute', 'neutral': 'sorpresa',
+      'ansioso': 'miedo', 'enojado': 'enojo', 'frustrado': 'enojo',
+      'agradecido': 'disfrute', 'triste': 'tristeza'
     };
     return map[emocionBackend.toLowerCase()] || emocionBackend;
   };
@@ -183,6 +198,42 @@ const Neuropsicologia = () => {
     setHerramientaActiva(herramienta);
   };
 
+  const handleIniciarAsignada = (asignacion) => {
+    // Buscar si es una herramienta existente del catálogo
+    const herramientaExistente = ACT_HERRAMIENTAS.find(h => h.id === asignacion.herramienta_id);
+    if (herramientaExistente) {
+      // Marcar que viene de una asignación para poder completarla después
+      setHerramientaActiva({ ...herramientaExistente, _asignacionId: asignacion.id });
+    } else if (asignacion.contenido) {
+      // Herramienta personalizada - construir una herramienta a partir del contenido
+      let contenido = asignacion.contenido;
+      if (typeof contenido === 'string') {
+        try { contenido = JSON.parse(contenido); } catch (e) { contenido = {}; }
+      }
+      const herramientaCustom = {
+        id: asignacion.herramienta_id,
+        categoriaId: asignacion.categoria || 'personalizada',
+        nombre: asignacion.herramienta_nombre,
+        descripcion: contenido.descripcion || '',
+        duracion: contenido.duracion || 10,
+        tieneEscritura: contenido.tipo_actividad === 'escritura' || contenido.tipo_actividad === 'formato',
+        pasos: (contenido.pasos || []).map(p => ({
+          texto: p.texto,
+          duracion: 60,
+          ...(contenido.tipo_actividad === 'escritura' || contenido.tipo_actividad === 'formato'
+            ? { tipoInput: 'textarea', placeholder: 'Escribe tu respuesta...' }
+            : {})
+        })),
+        _asignacionId: asignacion.id
+      };
+      // Si no tiene pasos, crear uno con las instrucciones
+      if (herramientaCustom.pasos.length === 0) {
+        herramientaCustom.pasos = [{ texto: contenido.instrucciones || contenido.descripcion || 'Realiza la actividad indicada por tu especialista.', duracion: 60 }];
+      }
+      setHerramientaActiva(herramientaCustom);
+    }
+  };
+
   const handleCompletarHerramienta = async (notasTexto) => {
     try {
       await api.post('/neuropsicologia/act/sesion', {
@@ -191,6 +242,10 @@ const Neuropsicologia = () => {
         herramienta: herramientaActiva.nombre,
         notas_usuario: notasTexto || null
       });
+      // Si viene de una asignación, marcarla como completada
+      if (herramientaActiva._asignacionId) {
+        await api.put(`/neuropsicologia/act/asignaciones/${herramientaActiva._asignacionId}/completar`).catch(() => {});
+      }
     } catch (e) {
       console.error('Error guardando sesión ACT:', e);
     }
@@ -222,44 +277,128 @@ const Neuropsicologia = () => {
     setCuestionarioActivo(null);
   };
 
+  // --- Cuestionarios personalizados handlers ---
+  const handleIniciarCuestPersonalizado = (cuest) => {
+    setCuestActivo(cuest);
+    setCuestRespuestas(cuest.preguntas.map(() => null));
+  };
+
+  const handleRespuestaChange = (idx, valor) => {
+    setCuestRespuestas(prev => { const u = [...prev]; u[idx] = valor; return u; });
+  };
+
+  const handleEnviarRespuesta = async () => {
+    if (!cuestActivo) return;
+    setEnviandoResp(true);
+    try {
+      // Calcular puntaje para preguntas de escala
+      let puntaje = null;
+      const escalas = cuestActivo.preguntas.filter(p => p.tipo === 'escala');
+      if (escalas.length > 0) {
+        const sum = cuestRespuestas.reduce((acc, r, i) => {
+          if (cuestActivo.preguntas[i]?.tipo === 'escala' && r !== null) return acc + parseFloat(r);
+          return acc;
+        }, 0);
+        puntaje = sum;
+      }
+      await api.post('/neuropsicologia/mis-cuestionarios/responder', {
+        cuestionario_id: cuestActivo.id,
+        paciente_id: user.paciente_id || user.id,
+        respuestas: cuestRespuestas,
+        puntaje_total: puntaje
+      });
+      setCuestActivo(null);
+      setCuestRespuestas([]);
+      cargarDatos();
+    } catch (e) {
+      console.error('Error enviando respuesta:', e);
+      alert('Error al enviar respuesta');
+    } finally { setEnviandoResp(false); }
+  };
+
   // --- Evaluación neuropsicológica handlers ---
+  const handleAgregarCampo = () => {
+    setEvalCampos(prev => [...prev, { nombre: '', valor: '' }]);
+  };
+
+  const handleEliminarCampo = (index) => {
+    setEvalCampos(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleCampoChange = (index, field, value) => {
+    setEvalCampos(prev => prev.map((c, i) => i === index ? { ...c, [field]: value } : c));
+  };
+
   const handleGuardarEvaluacion = async () => {
+    const camposValidos = evalCampos.filter(c => c.nombre.trim() && c.valor !== '');
+    if (camposValidos.length === 0) return;
+
     setSavingEval(true);
     try {
-      await api.post('/neuropsicologia/evaluacion', {
+      const formData = {
         paciente_id: user.paciente_id || user.id,
         especialista_id: user.especialista_id || user.id,
         fecha: new Date().toISOString().split('T')[0],
         notas: evalNotas,
-        ...evalForm
+        campos_personalizados: JSON.stringify(camposValidos)
+      };
+      // Mapear campos a columnas conocidas si coinciden
+      camposValidos.forEach(c => {
+        const key = c.nombre.toLowerCase()
+          .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+          .replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
+        const matchedFC = FUNCIONES_COGNITIVAS.find(fc => fc.key === key);
+        if (matchedFC) {
+          formData[matchedFC.key] = c.valor;
+        }
       });
+      await api.post('/neuropsicologia/evaluacion', formData);
       setShowModalEval(false);
-      setEvalForm({});
+      setEvalCampos([{ nombre: '', valor: '' }]);
       setEvalNotas('');
       cargarDatos();
     } catch (e) {
-      console.error('Error guardando evaluación:', e);
+      console.error('Error guardando evaluacion:', e);
     } finally {
       setSavingEval(false);
     }
   };
 
-  const buildChartData = (evalData) => {
-    if (!evalData) return null;
-    const labels = [];
-    const values = [];
-    const colors = [];
-
+  const getCamposEvaluacion = (evalData) => {
+    if (!evalData) return [];
+    const campos = [];
+    // Campos conocidos de la tabla
     FUNCIONES_COGNITIVAS.forEach(fc => {
       const val = evalData[fc.key];
       if (val !== null && val !== undefined) {
-        labels.push(fc.label);
-        values.push(parseFloat(val));
-        colors.push(getColorSemaforo(parseFloat(val)));
+        campos.push({ nombre: fc.label, valor: parseFloat(val) });
       }
     });
+    // Campos personalizados
+    if (evalData.campos_personalizados) {
+      try {
+        const custom = typeof evalData.campos_personalizados === 'string'
+          ? JSON.parse(evalData.campos_personalizados)
+          : evalData.campos_personalizados;
+        if (Array.isArray(custom)) {
+          custom.forEach(c => {
+            if (!campos.find(existing => existing.nombre.toLowerCase() === c.nombre.toLowerCase())) {
+              campos.push({ nombre: c.nombre, valor: parseFloat(c.valor) });
+            }
+          });
+        }
+      } catch (e) { /* ignore parse errors */ }
+    }
+    return campos;
+  };
 
-    if (values.length === 0) return null;
+  const buildChartData = (evalData) => {
+    const campos = getCamposEvaluacion(evalData);
+    if (campos.length === 0) return null;
+
+    const labels = campos.map(c => c.nombre);
+    const values = campos.map(c => c.valor);
+    const colors = campos.map(c => getColorSemaforo(c.valor));
 
     return {
       labels,
@@ -330,16 +469,13 @@ const Neuropsicologia = () => {
 
       <div className="tabs">
         <button className={`tab ${activeTab === 'animo' ? 'active' : ''}`} onClick={() => setActiveTab('animo')}>
-          Estado de Ánimo
+          Estado de Animo
         </button>
         <button className={`tab ${activeTab === 'ejercicios' ? 'active' : ''}`} onClick={() => setActiveTab('ejercicios')}>
           Herramientas ACT
         </button>
-        <button className={`tab ${activeTab === 'cuestionarios' ? 'active' : ''}`} onClick={() => setActiveTab('cuestionarios')}>
-          Cuestionarios
-        </button>
-        <button className={`tab ${activeTab === 'perfil' ? 'active' : ''}`} onClick={() => setActiveTab('perfil')}>
-          Perfil Cognitivo
+        <button className={`tab ${activeTab === 'evaluaciones' ? 'active' : ''}`} onClick={() => setActiveTab('evaluaciones')}>
+          Evaluaciones Neuropsicologicas
         </button>
       </div>
 
@@ -538,6 +674,62 @@ const Neuropsicologia = () => {
           {/* ===== TAB: HERRAMIENTAS ACT ===== */}
           {activeTab === 'ejercicios' && (
             <div className="ejercicios-section">
+              {/* Asignaciones pendientes del especialista */}
+              {!categoriaSeleccionada && asignacionesACT.length > 0 && (
+                <div className="asignaciones-pendientes" style={{ marginBottom: '24px' }}>
+                  <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-primary)', marginBottom: '12px' }}>
+                    <LucideIcon name="clipboard-list" size={20} />
+                    Actividades asignadas por tu especialista
+                    <span style={{
+                      background: '#9C27B0', color: '#fff', borderRadius: '12px',
+                      padding: '2px 10px', fontSize: '13px', fontWeight: 700
+                    }}>
+                      {asignacionesACT.length}
+                    </span>
+                  </h3>
+                  {asignacionesACT.map(asig => {
+                    const catInfo = ACT_CATEGORIAS.find(c => c.id === asig.categoria);
+                    let contenido = null;
+                    if (asig.contenido) {
+                      try { contenido = typeof asig.contenido === 'string' ? JSON.parse(asig.contenido) : asig.contenido; } catch (e) { /* ignore */ }
+                    }
+                    return (
+                      <div key={asig.id} className="act-herramienta-card" style={{
+                        '--cat-color': catInfo?.color || '#9C27B0',
+                        borderLeft: `4px solid ${catInfo?.color || '#9C27B0'}`,
+                        marginBottom: '10px'
+                      }}>
+                        <div className="act-h-info" style={{ flex: 1 }}>
+                          <h3>{asig.herramienta_nombre}</h3>
+                          {contenido?.descripcion && <p>{contenido.descripcion}</p>}
+                          {asig.notas_especialista && !contenido && <p style={{ fontStyle: 'italic' }}>{asig.notas_especialista}</p>}
+                          <div className="act-h-meta">
+                            <span className="act-h-tag" style={{ background: (catInfo?.color || '#9C27B0') + '22', color: catInfo?.color || '#9C27B0' }}>
+                              {catInfo?.nombre || 'Personalizada'}
+                            </span>
+                            {asig.prioridad === 'alta' && (
+                              <span className="act-h-tag" style={{ background: '#f4433622', color: '#f44336' }}>
+                                Prioridad alta
+                              </span>
+                            )}
+                            {contenido?.duracion && (
+                              <span className="act-h-duracion"><LucideIcon name="alarm-clock" size={14} /> {contenido.duracion} min</span>
+                            )}
+                          </div>
+                        </div>
+                        <button
+                          className="btn btn-primary"
+                          style={{ background: catInfo?.color || '#9C27B0' }}
+                          onClick={() => handleIniciarAsignada(asig)}
+                        >
+                          Comenzar
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
               {!categoriaSeleccionada ? (
                 <>
                   <p className="intro-text">
@@ -630,189 +822,306 @@ const Neuropsicologia = () => {
             </div>
           )}
 
-          {/* ===== TAB: CUESTIONARIOS ===== */}
-          {activeTab === 'cuestionarios' && (
-            <div className="cuestionarios-section">
-              <p className="intro-text">
-                Cuestionarios validados de flexibilidad psicológica y valores. Tus respuestas son confidenciales y ayudan a personalizar tu tratamiento.
-              </p>
+          {/* ===== TAB: EVALUACIONES NEUROPSICOLÓGICAS ===== */}
+          {activeTab === 'evaluaciones' && (
+            <div className="evaluaciones-section">
 
-              <div className="cuestionarios-list">
-                {CUESTIONARIOS.map(c => (
-                  <div key={c.id} className="cuestionario-card">
-                    <div className="cuestionario-card-header">
-                      <h3>{c.nombre}</h3>
-                      {c.tiempo && <span className="cuestionario-tiempo"><LucideIcon name="alarm-clock" size={14} /> {c.tiempo} min</span>}
-                    </div>
-                    <p className="cuestionario-nombre-completo">{c.nombreCompleto}</p>
-                    <p>{c.descripcion}</p>
-                    <button
-                      className="btn btn-primary"
-                      onClick={() => handleIniciarCuestionario(c.id)}
-                    >
-                      Comenzar
-                    </button>
-                  </div>
-                ))}
-              </div>
+              {/* --- Sección: Cuestionarios --- */}
+              <div className="eval-subsection">
+                <div className="eval-subsection-header">
+                  <LucideIcon name="clipboard-list" size={22} />
+                  <h2>Cuestionarios</h2>
+                </div>
+                <p className="intro-text">
+                  Cuestionarios validados de flexibilidad psicologica y valores. Tus respuestas son confidenciales.
+                </p>
 
-              {historialCuestionarios.length > 0 && (
-                <div className="historial-cuestionarios">
-                  <h3>Cuestionarios completados</h3>
-                  {historialCuestionarios.map(c => (
-                    <div key={c.id} className="cuestionario-completado">
-                      <span className="cuestionario-nombre">{c.tipo_cuestionario}</span>
-                      <span className="cuestionario-fecha">
-                        {new Date(c.fecha).toLocaleDateString('es-MX')}
-                      </span>
-                      <span className="cuestionario-resultado">
-                        Puntuación: {c.puntuacion_total}
-                      </span>
+                <div className="cuestionarios-list">
+                  {CUESTIONARIOS.map(c => (
+                    <div key={c.id} className="cuestionario-card">
+                      <div className="cuestionario-card-header">
+                        <h3>{c.nombre}</h3>
+                        {c.tiempo && <span className="cuestionario-tiempo"><LucideIcon name="alarm-clock" size={14} /> {c.tiempo} min</span>}
+                      </div>
+                      <p className="cuestionario-nombre-completo">{c.nombreCompleto}</p>
+                      <p>{c.descripcion}</p>
+                      <button
+                        className="btn btn-primary"
+                        onClick={() => handleIniciarCuestionario(c.id)}
+                      >
+                        Comenzar
+                      </button>
                     </div>
                   ))}
                 </div>
-              )}
-            </div>
-          )}
 
-          {/* ===== TAB: PERFIL COGNITIVO ===== */}
-          {activeTab === 'perfil' && (
-            <div className="perfil-section">
-              <p className="intro-text">
-                Perfil neuropsicológico basado en la evaluación de funciones cognitivas.
-                Los colores indican el nivel de desempeño en cada área.
-              </p>
-
-              {/* Leyenda del semáforo */}
-              <div className="semaforo-leyenda">
-                <div className="leyenda-item">
-                  <span className="leyenda-color" style={{ background: '#C62828' }}></span>
-                  <span className="leyenda-texto">Oportunidad (0-3)</span>
-                </div>
-                <div className="leyenda-item">
-                  <span className="leyenda-color" style={{ background: '#E65100' }}></span>
-                  <span className="leyenda-texto">Promedio (4-6)</span>
-                </div>
-                <div className="leyenda-item">
-                  <span className="leyenda-color" style={{ background: '#2E7D32' }}></span>
-                  <span className="leyenda-texto">Fortaleza (7-10)</span>
-                </div>
+                {historialCuestionarios.length > 0 && (
+                  <div className="historial-cuestionarios">
+                    <h3>Cuestionarios completados</h3>
+                    {historialCuestionarios.map(c => (
+                      <div key={c.id} className="cuestionario-completado">
+                        <span className="cuestionario-nombre">{c.tipo_cuestionario}</span>
+                        <span className="cuestionario-fecha">
+                          {new Date(c.fecha).toLocaleDateString('es-MX')}
+                        </span>
+                        <span className="cuestionario-resultado">
+                          Puntuacion: {c.puntuacion_total}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
-              {evaluacion ? (
-                <>
-                  {/* Info de la evaluación */}
-                  <div className="eval-info-card">
-                    <div className="eval-info-row">
-                      <span className="eval-info-label">Evaluado por:</span>
-                      <span className="eval-info-value">{evaluacion.especialista_nombre || 'Especialista'}</span>
-                    </div>
-                    <div className="eval-info-row">
-                      <span className="eval-info-label">Fecha:</span>
-                      <span className="eval-info-value">
-                        {new Date(evaluacion.fecha).toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' })}
-                      </span>
-                    </div>
-                    {evaluacion.notas && (
-                      <div className="eval-info-row">
-                        <span className="eval-info-label">Notas:</span>
-                        <span className="eval-info-value">{evaluacion.notas}</span>
-                      </div>
-                    )}
+              {/* --- Sección: Cuestionarios del Especialista (interactivos) --- */}
+              {misCuestionarios.length > 0 && (
+                <div className="eval-subsection">
+                  <div className="eval-subsection-header">
+                    <LucideIcon name="list-checks" size={22} />
+                    <h2>Cuestionarios de tu Especialista</h2>
                   </div>
 
-                  {/* Gráfico de barras */}
-                  {buildChartData(evaluacion) && (
-                    <div className="perfil-chart-container">
-                      <h3>Perfil Neuropsicológico</h3>
-                      <div className="perfil-chart-wrapper">
-                        <Bar data={buildChartData(evaluacion)} options={chartOptions} />
+                  {cuestActivo ? (
+                    /* Formulario interactivo de cuestionario */
+                    <div className="cuestionario-interactivo">
+                      <h3>{cuestActivo.titulo}</h3>
+                      {cuestActivo.descripcion && <p className="cuestionario-desc">{cuestActivo.descripcion}</p>}
+
+                      <div className="cuestionario-preguntas">
+                        {cuestActivo.preguntas.map((preg, idx) => (
+                          <div key={idx} className="cuestionario-pregunta">
+                            <label className="pregunta-texto">{idx + 1}. {preg.texto}</label>
+
+                            {preg.tipo === 'escala' && (
+                              <div className="pregunta-escala">
+                                <input
+                                  type="range"
+                                  min="0"
+                                  max="10"
+                                  step="1"
+                                  value={cuestRespuestas[idx] ?? 5}
+                                  onChange={e => handleRespuestaChange(idx, parseInt(e.target.value))}
+                                  className="escala-slider"
+                                />
+                                <div className="escala-labels">
+                                  <span>0</span>
+                                  <span className="escala-valor-actual">{cuestRespuestas[idx] ?? 5}</span>
+                                  <span>10</span>
+                                </div>
+                              </div>
+                            )}
+
+                            {preg.tipo === 'opcion_multiple' && (
+                              <div className="pregunta-opciones">
+                                {(preg.opciones || []).map((op, oIdx) => (
+                                  <button
+                                    key={oIdx}
+                                    type="button"
+                                    className={`opcion-btn ${cuestRespuestas[idx] === op ? 'selected' : ''}`}
+                                    onClick={() => handleRespuestaChange(idx, op)}
+                                  >
+                                    {op}
+                                  </button>
+                                ))}
+                              </div>
+                            )}
+
+                            {preg.tipo === 'si_no' && (
+                              <div className="pregunta-sino">
+                                <button
+                                  type="button"
+                                  className={`sino-btn ${cuestRespuestas[idx] === 'Sí' ? 'selected si' : ''}`}
+                                  onClick={() => handleRespuestaChange(idx, 'Sí')}
+                                >Sí</button>
+                                <button
+                                  type="button"
+                                  className={`sino-btn ${cuestRespuestas[idx] === 'No' ? 'selected no' : ''}`}
+                                  onClick={() => handleRespuestaChange(idx, 'No')}
+                                >No</button>
+                              </div>
+                            )}
+
+                            {preg.tipo === 'texto' && (
+                              <textarea
+                                className="pregunta-texto-input"
+                                value={cuestRespuestas[idx] || ''}
+                                onChange={e => handleRespuestaChange(idx, e.target.value)}
+                                placeholder="Escribe tu respuesta..."
+                                rows={3}
+                              />
+                            )}
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className="cuestionario-actions">
+                        <button className="btn btn-secondary" onClick={() => setCuestActivo(null)}>Cancelar</button>
+                        <button className="btn btn-primary" onClick={handleEnviarRespuesta} disabled={enviandoResp}>
+                          {enviandoResp ? 'Enviando...' : 'Enviar Respuestas'}
+                        </button>
                       </div>
                     </div>
-                  )}
-
-                  {/* Tabla de datos */}
-                  <div className="perfil-tabla-container">
-                    <h3>Detalle por función</h3>
-                    <div className="perfil-tabla">
-                      <div className="perfil-tabla-header">
-                        <span>Función</span>
-                        <span>Puntaje</span>
-                        <span>Nivel</span>
-                      </div>
-                      {FUNCIONES_COGNITIVAS.map(fc => {
-                        const val = evaluacion[fc.key];
-                        if (val === null || val === undefined) return null;
-                        const numVal = parseFloat(val);
-                        return (
-                          <div key={fc.key} className="perfil-tabla-row">
-                            <span className="perfil-func-nombre">{fc.label}</span>
-                            <span className="perfil-func-puntaje" style={{ color: getColorSemaforo(numVal) }}>
-                              {numVal.toFixed(1)}
-                            </span>
-                            <span className="perfil-func-nivel" style={{ color: getColorSemaforo(numVal) }}>
-                              {getNivelSemaforo(numVal)}
+                  ) : (
+                    <div className="cuestionarios-list">
+                      {misCuestionarios.map(c => (
+                        <div key={c.id} className={`cuestionario-card ${c.respondido ? 'respondido' : ''}`}>
+                          <div className="cuestionario-card-header">
+                            <h3>{c.titulo}</h3>
+                            <span className="cuestionario-tiempo">
+                              <LucideIcon name="list" size={14} /> {c.preguntas?.length || 0} preguntas
                             </span>
                           </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  {/* Resumen por categoría */}
-                  <div className="perfil-resumen">
-                    <h3>Resumen</h3>
-                    <div className="perfil-resumen-grid">
-                      {['Fortaleza', 'Promedio', 'Oportunidad'].map(nivel => {
-                        const funciones = FUNCIONES_COGNITIVAS.filter(fc => {
-                          const val = evaluacion[fc.key];
-                          return val !== null && val !== undefined && getNivelSemaforo(parseFloat(val)) === nivel;
-                        });
-                        const color = nivel === 'Fortaleza' ? '#2E7D32' : nivel === 'Promedio' ? '#E65100' : '#C62828';
-                        return (
-                          <div key={nivel} className="perfil-resumen-card" style={{ '--nivel-color': color }}>
-                            <span className="resumen-count">{funciones.length}</span>
-                            <span className="resumen-nivel" style={{ color }}>{nivel}</span>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  {/* Historial de evaluaciones */}
-                  {historialEval.length > 1 && (
-                    <div className="historial-evaluaciones">
-                      <h3>Evaluaciones anteriores</h3>
-                      {historialEval.slice(1).map(ev => (
-                        <div key={ev.id} className="eval-historial-item">
-                          <span className="eval-hist-fecha">
-                            {new Date(ev.fecha).toLocaleDateString('es-MX')}
-                          </span>
-                          <span className="eval-hist-especialista">
-                            {ev.especialista_nombre || 'Especialista'}
-                          </span>
+                          {c.descripcion && <p className="cuestionario-nombre-completo">{c.descripcion}</p>}
+                          {c.especialista_nombre && <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Por: {c.especialista_nombre}</p>}
+                          {c.respondido ? (
+                            <div className="cuestionario-respondido-info">
+                              <span className="badge-respondido"><LucideIcon name="check-circle" size={14} /> Completado</span>
+                              {c.ultima_respuesta?.puntaje_total !== null && (
+                                <span className="badge-puntaje">{c.ultima_respuesta.puntaje_total} pts</span>
+                              )}
+                              <button className="btn btn-secondary" style={{ marginTop: 8 }} onClick={() => handleIniciarCuestPersonalizado(c)}>
+                                Responder de nuevo
+                              </button>
+                            </div>
+                          ) : (
+                            <button className="btn btn-primary" onClick={() => handleIniciarCuestPersonalizado(c)}>
+                              Comenzar
+                            </button>
+                          )}
                         </div>
                       ))}
                     </div>
                   )}
-                </>
-              ) : (
-                <div className="empty-state">
-                  <div className="empty-icon"><LucideIcon name="brain" size={32} /></div>
-                  <p>Aún no tienes una evaluación neuropsicológica</p>
-                  <p className="help-text">Tu especialista realizará tu evaluación cognitiva durante tu consulta</p>
                 </div>
               )}
 
-              {/* Botón para especialista */}
-              {(user?.rol === 'especialista' || user?.role === 'especialista') && (
-                <button
-                  className="btn btn-primary btn-lg btn-block eval-nueva-btn"
-                  onClick={() => setShowModalEval(true)}
-                >
-                  Nueva Evaluación
-                </button>
-              )}
+              {/* --- Sección: Perfil Neuropsicológico --- */}
+              <div className="eval-subsection">
+                <div className="eval-subsection-header">
+                  <LucideIcon name="brain" size={22} />
+                  <h2>Perfil Neuropsicologico</h2>
+                </div>
+                <p className="intro-text">
+                  Evaluacion de funciones cognitivas. Los colores indican el nivel de desempeno en cada area.
+                </p>
+
+                {/* Leyenda del semáforo */}
+                <div className="semaforo-leyenda">
+                  <div className="leyenda-item">
+                    <span className="leyenda-color" style={{ background: '#C62828' }}></span>
+                    <span className="leyenda-texto">Oportunidad</span>
+                  </div>
+                  <div className="leyenda-item">
+                    <span className="leyenda-color" style={{ background: '#F9A825' }}></span>
+                    <span className="leyenda-texto">Promedio</span>
+                  </div>
+                  <div className="leyenda-item">
+                    <span className="leyenda-color" style={{ background: '#2E7D32' }}></span>
+                    <span className="leyenda-texto">Fortaleza</span>
+                  </div>
+                </div>
+
+                {evaluacion ? (
+                  <>
+                    <div className="eval-info-card">
+                      <div className="eval-info-row">
+                        <span className="eval-info-label">Evaluado por:</span>
+                        <span className="eval-info-value">{evaluacion.especialista_nombre || 'Especialista'}</span>
+                      </div>
+                      <div className="eval-info-row">
+                        <span className="eval-info-label">Fecha:</span>
+                        <span className="eval-info-value">
+                          {new Date(evaluacion.fecha).toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' })}
+                        </span>
+                      </div>
+                      {evaluacion.notas && (
+                        <div className="eval-info-row">
+                          <span className="eval-info-label">Notas:</span>
+                          <span className="eval-info-value">{evaluacion.notas}</span>
+                        </div>
+                      )}
+                    </div>
+
+                    {buildChartData(evaluacion) && (
+                      <div className="perfil-chart-container">
+                        <h3>Perfil Neuropsicologico</h3>
+                        <div className="perfil-chart-wrapper">
+                          <Bar data={buildChartData(evaluacion)} options={chartOptions} />
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="perfil-tabla-container">
+                      <h3>Detalle por funcion</h3>
+                      <div className="perfil-tabla">
+                        <div className="perfil-tabla-header">
+                          <span>Funcion</span>
+                          <span>Puntaje</span>
+                          <span>Nivel</span>
+                        </div>
+                        {getCamposEvaluacion(evaluacion).map((campo, idx) => (
+                          <div key={idx} className="perfil-tabla-row">
+                            <span className="perfil-func-nombre">{campo.nombre}</span>
+                            <span className="perfil-func-puntaje" style={{ color: getColorSemaforo(campo.valor) }}>
+                              {campo.valor.toFixed(1)}
+                            </span>
+                            <span className="perfil-func-nivel" style={{ color: getColorSemaforo(campo.valor) }}>
+                              {getNivelSemaforo(campo.valor)}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="perfil-resumen">
+                      <h3>Resumen</h3>
+                      <div className="perfil-resumen-grid">
+                        {['Fortaleza', 'Promedio', 'Oportunidad'].map(nivel => {
+                          const funciones = getCamposEvaluacion(evaluacion).filter(c => getNivelSemaforo(c.valor) === nivel);
+                          const color = nivel === 'Fortaleza' ? '#2E7D32' : nivel === 'Promedio' ? '#F9A825' : '#C62828';
+                          return (
+                            <div key={nivel} className="perfil-resumen-card" style={{ '--nivel-color': color }}>
+                              <span className="resumen-count">{funciones.length}</span>
+                              <span className="resumen-nivel" style={{ color }}>{nivel}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {historialEval.length > 1 && (
+                      <div className="historial-evaluaciones">
+                        <h3>Evaluaciones anteriores</h3>
+                        {historialEval.slice(1).map(ev => (
+                          <div key={ev.id} className="eval-historial-item">
+                            <span className="eval-hist-fecha">
+                              {new Date(ev.fecha).toLocaleDateString('es-MX')}
+                            </span>
+                            <span className="eval-hist-especialista">
+                              {ev.especialista_nombre || 'Especialista'}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <div className="empty-state">
+                    <div className="empty-icon"><LucideIcon name="brain" size={32} /></div>
+                    <p>Aun no tienes una evaluacion neuropsicologica</p>
+                    <p className="help-text">Tu especialista realizara tu evaluacion durante tu consulta</p>
+                  </div>
+                )}
+
+                {(user?.rol === 'especialista' || user?.role === 'especialista') && (
+                  <button
+                    className="btn btn-primary btn-lg btn-block eval-nueva-btn"
+                    onClick={() => setShowModalEval(true)}
+                  >
+                    Nueva Evaluacion
+                  </button>
+                )}
+              </div>
             </div>
           )}
         </div>
@@ -897,43 +1206,64 @@ const Neuropsicologia = () => {
       {showModalEval && (
         <div className="modal-overlay" onClick={() => setShowModalEval(false)}>
           <div className="modal-content eval-modal" onClick={e => e.stopPropagation()}>
-            <h2>Nueva Evaluación Neuropsicológica</h2>
-            <p className="modal-subtitle">Ingresa los puntajes de cada función cognitiva (0-10)</p>
+            <h2>Nueva Evaluacion Neuropsicologica</h2>
+            <p className="modal-subtitle">Agrega los campos que desees evaluar con su puntaje (0-10)</p>
 
-            <div className="eval-form-grid">
-              {FUNCIONES_COGNITIVAS.map(fc => (
-                <div key={fc.key} className="eval-form-item">
-                  <label>{fc.label}</label>
-                  <div className="eval-input-wrapper">
+            <div className="eval-campos-dinamicos">
+              {evalCampos.map((campo, index) => (
+                <div key={index} className="eval-campo-row">
+                  <input
+                    type="text"
+                    value={campo.nombre}
+                    onChange={e => handleCampoChange(index, 'nombre', e.target.value)}
+                    className="form-control eval-campo-nombre"
+                    placeholder="Nombre del campo (ej: Atencion Visual)"
+                  />
+                  <div className="eval-campo-valor-wrapper">
                     <input
                       type="number"
                       min="0"
                       max="10"
                       step="0.5"
-                      value={evalForm[fc.key] ?? ''}
-                      onChange={e => setEvalForm(prev => ({ ...prev, [fc.key]: e.target.value }))}
-                      className="eval-input"
-                      placeholder="—"
+                      value={campo.valor}
+                      onChange={e => handleCampoChange(index, 'valor', e.target.value)}
+                      className="form-control eval-campo-valor"
+                      placeholder="0-10"
                     />
-                    {evalForm[fc.key] !== undefined && evalForm[fc.key] !== '' && (
+                    {campo.valor !== '' && (
                       <span
                         className="eval-input-indicator"
-                        style={{ background: getColorSemaforo(parseFloat(evalForm[fc.key])) }}
+                        style={{ background: getColorSemaforo(parseFloat(campo.valor)) }}
                       ></span>
                     )}
                   </div>
+                  {evalCampos.length > 1 && (
+                    <button
+                      type="button"
+                      className="btn-remove-campo"
+                      onClick={() => handleEliminarCampo(index)}
+                      aria-label="Eliminar campo"
+                    >
+                      <LucideIcon name="trash-2" size={18} />
+                    </button>
+                  )}
                 </div>
               ))}
+
+              <button type="button" className="btn-agregar-campo" onClick={handleAgregarCampo}>
+                <LucideIcon name="plus" size={18} />
+                Agregar campo
+              </button>
             </div>
 
             <div className="form-group">
-              <label>Notas de la evaluación (opcional)</label>
+              <label>Notas de la evaluacion (opcional)</label>
               <textarea
                 value={evalNotas}
                 onChange={e => setEvalNotas(e.target.value)}
                 className="form-control"
                 rows="3"
-                placeholder="Observaciones generales de la evaluación..."
+                placeholder="Observaciones generales de la evaluacion..."
               />
             </div>
 
@@ -944,7 +1274,7 @@ const Neuropsicologia = () => {
               <button
                 className="btn btn-primary"
                 onClick={handleGuardarEvaluacion}
-                disabled={savingEval || Object.keys(evalForm).filter(k => evalForm[k] !== '').length === 0}
+                disabled={savingEval || evalCampos.filter(c => c.nombre.trim() && c.valor !== '').length === 0}
               >
                 {savingEval ? 'Guardando...' : 'Guardar'}
               </button>

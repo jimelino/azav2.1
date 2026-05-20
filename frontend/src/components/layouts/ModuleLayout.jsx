@@ -23,7 +23,7 @@ const PACIENTE_NAV = [
 
 const ESPECIALISTA_NAV = [
   { path: '/especialista', icon: 'home', label: 'Inicio' },
-  { path: '/especialista/pacientes', icon: 'users', label: 'Pacientes' },
+  { path: '/especialista/pacientes', icon: 'users', label: 'Usuarios' },
   { path: '/especialista/citas', icon: 'calendar', label: 'Citas' },
   { path: '/chat', icon: 'message', label: 'Mensajes' },
   { path: '/perfil', icon: 'user', label: 'Perfil' },

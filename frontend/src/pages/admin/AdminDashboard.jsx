@@ -18,13 +18,16 @@ import './AdminDashboard.css';
  * Diseño accesible para usuarios de 10 a 80 años
  */
 
-// Áreas médicas según la base de datos
+// Áreas médicas según la base de datos.
+// `id` es el slug (coincide con `areas_medicas.nombre`, que es lo que el backend
+// devuelve en `especialistas.area_medica`); `db_id` es el PK numérico usado
+// por el backend al crear/actualizar un usuario (columna `usuarios.area_medica_id`).
 const AREAS_MEDICAS = [
-  { id: 'fisioterapia', nombre: 'Fisioterapia', icon: 'dumbbell', color: '#E65100' },
-  { id: 'nutricion', nombre: 'Nutrición', icon: 'salad', color: '#2E7D32' },
-  { id: 'medicina', nombre: 'Medicina', icon: 'heart', color: '#C62828' },
-  { id: 'neuropsicologia', nombre: 'Neuropsicología', icon: 'brain', color: '#6A1B9A' },
-  { id: 'ortesis', nombre: 'Ortesis y Prótesis', icon: 'accessibility', color: '#1565C0' },
+  { id: 'fisioterapia',    db_id: 1, nombre: 'Fisioterapia',        icon: 'dumbbell',      color: '#E65100' },
+  { id: 'nutricion',       db_id: 2, nombre: 'Nutrición',           icon: 'salad',         color: '#2E7D32' },
+  { id: 'medicina',        db_id: 3, nombre: 'Medicina',            icon: 'heart',         color: '#C62828' },
+  { id: 'neuropsicologia', db_id: 4, nombre: 'Neuropsicología',     icon: 'brain',         color: '#6A1B9A' },
+  { id: 'ortesis',         db_id: 5, nombre: 'Ortesis y Prótesis',  icon: 'accessibility', color: '#1565C0' },
 ];
 
 // Tabs del dashboard
@@ -65,6 +68,13 @@ const AdminDashboard = () => {
   const [especialistasPorArea, setEspecialistasPorArea] = useState({});
   const [blogs, setBlogs] = useState([]);
   const [faqs, setFaqs] = useState([]);
+  const [pacientes, setPacientes] = useState([]);
+
+  // Estado del modal de asignación de pacientes
+  const [asignModal, setAsignModal] = useState(null); // especialista seleccionado o null
+  const [asignacionesEsp, setAsignacionesEsp] = useState([]); // asignaciones actuales del especialista
+  const [asignSeleccionados, setAsignSeleccionados] = useState(new Set()); // paciente_ids marcados
+  const [asignGuardando, setAsignGuardando] = useState(false);
 
   // Estado del formulario
   const [formData, setFormData] = useState({
@@ -94,13 +104,17 @@ const AdminDashboard = () => {
   const loadDashboardData = async () => {
     setIsLoading(true);
     try {
-      const [usersRes, especialistasRes, blogsRes, faqsRes, metricsRes] = await Promise.all([
+      const [usersRes, especialistasRes, blogsRes, faqsRes, metricsRes, pacientesRes] = await Promise.all([
         api.get('/admin/usuarios').catch(() => ({ data: null })),
         api.get('/admin/especialistas').catch(() => ({ data: null })),
         api.get('/admin/blogs/metricas').catch(() => ({ data: null })),
         api.get('/admin/faqs').catch(() => ({ data: null })),
         api.get('/admin/metricas').catch(() => ({ data: null })),
+        api.get('/admin/pacientes').catch(() => ({ data: null })),
       ]);
+
+      // Pacientes (para asignación a especialistas)
+      setPacientes(pacientesRes.data?.pacientes || []);
 
       // Usuarios
       setUsers(usersRes.data?.usuarios || generateMockUsers());
@@ -238,6 +252,73 @@ const AdminDashboard = () => {
     }));
   };
 
+  // === Asignación de pacientes a especialista ===
+  const handleOpenAsignaciones = async (esp) => {
+    setAsignModal(esp);
+    setAsignGuardando(false);
+    try {
+      const res = await api.get(`/admin/especialistas/${esp.id}/asignaciones`);
+      const actuales = res?.data?.asignaciones || [];
+      setAsignacionesEsp(actuales);
+      setAsignSeleccionados(new Set(actuales.map(a => a.paciente_id)));
+    } catch (err) {
+      console.error('Error cargando asignaciones:', err);
+      setAsignacionesEsp([]);
+      setAsignSeleccionados(new Set());
+    }
+  };
+
+  const handleCloseAsignaciones = () => {
+    setAsignModal(null);
+    setAsignacionesEsp([]);
+    setAsignSeleccionados(new Set());
+  };
+
+  const togglePacienteAsignado = (pacienteId) => {
+    setAsignSeleccionados(prev => {
+      const next = new Set(prev);
+      if (next.has(pacienteId)) next.delete(pacienteId); else next.add(pacienteId);
+      return next;
+    });
+  };
+
+  const handleGuardarAsignaciones = async () => {
+    if (!asignModal) return;
+    setAsignGuardando(true);
+
+    const original = new Set(asignacionesEsp.map(a => a.paciente_id));
+    const final = asignSeleccionados;
+
+    // Pacientes a AGREGAR: están en final pero no en original
+    const aAgregar = [...final].filter(id => !original.has(id));
+    // Pacientes a QUITAR: están en original pero no en final
+    const aQuitar = asignacionesEsp.filter(a => !final.has(a.paciente_id));
+
+    try {
+      // Ejecutar secuencial para orden de errores legible
+      for (const pacienteId of aAgregar) {
+        await api.post('/admin/asignaciones', {
+          paciente_id: pacienteId,
+          especialista_id: asignModal.id,
+        });
+      }
+      for (const asig of aQuitar) {
+        await api.delete(`/admin/asignaciones/${asig.id}`);
+      }
+
+      // Actualizar contador del especialista en la UI
+      setEspecialistas(prev => prev.map(e =>
+        e.id === asignModal.id ? { ...e, pacientes: final.size } : e
+      ));
+
+      handleCloseAsignaciones();
+    } catch (err) {
+      console.error('Error guardando asignaciones:', err);
+      alert(err?.message || 'Error al guardar las asignaciones. Verifica la consola.');
+      setAsignGuardando(false);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -245,11 +326,20 @@ const AdminDashboard = () => {
       const rolName = getRolNameFromId(rol_id);
 
       if (showModal === 'user' || showModal === 'especialista') {
+        // El backend espera `area_medica_id` como INT (FK a areas_medicas.id),
+        // pero el select del formulario guarda el slug ('fisioterapia', etc).
+        // Convertimos slug → db_id (numérico) antes de enviar, o null si está vacío.
+        const areaSlug = formData.area_medica_id;
+        const areaDbId = areaSlug
+          ? (AREAS_MEDICAS.find(a => a.id === areaSlug)?.db_id ?? null)
+          : null;
+
         const userData = {
           ...formData,
           rol_id: rol_id,
           rol: rolName,
           nombre: formData.nombre_completo, // Para compatibilidad con la tabla
+          area_medica_id: areaDbId,
         };
 
         if (editingItem) {
@@ -334,12 +424,41 @@ const AdminDashboard = () => {
   };
 
   const handleToggleActive = async (type, id) => {
-    if (type === 'user') {
-      setUsers(prev => prev.map(u => u.id === id ? { ...u, activo: !u.activo } : u));
-    } else if (type === 'especialista') {
-      setEspecialistas(prev => prev.map(e => e.id === id ? { ...e, activo: !e.activo } : e));
-    } else if (type === 'faq') {
-      setFaqs(prev => prev.map(f => f.id === id ? { ...f, activo: !f.activo } : f));
+    // Optimistic UI: actualiza local y si falla el API, revierte.
+    const flip = (coll) => coll.map(x => x.id === id ? { ...x, activo: !x.activo } : x);
+    const revert = (setter, originalLookup) => setter(prev => prev.map(x =>
+      x.id === id ? { ...x, activo: originalLookup(x.id) } : x
+    ));
+
+    try {
+      if (type === 'user' || type === 'especialista') {
+        const setter = type === 'user' ? setUsers : setEspecialistas;
+        const source = type === 'user' ? users : especialistas;
+        const originalValue = source.find(x => x.id === id)?.activo;
+        setter(prev => flip(prev));
+
+        try {
+          await api.put(`/admin/usuarios/${id}/toggle`);
+        } catch (err) {
+          // Rollback
+          setter(prev => prev.map(x => x.id === id ? { ...x, activo: originalValue } : x));
+          throw err;
+        }
+      } else if (type === 'faq') {
+        const originalValue = faqs.find(f => f.id === id)?.activo;
+        const newValue = !originalValue;
+        setFaqs(prev => flip(prev));
+
+        try {
+          await api.put(`/admin/faqs/${id}`, { activo: newValue ? 1 : 0 });
+        } catch (err) {
+          setFaqs(prev => prev.map(f => f.id === id ? { ...f, activo: originalValue } : f));
+          throw err;
+        }
+      }
+    } catch (err) {
+      console.error('Error cambiando estado activo:', err);
+      alert(err?.message || 'No se pudo cambiar el estado. Revisa la consola.');
     }
   };
 
@@ -383,7 +502,7 @@ const AdminDashboard = () => {
             <div className="metric-icon" aria-hidden="true"><LucideIcon name="hospital" size={24} /></div>
             <div className="metric-content">
               <span className="metric-value">{metrics.activePatients.toLocaleString()}</span>
-              <span className="metric-label">Pacientes activos</span>
+              <span className="metric-label">Usuarios activos</span>
             </div>
           </div>
 
@@ -581,7 +700,7 @@ const AdminDashboard = () => {
                 <h3 className="specialist-name">{esp.nombre}</h3>
                 <p className="specialist-area"><LucideIcon name={area?.icon} size={16} /> {area?.nombre}</p>
                 <p className="specialist-cedula">Cédula: {esp.cedula}</p>
-                <p className="specialist-patients"><LucideIcon name="users" size={16} /> {esp.pacientes} pacientes</p>
+                <p className="specialist-patients"><LucideIcon name="users" size={16} /> {esp.pacientes} usuarios</p>
               </div>
               <div className="specialist-status">
                 <span className={`status-badge ${esp.activo ? 'active' : 'inactive'}`}>
@@ -589,6 +708,14 @@ const AdminDashboard = () => {
                 </span>
               </div>
               <div className="specialist-actions">
+                <button
+                  className="btn-icon btn-assign"
+                  onClick={() => handleOpenAsignaciones(esp)}
+                  aria-label={`Asignar pacientes a ${esp.nombre}`}
+                  title="Asignar pacientes"
+                >
+                  <LucideIcon name="user-plus" size={16} />
+                </button>
                 <button
                   className="btn-icon btn-edit"
                   onClick={() => handleOpenModal('especialista', esp)}
@@ -788,7 +915,7 @@ const AdminDashboard = () => {
                     required
                     className="form-input"
                   >
-                    <option value={3}>Paciente</option>
+                    <option value={3}>Usuario</option>
                     <option value={2}>Especialista</option>
                     <option value={1}>Administrador</option>
                   </select>
@@ -921,6 +1048,83 @@ const AdminDashboard = () => {
     );
   };
 
+  // Modal de asignación de pacientes a un especialista
+  const renderAsignacionesModal = () => {
+    if (!asignModal) return null;
+    const espArea = AREAS_MEDICAS.find(a => a.id === asignModal.area_medica);
+    const areaDbId = espArea?.db_id;
+
+    // Para cada paciente, saber si tiene otro especialista asignado en esta misma área
+    const idsAsignadosAqui = new Set(asignacionesEsp.map(a => a.paciente_id));
+
+    return (
+      <div className="modal-overlay" onClick={handleCloseAsignaciones}>
+        <div className="modal-content modal-wide" onClick={e => e.stopPropagation()} role="dialog" aria-modal="true">
+          <div className="modal-header">
+            <h2>Asignar pacientes a {asignModal.nombre}</h2>
+            <button className="modal-close" onClick={handleCloseAsignaciones} aria-label="Cerrar">✕</button>
+          </div>
+
+          <div className="modal-body">
+            <p className="asign-subtitle">
+              Área: <strong style={{ color: espArea?.color }}>
+                <LucideIcon name={espArea?.icon} size={16} /> {espArea?.nombre}
+              </strong>
+              {'  '}— Marca los pacientes que quieres asignar.
+            </p>
+            <p className="asign-help">
+              Si un paciente ya tiene otro especialista en esta área, al marcarlo se <strong>transferirá</strong> al paciente a {asignModal.nombre}.
+            </p>
+
+            {pacientes.length === 0 ? (
+              <p className="asign-empty">No hay pacientes registrados todavía.</p>
+            ) : (
+              <ul className="asign-pacientes-list">
+                {pacientes.map(p => {
+                  const marcado = asignSeleccionados.has(p.paciente_id);
+                  const yaAsignado = idsAsignadosAqui.has(p.paciente_id);
+                  return (
+                    <li key={p.paciente_id} className={`asign-paciente-row ${marcado ? 'selected' : ''}`}>
+                      <label className="asign-paciente-label">
+                        <input
+                          type="checkbox"
+                          checked={marcado}
+                          onChange={() => togglePacienteAsignado(p.paciente_id)}
+                          disabled={asignGuardando}
+                        />
+                        <div className="asign-paciente-info">
+                          <span className="asign-paciente-nombre">{p.nombre}</span>
+                          <span className="asign-paciente-email">{p.email}</span>
+                          <span className="asign-paciente-meta">
+                            {p.fase_actual ? `Fase: ${p.fase_actual}` : 'Sin fase'}
+                            {' · '}
+                            {p.especialistas_asignados} especialista(s) en total
+                          </span>
+                        </div>
+                        {yaAsignado && (
+                          <span className="asign-badge current">Asignado</span>
+                        )}
+                      </label>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </div>
+
+          <div className="modal-footer">
+            <button type="button" className="btn-secondary" onClick={handleCloseAsignaciones} disabled={asignGuardando}>
+              Cancelar
+            </button>
+            <button type="button" className="btn-primary" onClick={handleGuardarAsignaciones} disabled={asignGuardando || !areaDbId}>
+              {asignGuardando ? 'Guardando...' : `Guardar (${asignSeleccionados.size})`}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   if (isLoading) {
     return (
       <div className="admin-dashboard loading" role="status" aria-live="polite" data-age-mode={settings.ageMode}>
@@ -1021,6 +1225,9 @@ const AdminDashboard = () => {
 
       {/* Modal */}
       {renderModal()}
+
+      {/* Modal de asignación de pacientes */}
+      {renderAsignacionesModal()}
 
       {/* Footer institucional DGTIC */}
       <InstitutionalFooter />

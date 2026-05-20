@@ -30,13 +30,15 @@ class Reaccion {
     public static function toggle($data) {
         $db = DatabaseService::getInstance();
 
-        // Mapear nombre de reacción a ID
+        // Mapear nombre de reaccion a ID (soportar ambos conjuntos de nombres)
         $tiposMap = [
             'me_gusta' => 1,
             'me_inspira' => 2,
             'me_identifico' => 3,
             'me_motiva' => 4,
-            'apoyo' => 5
+            'apoyo' => 5,
+            'gracias' => 5,
+            'celebrar' => 4
         ];
         $tipoReaccionId = $tiposMap[$data['tipo_reaccion']] ?? 1;
 

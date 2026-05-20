@@ -63,7 +63,7 @@ const ProgresoPacientes = ({ pacienteId, onBack }) => {
       <section className="module-view progreso-pacientes">
         <div className="module-header">
           <button className="back-btn" onClick={onBack}><LucideIcon name="arrow-left" size={18} /> Volver</button>
-          <h2 className="module-title"><LucideIcon name="trending-up" size={22} /> Progreso del Paciente</h2>
+          <h2 className="module-title"><LucideIcon name="trending-up" size={22} /> Progreso del Usuario</h2>
         </div>
         <div className="loading-state"><div className="loading-spinner"></div><p>Cargando progreso...</p></div>
       </section>
@@ -78,7 +78,7 @@ const ProgresoPacientes = ({ pacienteId, onBack }) => {
     <section className="module-view progreso-pacientes">
       <div className="module-header">
         <button className="back-btn" onClick={onBack}><LucideIcon name="arrow-left" size={18} /> Volver</button>
-        <h2 className="module-title"><LucideIcon name="trending-up" size={22} /> Progreso del Paciente</h2>
+        <h2 className="module-title"><LucideIcon name="trending-up" size={22} /> Progreso del Usuario</h2>
       </div>
 
       <div className="progreso-content">
@@ -277,7 +277,7 @@ const ProgresoPacientes = ({ pacienteId, onBack }) => {
           <div className="empty-state">
             <LucideIcon name="trending-up" size={48} />
             <h3>Sin datos de progreso</h3>
-            <p>Asigna ejercicios y registra evaluaciones para ver el progreso del paciente.</p>
+            <p>Asigna ejercicios y registra evaluaciones para ver el progreso del usuario.</p>
           </div>
         )}
       </div>

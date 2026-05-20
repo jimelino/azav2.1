@@ -199,7 +199,7 @@ const PlanesNutricionales = ({ especialistaId, pacientes, onBack, onOpenGenerato
 
   const handleAsignar = async () => {
     if (!asignarForm.paciente_id) {
-      alert('Selecciona un paciente');
+      alert('Selecciona un usuario');
       return;
     }
 
@@ -400,7 +400,7 @@ const PlanesNutricionales = ({ especialistaId, pacientes, onBack, onOpenGenerato
                           ))}
                         </div>
                       ) : (
-                        <p className="empty-hint">Sin recetas adjuntas. Agrega recetas del catálogo para el paciente.</p>
+                        <p className="empty-hint">Sin recetas adjuntas. Agrega recetas del catálogo para el usuario.</p>
                       )}
                     </div>
                   );
@@ -635,7 +635,7 @@ const PlanesNutricionales = ({ especialistaId, pacientes, onBack, onOpenGenerato
 
             {plan.pacientes_asignados?.length > 0 && (
               <div className="plan-section">
-                <h3><LucideIcon name="users" size={20} /> Pacientes Asignados ({plan.pacientes_asignados.length})</h3>
+                <h3><LucideIcon name="users" size={20} /> Usuarios Asignados ({plan.pacientes_asignados.length})</h3>
                 <div className="pacientes-asignados-list">
                   {plan.pacientes_asignados.map((p) => (
                     <div key={p.id} className="paciente-asignado">
@@ -650,7 +650,7 @@ const PlanesNutricionales = ({ especialistaId, pacientes, onBack, onOpenGenerato
           <div className="modal-footer">
             <button className="btn-secondary" onClick={() => setShowPlanDetail(null)}>Cerrar</button>
             <button className="btn-primary" onClick={() => { setShowAsignarModal(plan); setShowPlanDetail(null); }}>
-              Asignar a Paciente
+              Asignar a Usuario
             </button>
           </div>
         </div>
@@ -684,7 +684,7 @@ const PlanesNutricionales = ({ especialistaId, pacientes, onBack, onOpenGenerato
       <div className="modal-overlay" onClick={() => setShowAsignarModal(null)}>
         <div className="modal-content" onClick={e => e.stopPropagation()}>
           <div className="modal-header">
-            <h2><LucideIcon name="user" size={22} /> Asignar Plan a Paciente</h2>
+            <h2><LucideIcon name="user" size={22} /> Asignar Plan a Usuario</h2>
             <button className="modal-close" onClick={() => setShowAsignarModal(null)}>✕</button>
           </div>
           <div className="modal-body">
@@ -693,7 +693,7 @@ const PlanesNutricionales = ({ especialistaId, pacientes, onBack, onOpenGenerato
             </p>
 
             <div className="form-group">
-              <label>Seleccionar Paciente *</label>
+              <label>Seleccionar Usuario *</label>
               <select
                 value={asignarForm.paciente_id}
                 onChange={(e) => setAsignarForm({ ...asignarForm, paciente_id: e.target.value })}
@@ -721,14 +721,14 @@ const PlanesNutricionales = ({ especialistaId, pacientes, onBack, onOpenGenerato
               <textarea
                 value={asignarForm.notas}
                 onChange={(e) => setAsignarForm({ ...asignarForm, notas: e.target.value })}
-                placeholder="Ajustes específicos para este paciente..."
+                placeholder="Ajustes específicos para este usuario..."
                 className="form-input form-textarea"
                 rows="3"
               />
             </div>
 
             <div className="asignar-warning">
-              <p><LucideIcon name="alert-triangle" size={16} /> Si el paciente ya tiene un plan activo, sera reemplazado por este nuevo plan.</p>
+              <p><LucideIcon name="alert-triangle" size={16} /> Si el usuario ya tiene un plan activo, sera reemplazado por este nuevo plan.</p>
             </div>
           </div>
           <div className="modal-footer">
@@ -805,7 +805,7 @@ const PlanesNutricionales = ({ especialistaId, pacientes, onBack, onOpenGenerato
                 {plan.calorias_diarias && (
                   <span className="stat"><LucideIcon name="flame" size={14} /> {plan.calorias_diarias} kcal</span>
                 )}
-                <span className="stat"><LucideIcon name="users" size={14} /> {plan.pacientes_asignados || 0} pacientes</span>
+                <span className="stat"><LucideIcon name="users" size={14} /> {plan.pacientes_asignados || 0} usuarios</span>
               </div>
 
               <div className="plan-card-date">

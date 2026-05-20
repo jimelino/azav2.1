@@ -55,6 +55,9 @@ const Solicitud = () => {
     causa_amputacion: '',
     tiene_protesis_previa: false,
     tiempo_desde_amputacion: '',
+    herida_consolidada: '',
+    herida_infeccion: '',
+    padece_cronico: '',
     notas_clinicas: ''
   });
 
@@ -77,6 +80,9 @@ const Solicitud = () => {
     if (!form.tipo_servicio) return 'Selecciona el tipo de servicio';
     if (!form.tipo_amputacion) return 'Selecciona el tipo de amputación';
     if (!form.causa_amputacion) return 'Selecciona la causa de amputación';
+    if (!form.herida_consolidada) return 'Indica si tienes herida o cicatriz consolidada';
+    if (!form.herida_infeccion) return 'Indica si tienes herida o infección en la extremidad no amputada';
+    if (!form.padece_cronico) return 'Indica si padeces diabetes, hipertensión o recibes atención médica';
     return null;
   };
 
@@ -289,20 +295,28 @@ const Solicitud = () => {
                 <label>Tipo de Servicio *</label>
                 <div className="solicitud-tipo-servicio">
                   <div
+                    className={`tipo-servicio-card ${form.tipo_servicio === 'ortesis' ? 'selected' : ''}`}
+                    onClick={() => handleChange('tipo_servicio', 'ortesis')}
+                  >
+                    <span className="card-icon">🦶</span>
+                    <div className="card-title">Órtesis</div>
+                    <div className="card-desc">Órtesis a público general</div>
+                  </div>
+                  <div
                     className={`tipo-servicio-card ${form.tipo_servicio === 'protesis_publico' ? 'selected' : ''}`}
                     onClick={() => handleChange('tipo_servicio', 'protesis_publico')}
                   >
                     <span className="card-icon">🦿</span>
-                    <div className="card-title">Prótesis a Público General</div>
-                    <div className="card-desc">Ya cuento con una prótesis y necesito ajustes o renovación</div>
+                    <div className="card-title">Prótesis</div>
+                    <div className="card-desc">Prótesis a público general</div>
                   </div>
                   <div
                     className={`tipo-servicio-card ${form.tipo_servicio === 'protocolo_protesis' ? 'selected' : ''}`}
                     onClick={() => handleChange('tipo_servicio', 'protocolo_protesis')}
                   >
                     <span className="card-icon">📋</span>
-                    <div className="card-title">Protocolo de Prótesis</div>
-                    <div className="card-desc">Es mi primera prótesis o requiero evaluación completa</div>
+                    <div className="card-title">Protocolo</div>
+                    <div className="card-desc">Protocolo de prótesis</div>
                   </div>
                 </div>
               </div>
@@ -347,6 +361,35 @@ const Solicitud = () => {
                   onChange={e => handleChange('tiempo_desde_amputacion', e.target.value)}
                   placeholder="Ej: 2 años, 6 meses"
                 />
+              </div>
+
+              <h3 style={{ margin: '24px 0 12px', color: 'var(--text-primary)', fontSize: '17px' }}>Preguntas Clínicas</h3>
+
+              <div className="solicitud-form-group">
+                <label>¿Tienes herida o cicatriz consolidada? *</label>
+                <select value={form.herida_consolidada} onChange={e => handleChange('herida_consolidada', e.target.value)}>
+                  <option value="">Seleccionar...</option>
+                  <option value="si">Sí</option>
+                  <option value="no">No</option>
+                </select>
+              </div>
+
+              <div className="solicitud-form-group">
+                <label>¿Tienes alguna herida o infección en la extremidad no amputada? *</label>
+                <select value={form.herida_infeccion} onChange={e => handleChange('herida_infeccion', e.target.value)}>
+                  <option value="">Seleccionar...</option>
+                  <option value="si">Sí</option>
+                  <option value="no">No</option>
+                </select>
+              </div>
+
+              <div className="solicitud-form-group">
+                <label>¿Padeces diabetes, hipertensión o recibes atención médica? *</label>
+                <select value={form.padece_cronico} onChange={e => handleChange('padece_cronico', e.target.value)}>
+                  <option value="">Seleccionar...</option>
+                  <option value="si">Sí</option>
+                  <option value="no">No</option>
+                </select>
               </div>
 
               <div className="solicitud-form-group">

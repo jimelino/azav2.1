@@ -26,11 +26,12 @@ const Ortesis = () => {
   const [showModal, setShowModal] = useState(false);
   const [modalType, setModalType] = useState('');
 
-  // Formulario de problema
+  // Formulario de problema. `severidad` mapea a la columna ENUM('leve','moderado','severo')
+  // de la tabla reportes_problemas. `tipo` es solo para UI y se prefija a la descripción.
   const [problemaForm, setProblemaForm] = useState({
     tipo: '',
     descripcion: '',
-    urgencia: 'media'
+    severidad: 'moderado'
   });
 
   const tiposProblema = [
@@ -96,18 +97,25 @@ const Ortesis = () => {
   const handleReportarProblema = async (e) => {
     e.preventDefault();
     try {
+      // Prefijamos el tipo a la descripción porque la tabla no tiene columna `tipo`.
+      const tipoLabel = tiposProblema.find(t => t.id === problemaForm.tipo)?.nombre || problemaForm.tipo;
+      const descFull = tipoLabel
+        ? `[${tipoLabel}] ${problemaForm.descripcion}`
+        : problemaForm.descripcion;
+
       await api.post('/ortesis/problemas', {
         paciente_id: user.paciente_id,
-        tipo: problemaForm.tipo,
-        descripcion: problemaForm.descripcion,
-        urgencia: problemaForm.urgencia
+        descripcion: descFull,
+        severidad: problemaForm.severidad,
       });
 
       setShowModal(false);
-      setProblemaForm({ tipo: '', descripcion: '', urgencia: 'media' });
+      setProblemaForm({ tipo: '', descripcion: '', severidad: 'moderado' });
       cargarDatos();
     } catch (err) {
       console.error('Error al reportar problema:', err);
+      const msg = err?.message || (typeof err === 'object' ? JSON.stringify(err) : 'Error desconocido');
+      alert('No se pudo enviar el reporte: ' + msg);
     }
   };
 
@@ -826,15 +834,15 @@ const Ortesis = () => {
               </div>
 
               <div className="form-group">
-                <label>Urgencia</label>
+                <label>Severidad</label>
                 <select
-                  value={problemaForm.urgencia}
-                  onChange={e => setProblemaForm({...problemaForm, urgencia: e.target.value})}
+                  value={problemaForm.severidad}
+                  onChange={e => setProblemaForm({...problemaForm, severidad: e.target.value})}
                   className="form-control"
                 >
-                  <option value="baja">Baja - Puede esperar</option>
-                  <option value="media">Media - Necesito atención pronto</option>
-                  <option value="alta">Alta - Necesito atención urgente</option>
+                  <option value="leve">Leve - Puede esperar</option>
+                  <option value="moderado">Moderado - Necesito atención pronto</option>
+                  <option value="severo">Severo - Necesito atención urgente</option>
                 </select>
               </div>
 

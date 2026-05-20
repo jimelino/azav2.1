@@ -6,7 +6,7 @@ import './NeuropsicologiaEsp.css';
 const CUESTIONARIOS_INFO = {
   'AAQ-2': { nombre: 'AAQ-2', completo: 'Cuestionario de Aceptación y Acción', icon: 'clipboard', color: '#5C6BC0' },
   'AADQ': { nombre: 'AADQ', completo: 'Aceptación y Acción en Diabetes', icon: 'activity', color: '#26A69A' },
-  'CANCER_AAQ': { nombre: 'Cancer AAQ', completo: 'AAQ para Pacientes Oncológicos', icon: 'heart-pulse', color: '#EF5350' },
+  'CANCER_AAQ': { nombre: 'Cancer AAQ', completo: 'AAQ para Usuarios Oncológicos', icon: 'heart-pulse', color: '#EF5350' },
   'VLQ': { nombre: 'VLQ', completo: 'Cuestionario de Valores en la Vida', icon: 'compass', color: '#AB47BC' },
 };
 
@@ -50,7 +50,7 @@ const CuestionariosHistorial = ({ pacienteId, onBack }) => {
     <div className="neuro-esp-module">
       <div className="neuro-esp-header">
         <button className="neuro-back-btn" onClick={onBack}>
-          <LucideIcon name="arrow-left" size={18} /> Cambiar paciente
+          <LucideIcon name="arrow-left" size={18} /> Cambiar usuario
         </button>
         <h2><LucideIcon name="clipboard-list" size={22} /> Cuestionarios Psicológicos</h2>
       </div>
@@ -64,7 +64,7 @@ const CuestionariosHistorial = ({ pacienteId, onBack }) => {
         <div className="neuro-empty">
           <LucideIcon name="clipboard-list" size={40} />
           <p>No hay cuestionarios completados</p>
-          <p className="neuro-empty-sub">El paciente aún no ha completado cuestionarios psicológicos.</p>
+          <p className="neuro-empty-sub">El usuario aún no ha completado cuestionarios psicológicos.</p>
         </div>
       ) : (
         <>
