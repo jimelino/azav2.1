@@ -1,19 +1,10 @@
 <?php
 /**
- * AZARIA - Sistema de Migraciones Versionado
- *
- * Uso:
- *   php database/migrate.php                  # Ejecutar migraciones pendientes
- *   php database/migrate.php status           # Ver estado de migraciones
- *   php database/migrate.php create <nombre>  # Crear nueva migracion
- *   php database/migrate.php reset            # Marcar todas como ejecutadas (sin correr SQL)
- *
- * Las migraciones deben estar en database/migrations/ con formato:
- *   YYYYMMDD_HHMMSS_nombre_descriptivo.sql
+ * AZARIA - Sistema de Migraciones Versionado (Optimizado para Producción/Render)
  */
 
-// Cargar config de base de datos
-$config = require __DIR__ . '/../backend/config/database.php';
+// CORRECCIÓN DE RUTA: Ajustada para el entorno Docker de Render (/app/config/...)
+$config = require __DIR__ . '/../config/database.php';
 
 // Colores para la terminal
 function colorize($text, $color) {
@@ -25,16 +16,15 @@ function colorize($text, $color) {
         'bold'   => "\033[1m",
         'reset'  => "\033[0m",
     ];
-    // En Windows sin soporte ANSI, no colorear
     if (PHP_OS_FAMILY === 'Windows' && !getenv('ANSICON') && !getenv('ConEmuANSI')) {
         return $text;
     }
     return ($colors[$color] ?? '') . $text . $colors['reset'];
 }
 
-function info($msg)    { echo colorize("  ✓ ", 'green') . $msg . PHP_EOL; }
-function warn($msg)    { echo colorize("  ⚠ ", 'yellow') . $msg . PHP_EOL; }
-function error($msg)   { echo colorize("  ✗ ", 'red') . $msg . PHP_EOL; }
+function info($msg)    { echo colorize("   ✓ ", 'green') . $msg . PHP_EOL; }
+function warn($msg)    { echo colorize("   ⚠ ", 'yellow') . $msg . PHP_EOL; }
+function error($msg)   { echo colorize("   ✗ ", 'red') . $msg . PHP_EOL; }
 function heading($msg) { echo PHP_EOL . colorize("  " . $msg, 'bold') . PHP_EOL . PHP_EOL; }
 
 // Conectar a la base de datos
@@ -56,10 +46,7 @@ $pdo->exec("
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 ");
 
-// Directorio de migraciones
 $migrationsDir = __DIR__ . '/migrations';
-
-// Obtener comando
 $command = $argv[1] ?? 'migrate';
 
 switch ($command) {
@@ -101,7 +88,6 @@ function runMigrations(PDO $pdo, string $dir) {
         return;
     }
 
-    // Obtener siguiente numero de lote
     $stmt = $pdo->query("SELECT COALESCE(MAX(lote), 0) + 1 FROM migraciones");
     $batch = (int)$stmt->fetchColumn();
 
@@ -123,10 +109,8 @@ function runMigrations(PDO $pdo, string $dir) {
                 continue;
             }
 
-            // Ejecutar el SQL (puede contener multiples statements)
             $pdo->exec($sql);
 
-            // Registrar como ejecutada
             $stmt = $pdo->prepare("INSERT INTO migraciones (migracion, lote) VALUES (?, ?)");
             $stmt->execute([$name, $batch]);
 
@@ -137,7 +121,12 @@ function runMigrations(PDO $pdo, string $dir) {
             error("  " . $e->getMessage());
             $failed++;
 
-            // Preguntar si continuar
+            // OPTIMIZACIÓN DE ENTORNO: Si no hay terminal interactiva, aborta con código de error de inmediato
+            if (ftell(STDIN) === false || !stream_isatty(STDIN)) {
+                error("Migración fallida en entorno automatizado. Abortando proceso para proteger la base de datos.");
+                exit(1);
+            }
+
             echo PHP_EOL . "  Continuar con las demas migraciones? (s/n): ";
             $answer = trim(fgets(STDIN));
             if (strtolower($answer) !== 's') {
@@ -157,9 +146,6 @@ function runMigrations(PDO $pdo, string $dir) {
     echo PHP_EOL;
 }
 
-/**
- * Mostrar estado de migraciones
- */
 function showStatus(PDO $pdo, string $dir) {
     heading("AZARIA - Estado de Migraciones");
 
@@ -172,7 +158,6 @@ function showStatus(PDO $pdo, string $dir) {
         return;
     }
 
-    // Obtener info de lotes
     $batchInfo = [];
     $stmt = $pdo->query("SELECT migracion, lote, ejecutada_en FROM migraciones ORDER BY id");
     while ($row = $stmt->fetch()) {
@@ -213,11 +198,7 @@ function showStatus(PDO $pdo, string $dir) {
     echo PHP_EOL;
 }
 
-/**
- * Crear nueva migracion vacia
- */
 function createMigration(string $dir, string $name) {
-    // Sanitizar nombre
     $name = preg_replace('/[^a-zA-Z0-9_]/', '_', $name);
     $name = strtolower(trim($name, '_'));
 
@@ -238,10 +219,6 @@ function createMigration(string $dir, string $name) {
     echo "  Ruta: $filepath" . PHP_EOL . PHP_EOL;
 }
 
-/**
- * Marcar todas las migraciones como ejecutadas sin correr SQL
- * Util cuando la BD ya tiene todo y solo quieres sincronizar el tracking
- */
 function resetMigrations(PDO $pdo, string $dir) {
     heading("AZARIA - Reset de Migraciones");
 
@@ -254,7 +231,6 @@ function resetMigrations(PDO $pdo, string $dir) {
         return;
     }
 
-    // Obtener siguiente lote
     $stmt = $pdo->query("SELECT COALESCE(MAX(lote), 0) + 1 FROM migraciones");
     $batch = (int)$stmt->fetchColumn();
 
@@ -278,31 +254,20 @@ function resetMigrations(PDO $pdo, string $dir) {
     echo PHP_EOL;
 }
 
-/**
- * Obtener lista de migraciones ya ejecutadas
- */
 function getExecutedMigrations(PDO $pdo): array {
     $stmt = $pdo->query("SELECT migracion FROM migraciones ORDER BY id");
     return $stmt->fetchAll(PDO::FETCH_COLUMN);
 }
 
-/**
- * Obtener todos los archivos .sql del directorio, ordenados por nombre
- */
 function getAllMigrationFiles(string $dir): array {
     if (!is_dir($dir)) return [];
-
     $files = glob($dir . '/*.sql');
-    sort($files); // Ordenar por nombre (el timestamp prefix garantiza el orden)
+    sort($files);
     return $files;
 }
 
-/**
- * Obtener migraciones pendientes (no ejecutadas)
- */
 function getPendingMigrations(string $dir, array $executed): array {
     $allFiles = getAllMigrationFiles($dir);
-
     return array_filter($allFiles, function($file) use ($executed) {
         return !in_array(basename($file), $executed);
     });
