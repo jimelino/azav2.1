@@ -13,8 +13,8 @@ RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" \
     && php composer-setup.php \
     && php -r "unlink('composer-setup.php');" \
     && php composer.phar install --no-dev
-
+    
 EXPOSE 10000
 
-# Primero ejecuta la migración y, si tiene éxito, arranca el servidor web
-CMD php database/migrate.php && php -S 0.0.0.0:$PORT -t public
+# Probamos ejecutarlo directamente en la raíz donde Docker extrae el Root Directory
+CMD php migrate.php && php -S 0.0.0.0:$PORT -t public
