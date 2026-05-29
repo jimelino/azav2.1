@@ -16,5 +16,5 @@ RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" \
 
 EXPOSE 10000
 
-# Busca migrate.php de forma automática en todo el proyecto, lo ejecuta y luego inicia el servidor web
-CMD php $(find . -name "migrate.php" | head -n 1) && php -S 0.0.0.0:$PORT -t public
+# Usamos la ruta absoluta directa para evitar que falle el comando find
+CMD php /app/database/migrate.php && php -S 0.0.0.0:$PORT -t public
