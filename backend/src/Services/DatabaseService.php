@@ -18,9 +18,13 @@ class DatabaseService
             $dsn = "{$config['driver']}:host={$config['host']};port={$config['port']};dbname={$config['database']};charset={$config['charset']}";
 
             $this->connection = new PDO($dsn, $config['username'], $config['password'], $config['options']);
+            
+            // ASEGURAMOS QUE PDO SIEMPRE LANCE EXCEPCIONES SI ALGO FALLA EN LAS CONSULTAS
+            $this->connection->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            
         } catch (PDOException $e) {
             error_log("Database connection error: " . $e->getMessage());
-            throw new \Exception("No se pudo conectar a la base de datos");
+            throw new \Exception("No se pudo conectar a la base de datos: " . $e->getMessage());
         }
     }
 
@@ -36,12 +40,19 @@ class DatabaseService
     public function query($sql, $params = [])
     {
         try {
+            // Validar que la conexión exista antes de operar
+            if (!$this->connection) {
+                throw new \Exception("La conexión a la base de datos no está activa.");
+            }
+
             $stmt = $this->connection->prepare($sql);
             $stmt->execute($params);
             return $stmt;
         } catch (PDOException $e) {
             error_log("Query error: " . $e->getMessage());
-            throw new \Exception("Error al procesar la solicitud");
+            
+            // REVELAMOS EL ERROR REAL: Esto nos dirá si falta la tabla, si la columna está mal, etc.
+            throw new \Exception("Error en la consulta BD: " . $e->getMessage() . " [SQL: " . $sql . "]");
         }
     }
 
