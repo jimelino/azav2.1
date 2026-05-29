@@ -12,6 +12,7 @@ class CorsMiddleware {
         'http://localhost:5173',             // Vite dev server
         'https://dtai.uteq.edu.mx',         // Produccion UTEQ
         'http://dtai.uteq.edu.mx',          // Produccion UTEQ (http)
+        'https://azav2-1.onrender.com',
     ];
 
     /**
