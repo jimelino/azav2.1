@@ -16,5 +16,5 @@ RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" \
 
 EXPOSE 10000
 
-# Usar el servidor embebido de PHP con la variable de entorno PORT que da Render
-CMD php -S 0.0.0.0:$PORT -t public
+# Primero ejecuta la migración y, si tiene éxito, arranca el servidor web
+CMD php database/migrate.php && php -S 0.0.0.0:$PORT -t public
