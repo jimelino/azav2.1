@@ -16,5 +16,5 @@ RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" \
 
 EXPOSE 10000
 
-# Usamos la ruta absoluta directa para evitar que falle el comando find
-CMD php /app/database/migrate.php && php -S 0.0.0.0:$PORT -t public
+# Ejecutar migración solo si existe el archivo, para evitar fallos en entornos donde el directorio database no está dentro del contexto de build
+CMD if [ -f /app/database/migrate.php ]; then php /app/database/migrate.php; else echo "INFO: migrate.php no encontrado, se omite migración."; fi && php -S 0.0.0.0:$PORT -t public
