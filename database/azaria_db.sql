@@ -6,6 +6,9 @@
 -- Cliente: UIOyP - ENES Juriquilla, UNAM
 -- Fecha: Enero 2025
 -- =====================================================
+-- IMPORTANTE: Si importas esta exportación en una base de datos existente como Aiven
+-- MySQL, elimina o comenta las instrucciones DROP/CREATE DATABASE y USE azaria_db
+-- antes de ejecutar el script. Usa el esquema de destino (por ejemplo defaultdb).
 
 SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
@@ -1476,7 +1479,7 @@ SELECT
     tc.nombre AS tipo_cita,
     p.id AS paciente_id,
     up.nombre_completo AS paciente_nombre,
-    e.id AS especialista_id,
+    ue.id AS especialista_id,
     ue.nombre_completo AS especialista_nombre,
     am.nombre AS area_medica
 FROM citas c
