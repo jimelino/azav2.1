@@ -1,9 +1,7 @@
 import axios from 'axios';
 
-// Si existe la variable de entorno la usa; si no, decide según el hostname
-const defaultUrl = window.location.hostname === 'localhost' 
-  ? 'http://localhost:8000/api' 
-  : '/api';
+// Si no existe la variable de entorno, usa el mismo backend que producción.
+const defaultUrl = 'https://azav2-1-back.onrender.com';
 
 const rawApiUrl = process.env.REACT_APP_API_URL || defaultUrl;
 
