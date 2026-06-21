@@ -11,5 +11,9 @@ root.render(
   </React.StrictMode>
 );
 
-// Registrar service worker para PWA (offline + installable)
-serviceWorkerRegistration.register();
+// En desarrollo evita que un service worker anterior sirva bundles obsoletos.
+if (process.env.NODE_ENV === 'production') {
+  serviceWorkerRegistration.register();
+} else {
+  serviceWorkerRegistration.unregister();
+}
