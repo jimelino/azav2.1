@@ -14,17 +14,17 @@ SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
 SET SQL_MODE = 'STRICT_TRANS_TABLES,NO_ENGINE_SUBSTITUTION';
 
--- Crear base de datos
-DROP DATABASE IF EXISTS azaria_db;
-CREATE DATABASE azaria_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-USE azaria_db;
+-- IMPORTANTE: Este script se importa en la base de datos activa.
+-- Si estás usando Aiven MySQL, ejecuta:
+--   mysql -h <host> -P <port> -u <user> -p defaultdb < azaria_db.sql
+-- No necesita DROP/CREATE/USE de la base de datos.
 
 -- =====================================================
 -- MÓDULO 1: USUARIOS Y AUTENTICACIÓN
 -- =====================================================
 
 -- Tabla de roles
-CREATE TABLE roles (
+CREATE TABLE IF NOT EXISTS roles (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(50) NOT NULL UNIQUE,
     descripcion VARCHAR(255),
@@ -39,7 +39,7 @@ INSERT INTO roles (nombre, descripcion) VALUES
 ('paciente', 'Registro de información personal, consulta de contenido, interacción con comunidad');
 
 -- Tabla de áreas médicas
-CREATE TABLE areas_medicas (
+CREATE TABLE IF NOT EXISTS areas_medicas (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(50) NOT NULL UNIQUE,
     descripcion VARCHAR(255),
@@ -59,7 +59,7 @@ INSERT INTO areas_medicas (nombre, descripcion, icono, color) VALUES
 ('ortesis', 'Dispositivos ortopédicos y prótesis', 'accessibility', '#2196F3');
 
 -- Tabla de usuarios
-CREATE TABLE usuarios (
+CREATE TABLE IF NOT EXISTS usuarios (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     email VARCHAR(255) NOT NULL UNIQUE,
     password_hash VARCHAR(255) NOT NULL,
@@ -104,7 +104,7 @@ CREATE TABLE usuarios (
 ) ENGINE=InnoDB;
 
 -- Tabla de sesiones persistentes
-CREATE TABLE sesiones (
+CREATE TABLE IF NOT EXISTS sesiones (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     usuario_id INT UNSIGNED NOT NULL,
     token_hash VARCHAR(255) NOT NULL UNIQUE,
@@ -130,7 +130,7 @@ CREATE TABLE sesiones (
 ) ENGINE=InnoDB;
 
 -- Tabla de tokens de recuperación
-CREATE TABLE tokens_recuperacion (
+CREATE TABLE IF NOT EXISTS tokens_recuperacion (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     usuario_id INT UNSIGNED NOT NULL,
     codigo VARCHAR(6) NOT NULL,
@@ -146,7 +146,7 @@ CREATE TABLE tokens_recuperacion (
 ) ENGINE=InnoDB;
 
 -- Tabla de log de accesos
-CREATE TABLE log_accesos (
+CREATE TABLE IF NOT EXISTS log_accesos (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     usuario_id INT UNSIGNED,
     email_intento VARCHAR(255),
@@ -167,7 +167,7 @@ CREATE TABLE log_accesos (
 -- =====================================================
 
 -- Tabla de fases de tratamiento
-CREATE TABLE fases_tratamiento (
+CREATE TABLE IF NOT EXISTS fases_tratamiento (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     numero TINYINT UNSIGNED NOT NULL UNIQUE,
     nombre VARCHAR(100) NOT NULL,
@@ -183,7 +183,7 @@ INSERT INTO fases_tratamiento (numero, nombre, descripcion) VALUES
 (4, 'Autonomía Completa', 'Uso independiente, seguimiento periódico');
 
 -- Tabla de pacientes (información adicional)
-CREATE TABLE pacientes (
+CREATE TABLE IF NOT EXISTS pacientes (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     usuario_id INT UNSIGNED NOT NULL UNIQUE,
     fase_actual_id INT UNSIGNED DEFAULT 1,
@@ -199,7 +199,7 @@ CREATE TABLE pacientes (
 ) ENGINE=InnoDB;
 
 -- Tabla de historial de cambios de fase
-CREATE TABLE historial_fases (
+CREATE TABLE IF NOT EXISTS historial_fases (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     paciente_id INT UNSIGNED NOT NULL,
     fase_anterior_id INT UNSIGNED,
@@ -217,7 +217,7 @@ CREATE TABLE historial_fases (
 ) ENGINE=InnoDB;
 
 -- Tabla de asignación paciente-especialista
-CREATE TABLE asignaciones_especialista (
+CREATE TABLE IF NOT EXISTS asignaciones_especialista (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     paciente_id INT UNSIGNED NOT NULL,
     especialista_id INT UNSIGNED NOT NULL,
@@ -246,7 +246,7 @@ CREATE TABLE asignaciones_especialista (
 -- =====================================================
 
 -- Tipos de comida
-CREATE TABLE tipos_comida (
+CREATE TABLE IF NOT EXISTS tipos_comida (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(50) NOT NULL UNIQUE,
     orden INT UNSIGNED DEFAULT 0,
@@ -262,7 +262,7 @@ INSERT INTO tipos_comida (nombre, orden, hora_sugerida) VALUES
 ('cena', 5, '20:00:00');
 
 -- Registro de comidas
-CREATE TABLE registro_comidas (
+CREATE TABLE IF NOT EXISTS registro_comidas (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     paciente_id INT UNSIGNED NOT NULL,
     tipo_comida_id INT UNSIGNED NOT NULL,
@@ -281,7 +281,7 @@ CREATE TABLE registro_comidas (
 ) ENGINE=InnoDB;
 
 -- Checklist diario de comidas
-CREATE TABLE checklist_comidas (
+CREATE TABLE IF NOT EXISTS checklist_comidas (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     paciente_id INT UNSIGNED NOT NULL,
     fecha DATE NOT NULL,
@@ -300,7 +300,7 @@ CREATE TABLE checklist_comidas (
 ) ENGINE=InnoDB;
 
 -- Catálogo de recetas
-CREATE TABLE recetas (
+CREATE TABLE IF NOT EXISTS recetas (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     titulo VARCHAR(255) NOT NULL,
     descripcion TEXT,
@@ -331,7 +331,7 @@ CREATE TABLE recetas (
 ) ENGINE=InnoDB;
 
 -- Asignación de recetas a pacientes
-CREATE TABLE recetas_asignadas (
+CREATE TABLE IF NOT EXISTS recetas_asignadas (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     paciente_id INT UNSIGNED NOT NULL,
     receta_id INT UNSIGNED NOT NULL,
@@ -349,7 +349,7 @@ CREATE TABLE recetas_asignadas (
 ) ENGINE=InnoDB;
 
 -- Recetas favoritas
-CREATE TABLE recetas_favoritas (
+CREATE TABLE IF NOT EXISTS recetas_favoritas (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     usuario_id INT UNSIGNED NOT NULL,
     receta_id INT UNSIGNED NOT NULL,
@@ -361,7 +361,7 @@ CREATE TABLE recetas_favoritas (
 ) ENGINE=InnoDB;
 
 -- Cuestionarios de nutrición
-CREATE TABLE cuestionarios_nutricion (
+CREATE TABLE IF NOT EXISTS cuestionarios_nutricion (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     paciente_id INT UNSIGNED NOT NULL,
     fecha DATE NOT NULL,
@@ -383,7 +383,7 @@ CREATE TABLE cuestionarios_nutricion (
 -- =====================================================
 
 -- Momentos de medición
-CREATE TABLE momentos_medicion (
+CREATE TABLE IF NOT EXISTS momentos_medicion (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(50) NOT NULL UNIQUE,
     descripcion VARCHAR(255),
@@ -400,7 +400,7 @@ INSERT INTO momentos_medicion (nombre, descripcion, orden) VALUES
 ('antes_dormir', 'Antes de dormir', 7);
 
 -- Bitácora de glucosa
-CREATE TABLE bitacora_glucosa (
+CREATE TABLE IF NOT EXISTS bitacora_glucosa (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     paciente_id INT UNSIGNED NOT NULL,
     valor DECIMAL(5,1) NOT NULL,
@@ -420,7 +420,7 @@ CREATE TABLE bitacora_glucosa (
 ) ENGINE=InnoDB;
 
 -- Bitácora de presión arterial
-CREATE TABLE bitacora_presion (
+CREATE TABLE IF NOT EXISTS bitacora_presion (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     paciente_id INT UNSIGNED NOT NULL,
     sistolica INT UNSIGNED NOT NULL,
@@ -439,7 +439,7 @@ CREATE TABLE bitacora_presion (
 ) ENGINE=InnoDB;
 
 -- Ubicaciones de dolor
-CREATE TABLE ubicaciones_dolor (
+CREATE TABLE IF NOT EXISTS ubicaciones_dolor (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(50) NOT NULL UNIQUE,
     descripcion VARCHAR(255)
@@ -457,7 +457,7 @@ INSERT INTO ubicaciones_dolor (nombre, descripcion) VALUES
 ('otro', 'Otra ubicación');
 
 -- Tipos de dolor
-CREATE TABLE tipos_dolor (
+CREATE TABLE IF NOT EXISTS tipos_dolor (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(50) NOT NULL UNIQUE,
     descripcion VARCHAR(255)
@@ -473,7 +473,7 @@ INSERT INTO tipos_dolor (nombre, descripcion) VALUES
 ('otro', 'Otro tipo de dolor');
 
 -- Bitácora de dolor
-CREATE TABLE bitacora_dolor (
+CREATE TABLE IF NOT EXISTS bitacora_dolor (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     paciente_id INT UNSIGNED NOT NULL,
     intensidad TINYINT UNSIGNED NOT NULL,
@@ -495,7 +495,7 @@ CREATE TABLE bitacora_dolor (
 ) ENGINE=InnoDB;
 
 -- Catálogo de medicamentos por paciente
-CREATE TABLE medicamentos_paciente (
+CREATE TABLE IF NOT EXISTS medicamentos_paciente (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     paciente_id INT UNSIGNED NOT NULL,
     nombre_comercial VARCHAR(255) NOT NULL,
@@ -520,7 +520,7 @@ CREATE TABLE medicamentos_paciente (
 ) ENGINE=InnoDB;
 
 -- Horarios de medicamentos
-CREATE TABLE horarios_medicamento (
+CREATE TABLE IF NOT EXISTS horarios_medicamento (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     medicamento_id INT UNSIGNED NOT NULL,
     hora TIME NOT NULL,
@@ -531,7 +531,7 @@ CREATE TABLE horarios_medicamento (
 ) ENGINE=InnoDB;
 
 -- Registro de toma de medicamentos
-CREATE TABLE registro_medicamentos (
+CREATE TABLE IF NOT EXISTS registro_medicamentos (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     medicamento_id INT UNSIGNED NOT NULL,
     paciente_id INT UNSIGNED NOT NULL,
@@ -556,7 +556,7 @@ CREATE TABLE registro_medicamentos (
 ) ENGINE=InnoDB;
 
 -- Alertas médicas
-CREATE TABLE alertas_medicas (
+CREATE TABLE IF NOT EXISTS alertas_medicas (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     paciente_id INT UNSIGNED NOT NULL,
     tipo ENUM('glucosa', 'presion', 'dolor', 'adherencia_medicamento', 'efectos_secundarios', 'medicamento_sin_stock', 'patron_olvido') NOT NULL,
@@ -583,7 +583,7 @@ CREATE TABLE alertas_medicas (
 -- =====================================================
 
 -- Categorías de ejercicios
-CREATE TABLE categorias_ejercicio (
+CREATE TABLE IF NOT EXISTS categorias_ejercicio (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(100) NOT NULL UNIQUE,
     descripcion TEXT,
@@ -598,7 +598,7 @@ INSERT INTO categorias_ejercicio (nombre, descripcion) VALUES
 ('cardio', 'Ejercicios cardiovasculares');
 
 -- Niveles de dificultad
-CREATE TABLE niveles_ejercicio (
+CREATE TABLE IF NOT EXISTS niveles_ejercicio (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(50) NOT NULL UNIQUE,
     orden INT UNSIGNED DEFAULT 0
@@ -610,7 +610,7 @@ INSERT INTO niveles_ejercicio (nombre, orden) VALUES
 ('avanzado', 3);
 
 -- Catálogo de videos de ejercicios
-CREATE TABLE videos_ejercicios (
+CREATE TABLE IF NOT EXISTS videos_ejercicios (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     titulo VARCHAR(255) NOT NULL,
     descripcion TEXT,
@@ -639,7 +639,7 @@ CREATE TABLE videos_ejercicios (
 ) ENGINE=InnoDB;
 
 -- Asignación de videos a pacientes
-CREATE TABLE videos_asignados (
+CREATE TABLE IF NOT EXISTS videos_asignados (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     paciente_id INT UNSIGNED NOT NULL,
     video_id INT UNSIGNED NOT NULL,
@@ -659,7 +659,7 @@ CREATE TABLE videos_asignados (
 ) ENGINE=InnoDB;
 
 -- Registro de videos vistos
-CREATE TABLE registro_videos (
+CREATE TABLE IF NOT EXISTS registro_videos (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     paciente_id INT UNSIGNED NOT NULL,
     video_id INT UNSIGNED NOT NULL,
@@ -676,7 +676,7 @@ CREATE TABLE registro_videos (
 ) ENGINE=InnoDB;
 
 -- Guías de cuidado
-CREATE TABLE guias_cuidado (
+CREATE TABLE IF NOT EXISTS guias_cuidado (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     titulo VARCHAR(255) NOT NULL,
     tipo ENUM('limpieza_diaria', 'mantenimiento_semanal', 'inspeccion_mensual', 'almacenamiento', 'dano', 'otro') NOT NULL,
@@ -695,7 +695,7 @@ CREATE TABLE guias_cuidado (
 ) ENGINE=InnoDB;
 
 -- Checklist de inspección de prótesis
-CREATE TABLE checklist_protesis (
+CREATE TABLE IF NOT EXISTS checklist_protesis (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     paciente_id INT UNSIGNED NOT NULL,
     fecha DATE NOT NULL,
@@ -718,7 +718,7 @@ CREATE TABLE checklist_protesis (
 -- =====================================================
 
 -- Catálogo de emociones
-CREATE TABLE emociones (
+CREATE TABLE IF NOT EXISTS emociones (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(50) NOT NULL UNIQUE,
     icono VARCHAR(50),
@@ -740,7 +740,7 @@ INSERT INTO emociones (nombre, categoria) VALUES
 ('soledad', 'negativa');
 
 -- Registro de estado de ánimo
-CREATE TABLE registro_animo (
+CREATE TABLE IF NOT EXISTS registro_animo (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     paciente_id INT UNSIGNED NOT NULL,
     nivel_animo TINYINT UNSIGNED NOT NULL,
@@ -757,7 +757,7 @@ CREATE TABLE registro_animo (
 ) ENGINE=InnoDB;
 
 -- Emociones registradas por día
-CREATE TABLE registro_animo_emociones (
+CREATE TABLE IF NOT EXISTS registro_animo_emociones (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     registro_animo_id BIGINT UNSIGNED NOT NULL,
     emocion_id INT UNSIGNED NOT NULL,
@@ -768,7 +768,7 @@ CREATE TABLE registro_animo_emociones (
 ) ENGINE=InnoDB;
 
 -- Cuestionarios de bienestar
-CREATE TABLE cuestionarios_bienestar (
+CREATE TABLE IF NOT EXISTS cuestionarios_bienestar (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     paciente_id INT UNSIGNED NOT NULL,
     fecha_semana DATE NOT NULL,
@@ -792,7 +792,7 @@ CREATE TABLE cuestionarios_bienestar (
 -- =====================================================
 
 -- Tipos de dispositivo
-CREATE TABLE tipos_dispositivo (
+CREATE TABLE IF NOT EXISTS tipos_dispositivo (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(100) NOT NULL UNIQUE,
     descripcion TEXT
@@ -807,7 +807,7 @@ INSERT INTO tipos_dispositivo (nombre, descripcion) VALUES
 ('otro', 'Otro tipo de dispositivo');
 
 -- Información del dispositivo del paciente
-CREATE TABLE dispositivos_paciente (
+CREATE TABLE IF NOT EXISTS dispositivos_paciente (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     paciente_id INT UNSIGNED NOT NULL,
     tipo_dispositivo_id INT UNSIGNED NOT NULL,
@@ -827,7 +827,7 @@ CREATE TABLE dispositivos_paciente (
 ) ENGINE=InnoDB;
 
 -- Historial de ajustes
-CREATE TABLE historial_ajustes (
+CREATE TABLE IF NOT EXISTS historial_ajustes (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     dispositivo_id INT UNSIGNED NOT NULL,
     tipo_ajuste VARCHAR(100) NOT NULL,
@@ -845,7 +845,7 @@ CREATE TABLE historial_ajustes (
 ) ENGINE=InnoDB;
 
 -- Reportes de problemas con dispositivo
-CREATE TABLE reportes_problemas (
+CREATE TABLE IF NOT EXISTS reportes_problemas (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     dispositivo_id INT UNSIGNED NOT NULL,
     paciente_id INT UNSIGNED NOT NULL,
@@ -872,7 +872,7 @@ CREATE TABLE reportes_problemas (
 -- =====================================================
 
 -- Tipos de cita
-CREATE TABLE tipos_cita (
+CREATE TABLE IF NOT EXISTS tipos_cita (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(50) NOT NULL UNIQUE,
     duracion_minutos INT UNSIGNED DEFAULT 30,
@@ -885,7 +885,7 @@ INSERT INTO tipos_cita (nombre, duracion_minutos, descripcion) VALUES
 ('urgencia', 45, 'Consulta por situación urgente');
 
 -- Disponibilidad de especialistas
-CREATE TABLE disponibilidad_especialista (
+CREATE TABLE IF NOT EXISTS disponibilidad_especialista (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     especialista_id INT UNSIGNED NOT NULL,
     dia_semana TINYINT UNSIGNED NOT NULL,
@@ -899,7 +899,7 @@ CREATE TABLE disponibilidad_especialista (
 ) ENGINE=InnoDB;
 
 -- Citas
-CREATE TABLE citas (
+CREATE TABLE IF NOT EXISTS citas (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     paciente_id INT UNSIGNED NOT NULL,
     especialista_id INT UNSIGNED NOT NULL,
@@ -946,7 +946,7 @@ CREATE TABLE citas (
 -- =====================================================
 
 -- Conversaciones
-CREATE TABLE conversaciones (
+CREATE TABLE IF NOT EXISTS conversaciones (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     paciente_id INT UNSIGNED NOT NULL,
     especialista_id INT UNSIGNED NOT NULL,
@@ -961,7 +961,7 @@ CREATE TABLE conversaciones (
 ) ENGINE=InnoDB;
 
 -- Mensajes de chat (se eliminan después de 24 horas)
-CREATE TABLE mensajes_chat (
+CREATE TABLE IF NOT EXISTS mensajes_chat (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     conversacion_id INT UNSIGNED NOT NULL,
     remitente_id INT UNSIGNED NOT NULL,
@@ -984,7 +984,7 @@ CREATE TABLE mensajes_chat (
 -- =====================================================
 
 -- Tipos de recordatorio
-CREATE TABLE tipos_recordatorio (
+CREATE TABLE IF NOT EXISTS tipos_recordatorio (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(50) NOT NULL UNIQUE,
     descripcion VARCHAR(255),
@@ -1000,7 +1000,7 @@ INSERT INTO tipos_recordatorio (nombre, descripcion) VALUES
 ('medicamento', 'Recordatorio para tomar medicamento');
 
 -- Configuración de recordatorios
-CREATE TABLE recordatorios (
+CREATE TABLE IF NOT EXISTS recordatorios (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     usuario_id INT UNSIGNED NOT NULL,
     tipo_id INT UNSIGNED NOT NULL,
@@ -1023,7 +1023,7 @@ CREATE TABLE recordatorios (
 ) ENGINE=InnoDB;
 
 -- Historial de recordatorios enviados
-CREATE TABLE historial_recordatorios (
+CREATE TABLE IF NOT EXISTS historial_recordatorios (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     recordatorio_id INT UNSIGNED NOT NULL,
     usuario_id INT UNSIGNED NOT NULL,
@@ -1045,7 +1045,7 @@ CREATE TABLE historial_recordatorios (
 -- =====================================================
 
 -- Preguntas frecuentes
-CREATE TABLE faqs (
+CREATE TABLE IF NOT EXISTS faqs (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     pregunta VARCHAR(500) NOT NULL,
     respuesta TEXT NOT NULL,
@@ -1068,7 +1068,7 @@ CREATE TABLE faqs (
 ) ENGINE=InnoDB;
 
 -- Votos de FAQs
-CREATE TABLE votos_faq (
+CREATE TABLE IF NOT EXISTS votos_faq (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     faq_id INT UNSIGNED NOT NULL,
     usuario_id INT UNSIGNED NOT NULL,
@@ -1086,7 +1086,7 @@ CREATE TABLE votos_faq (
 -- =====================================================
 
 -- Etiquetas de artículos
-CREATE TABLE etiquetas (
+CREATE TABLE IF NOT EXISTS etiquetas (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(50) NOT NULL UNIQUE,
     slug VARCHAR(50) NOT NULL UNIQUE,
@@ -1094,7 +1094,7 @@ CREATE TABLE etiquetas (
 ) ENGINE=InnoDB;
 
 -- Artículos del blog
-CREATE TABLE articulos (
+CREATE TABLE IF NOT EXISTS articulos (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     titulo VARCHAR(255) NOT NULL,
     slug VARCHAR(255) NOT NULL UNIQUE,
@@ -1125,7 +1125,7 @@ CREATE TABLE articulos (
 ) ENGINE=InnoDB;
 
 -- Relación artículos-etiquetas
-CREATE TABLE articulos_etiquetas (
+CREATE TABLE IF NOT EXISTS articulos_etiquetas (
     articulo_id INT UNSIGNED NOT NULL,
     etiqueta_id INT UNSIGNED NOT NULL,
 
@@ -1135,7 +1135,7 @@ CREATE TABLE articulos_etiquetas (
 ) ENGINE=InnoDB;
 
 -- Likes de artículos
-CREATE TABLE likes_articulo (
+CREATE TABLE IF NOT EXISTS likes_articulo (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     articulo_id INT UNSIGNED NOT NULL,
     usuario_id INT UNSIGNED NOT NULL,
@@ -1148,7 +1148,7 @@ CREATE TABLE likes_articulo (
 ) ENGINE=InnoDB;
 
 -- Artículos favoritos
-CREATE TABLE articulos_favoritos (
+CREATE TABLE IF NOT EXISTS articulos_favoritos (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     articulo_id INT UNSIGNED NOT NULL,
     usuario_id INT UNSIGNED NOT NULL,
@@ -1161,7 +1161,7 @@ CREATE TABLE articulos_favoritos (
 ) ENGINE=InnoDB;
 
 -- Comentarios de artículos
-CREATE TABLE comentarios_articulo (
+CREATE TABLE IF NOT EXISTS comentarios_articulo (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     articulo_id INT UNSIGNED NOT NULL,
     usuario_id INT UNSIGNED NOT NULL,
@@ -1182,7 +1182,7 @@ CREATE TABLE comentarios_articulo (
 -- =====================================================
 
 -- Temas de comunidad
-CREATE TABLE temas_comunidad (
+CREATE TABLE IF NOT EXISTS temas_comunidad (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(100) NOT NULL UNIQUE,
     slug VARCHAR(100) NOT NULL UNIQUE,
@@ -1205,7 +1205,7 @@ INSERT INTO temas_comunidad (nombre, slug, icono, orden) VALUES
 ('Preguntas a la comunidad', 'preguntas', '❓', 9);
 
 -- Publicaciones de comunidad
-CREATE TABLE publicaciones_comunidad (
+CREATE TABLE IF NOT EXISTS publicaciones_comunidad (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     usuario_id INT UNSIGNED NOT NULL,
     tema_id INT UNSIGNED NOT NULL,
@@ -1239,7 +1239,7 @@ CREATE TABLE publicaciones_comunidad (
 ) ENGINE=InnoDB;
 
 -- Imágenes de publicaciones
-CREATE TABLE imagenes_publicacion (
+CREATE TABLE IF NOT EXISTS imagenes_publicacion (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     publicacion_id INT UNSIGNED NOT NULL,
     imagen_url VARCHAR(500) NOT NULL,
@@ -1251,7 +1251,7 @@ CREATE TABLE imagenes_publicacion (
 ) ENGINE=InnoDB;
 
 -- Tipos de reacción
-CREATE TABLE tipos_reaccion (
+CREATE TABLE IF NOT EXISTS tipos_reaccion (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(50) NOT NULL UNIQUE,
     emoji VARCHAR(10) NOT NULL,
@@ -1266,7 +1266,7 @@ INSERT INTO tipos_reaccion (nombre, emoji, descripcion) VALUES
 ('apoyo', '🙏', 'Te apoyo');
 
 -- Reacciones a publicaciones
-CREATE TABLE reacciones_publicacion (
+CREATE TABLE IF NOT EXISTS reacciones_publicacion (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     publicacion_id INT UNSIGNED NOT NULL,
     usuario_id INT UNSIGNED NOT NULL,
@@ -1281,7 +1281,7 @@ CREATE TABLE reacciones_publicacion (
 ) ENGINE=InnoDB;
 
 -- Comentarios de publicaciones de comunidad
-CREATE TABLE comentarios_comunidad (
+CREATE TABLE IF NOT EXISTS comentarios_comunidad (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     publicacion_id INT UNSIGNED NOT NULL,
     usuario_id INT UNSIGNED NOT NULL,
@@ -1302,7 +1302,7 @@ CREATE TABLE comentarios_comunidad (
 ) ENGINE=InnoDB;
 
 -- Reportes de contenido
-CREATE TABLE reportes_contenido (
+CREATE TABLE IF NOT EXISTS reportes_contenido (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     reportado_por INT UNSIGNED NOT NULL,
     tipo_contenido ENUM('publicacion', 'comentario') NOT NULL,
@@ -1327,7 +1327,7 @@ CREATE TABLE reportes_contenido (
 -- =====================================================
 
 -- Notificaciones
-CREATE TABLE notificaciones (
+CREATE TABLE IF NOT EXISTS notificaciones (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     usuario_id INT UNSIGNED NOT NULL,
     tipo VARCHAR(50) NOT NULL,
@@ -1351,7 +1351,7 @@ CREATE TABLE notificaciones (
 ) ENGINE=InnoDB;
 
 -- Preferencias de notificaciones
-CREATE TABLE preferencias_notificacion (
+CREATE TABLE IF NOT EXISTS preferencias_notificacion (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     usuario_id INT UNSIGNED NOT NULL UNIQUE,
 
@@ -1381,7 +1381,7 @@ CREATE TABLE preferencias_notificacion (
 -- =====================================================
 
 -- Configuración general
-CREATE TABLE configuracion_sistema (
+CREATE TABLE IF NOT EXISTS configuracion_sistema (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     clave VARCHAR(100) NOT NULL UNIQUE,
     valor TEXT,
@@ -1410,7 +1410,7 @@ INSERT INTO configuracion_sistema (clave, valor, tipo, descripcion) VALUES
 -- =====================================================
 
 -- Log de auditoría general
-CREATE TABLE log_auditoria (
+CREATE TABLE IF NOT EXISTS log_auditoria (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     usuario_id INT UNSIGNED,
     accion VARCHAR(100) NOT NULL,
@@ -1435,7 +1435,7 @@ CREATE TABLE log_auditoria (
 -- =====================================================
 
 -- Vista de pacientes con información completa
-CREATE VIEW vista_pacientes AS
+CREATE OR REPLACE VIEW vista_pacientes AS
 SELECT
     p.id AS paciente_id,
     u.id AS usuario_id,
@@ -1455,7 +1455,7 @@ INNER JOIN usuarios u ON p.usuario_id = u.id
 INNER JOIN fases_tratamiento f ON p.fase_actual_id = f.id;
 
 -- Vista de especialistas por área
-CREATE VIEW vista_especialistas AS
+CREATE OR REPLACE VIEW vista_especialistas AS
 SELECT
     u.id AS usuario_id,
     u.nombre_completo,
@@ -1469,7 +1469,7 @@ INNER JOIN areas_medicas am ON u.area_medica_id = am.id
 WHERE u.rol_id = 2;
 
 -- Vista de citas pendientes
-CREATE VIEW vista_citas_pendientes AS
+CREATE OR REPLACE VIEW vista_citas_pendientes AS
 SELECT
     c.id AS cita_id,
     c.fecha,
@@ -1493,7 +1493,7 @@ AND c.fecha >= CURDATE()
 ORDER BY c.fecha, c.hora_inicio;
 
 -- Vista de alertas médicas pendientes
-CREATE VIEW vista_alertas_pendientes AS
+CREATE OR REPLACE VIEW vista_alertas_pendientes AS
 SELECT
     a.id AS alerta_id,
     a.tipo,
@@ -1570,7 +1570,7 @@ CREATE INDEX idx_publicaciones_estado_fecha ON publicaciones_comunidad(estado, c
 DELIMITER //
 
 -- Procedimiento para obtener estadísticas de adherencia de medicamentos
-CREATE PROCEDURE sp_adherencia_medicamentos(
+CREATE PROCEDURE IF NOT EXISTS sp_adherencia_medicamentos(
     IN p_paciente_id INT UNSIGNED,
     IN p_fecha_inicio DATE,
     IN p_fecha_fin DATE
@@ -1594,7 +1594,7 @@ BEGIN
 END//
 
 -- Procedimiento para obtener resumen de bitácoras médicas
-CREATE PROCEDURE sp_resumen_bitacoras(
+CREATE PROCEDURE IF NOT EXISTS sp_resumen_bitacoras(
     IN p_paciente_id INT UNSIGNED,
     IN p_dias INT
 )
@@ -1669,3 +1669,4 @@ SET FOREIGN_KEY_CHECKS = 1;
 -- =====================================================
 -- FIN DEL SCRIPT
 -- =====================================================
+

@@ -1,6 +1,12 @@
 import axios from 'axios';
 
-const rawApiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8000/api';
+// Si existe la variable de entorno la usa; si no, decide según el hostname
+const defaultUrl = window.location.hostname === 'localhost' 
+  ? 'http://localhost:8000/api' 
+  : '/api';
+
+const rawApiUrl = process.env.REACT_APP_API_URL || defaultUrl;
+
 const API_URL = rawApiUrl.endsWith('/api')
   ? rawApiUrl
   : rawApiUrl.replace(/\/+$|$/, '') + '/api';

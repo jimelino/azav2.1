@@ -1,20 +1,35 @@
-FROM php:8.2-cli
+# --- ETAPA 1: Compilar el Frontend de React ---
+FROM node:22 AS frontend-builder
+WORKDIR /app/frontend
+# Copiar el package.json del frontend e instalar dependencias
+COPY frontend/package*.json ./
+RUN npm install
+# Copiar el resto del frontend y compilar
+COPY frontend/ ./
+RUN CI=false npm run build
 
+# --- ETAPA 2: Configurar el Backend de PHP ---
+FROM php:8.2-cli
 WORKDIR /app
 
-# 1. Instalar dependencias del sistema y ACTIVAR pdo y pdo_mysql
+# Instalar dependencias del sistema y extensiones de PHP
 RUN apt-get update && apt-get install -y unzip git \
     && docker-php-ext-install pdo pdo_mysql
 
-COPY . .
+# Copiar todo el contenido del backend
+COPY backend/ ./
 
-# 2. Instalar Composer de forma directa y limpia
+# Copiar los archivos compilados de React de la Etapa 1 a la carpeta pública de PHP
+COPY --from=frontend-builder /app/frontend/build ./public
+
+# Instalar dependencias de Composer
 RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" \
     && php composer-setup.php \
     && php -r "unlink('composer-setup.php');" \
     && php composer.phar install --no-dev
 
-EXPOSE 10000
+# Exponer el puerto que Railway asigna automáticamente
+EXPOSE 8080
 
-# Ejecutar migración solo si existe el archivo, para evitar fallos en entornos donde el directorio database no está dentro del contexto de build
-CMD if [ -f /app/database/migrate.php ]; then php /app/database/migrate.php; else echo "INFO: migrate.php no encontrado, se omite migración."; fi && php -S 0.0.0.0:$PORT -t public
+# Comando para levantar el servidor interno de PHP sirviendo la carpeta pública
+CMD ["php", "-S", "0.0.0.0:8080", "-t", "public"]
