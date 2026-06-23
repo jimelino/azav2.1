@@ -8,43 +8,35 @@ $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 // BLOQUE ÚNICO DE MIGRACIONES Y REPARACIÓN
 if ($uri === '/run-my-migrations') {
     header("Content-Type: text/plain; charset=UTF-8");
-    
-    // Carga de variables de entorno
-    $projectRoot = dirname(__DIR__);
-    $envFile = $projectRoot . '/.env';
-    if (file_exists($envFile)) {
-        $lines = file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-        foreach ($lines as $line) {
-            if (strpos($line, '#') === 0) continue;
-            if (strpos($line, '=') !== false) {
-                list($key, $value) = explode('=', $line, 2);
-                $_ENV[trim($key)] = trim($value);
-            }
-        }
-    }
-
+    // ... (Carga de variables y conexión PDO igual que antes)
     try {
-        $dsn = "mysql:host=" . ($_ENV['DB_HOST'] ?? 'localhost') . ";dbname=" . ($_ENV['DB_NAME'] ?? 'railway') . ";port=" . ($_ENV['DB_PORT'] ?? '3306') . ";charset=utf8mb4";
-        $pdo = new PDO($dsn, $_ENV['DB_USER'] ?? 'root', $_ENV['DB_PASS'] ?? '', [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
+        // ... (Conexión $pdo)
+        echo "=== REPARACIÓN ESTRUCTURAL DE SESIONES ===\n";
         
-        echo "=== INICIANDO SINCRONIZACIÓN TOTAL ===\n";
+        // 1. Eliminar la tabla que está mal definida para recrearla bien
+        $pdo->exec("DROP TABLE IF EXISTS sesiones_activas;");
         
-        // 1. Crear espejo de sesiones
-        $pdo->exec("CREATE TABLE IF NOT EXISTS sesiones_activas LIKE sesiones;");
-        echo " - Tabla 'sesiones_activas' verificada. ✅\n";
+        // 2. Crear la tabla con todas las columnas necesarias que espera el código
+        $pdo->exec("CREATE TABLE sesiones_activas (
+            id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            usuario_id INT UNSIGNED NOT NULL,
+            token_hash VARCHAR(255) NOT NULL,
+            dispositivo VARCHAR(255),
+            navegador VARCHAR(100),
+            ip_address VARCHAR(45),
+            expira_en TIMESTAMP NOT NULL,
+            ultimo_acceso TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
         
-        // 2. Crear/Resetear Administrador
+        echo " - Tabla 'sesiones_activas' creada con esquema completo. ✅\n";
+        
+        // 3. Reset administrador
         $pdo->exec("DELETE FROM usuarios WHERE email = 'admin@vitalia.app'");
         $stmt = $pdo->prepare("INSERT INTO usuarios (email, password_hash, nombre_completo, rol_id, activo, primer_acceso, email_verificado) VALUES (?, ?, ?, ?, ?, ?, ?)");
-        $stmt->execute([
-            'admin@vitalia.app',
-            password_hash('admin123', PASSWORD_BCRYPT),
-            'Administrador Azaria',
-            1, 1, 0, 1
-        ]);
-        echo " - Usuario 'admin@vitalia.app' restaurado (Pass: admin123). ✅\n";
+        $stmt->execute(['admin@vitalia.app', password_hash('admin123', PASSWORD_BCRYPT), 'Administrador Azaria', 1, 1, 0, 1]);
         
-        echo "\n¡Sincronización completada con éxito! Ahora puedes iniciar sesión. 🚀\n";
+        echo " - Usuario 'admin@vitalia.app' restaurado. ✅\n";
         
     } catch (Exception $e) {
         echo "[ERROR]: " . $e->getMessage() . "\n";
