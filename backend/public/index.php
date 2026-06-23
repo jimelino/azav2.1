@@ -1,8 +1,16 @@
 <?php
+// Cabeceras CORS manuales al inicio para asegurar Railway
+header("Access-Control-Allow-Origin: https://azaria-production.up.railway.app");
+header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With, X-CSRF-Token");
+header("Access-Control-Allow-Methods: GET, POST, OPTIONS, PUT, DELETE");
+header("Access-Control-Allow-Credentials: true");
+
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit;
+}
 
 // Detectar directorio base del proyecto
-// En desarrollo: index.php esta en backend/public/, src/ y config/ estan en backend/
-// En produccion: index.php, src/ y config/ estan todos en ~/public_html/api/
 if (is_dir(__DIR__ . '/../src') && file_exists(__DIR__ . '/../config/constants.php')) {
     $projectRoot = realpath(__DIR__ . '/..');
 } else {
@@ -68,7 +76,7 @@ if (file_exists($envFile)) {
 $requestUri = $_SERVER['REQUEST_URI'];
 $cleanUri = strtok($requestUri, '?');
 
-// Remover base path si existe (ej: /~azaria/api/)
+// Remover base path si existe
 $basePaths = ['/~azaria/api', '/api'];
 $normalizedUri = $cleanUri;
 foreach ($basePaths as $bp) {
@@ -106,8 +114,7 @@ if (preg_match('#^/uploads/.+\.(jpg|jpeg|png|gif|bmp|pdf|webp|doc|docx)$#i', $no
 // Router simple
 $requestMethod = $_SERVER['REQUEST_METHOD'];
 
-// Usar la URI normalizada (sin prefijo /~azaria) para el routing
-// Las rutas en api.php usan /api/... asi que re-agregar /api
+// Usar la URI normalizada para el routing
 $requestUri = '/api' . $normalizedUri;
 
 // Cargar rutas
