@@ -8,54 +8,25 @@ $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 if ($uri === '/run-my-migrations') {
     header("Content-Type: text/plain; charset=UTF-8");
     
-    // 1. Cargar variables de entorno
-    $projectRoot = dirname(__DIR__);
-    $envFile = $projectRoot . '/.env';
-    if (file_exists($envFile)) {
-        $lines = file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-        foreach ($lines as $line) {
-            if (strpos($line, '=') !== false) {
-                list($key, $value) = explode('=', $line, 2);
-                $_ENV[trim($key)] = trim($value);
-            }
-        }
-    }
+    // Conexión PDO (mismo código que ya tienes)
+    $pdo = new PDO($dsn, $_ENV['DB_USER'], $_ENV['DB_PASS']);
 
-    try {
-        // 2. Conectar a la base de datos
-        $dsn = "mysql:host=" . ($_ENV['DB_HOST'] ?? 'localhost') . ";dbname=" . ($_ENV['DB_NAME'] ?? 'railway') . ";port=" . ($_ENV['DB_PORT'] ?? '3306') . ";charset=utf8mb4";
-        $pdo = new PDO($dsn, $_ENV['DB_USER'] ?? 'root', $_ENV['DB_PASS'] ?? '', [
-            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
-        ]);
+    echo "=== APLICANDO ESQUEMA MAESTRO AZARIA ===\n";
+    
+    $archivoSql = __DIR__ . '/../migrations/001_azaria_full_schema.sql';
+    
+    if (file_exists($archivoSql)) {
+        $sql = file_get_contents($archivoSql);
         
-        echo "=== REPARACIÓN ESTRUCTURAL DE SESIONES (CORREGIDA) ===\n";
+        // Ejecutamos el script
+        $pdo->exec($sql);
+        echo " - Esquema aplicado con éxito. ✅\n";
         
-        // 3. Ejecutar operaciones con la variable $pdo definida correctamente
-        // ... dentro de tu bloque try, reemplaza la creación de la tabla por esta:
-
-        $pdo->exec("DROP TABLE IF EXISTS sesiones_activas;");
-        $pdo->exec("CREATE TABLE sesiones_activas (
-            id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-            usuario_id INT UNSIGNED NOT NULL,
-            token_hash VARCHAR(255) NOT NULL,
-            dispositivo VARCHAR(255),
-            navegador TEXT,               -- Cambiado de VARCHAR(100) a TEXT
-            ip_address VARCHAR(45),
-            expira_en TIMESTAMP NOT NULL,
-            ultimo_acceso TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
-
-        echo " - Tabla 'sesiones_activas' creada con columna 'navegador' tipo TEXT. ✅\n";
-        
-        $pdo->exec("DELETE FROM usuarios WHERE email = 'admin@vitalia.app'");
-        $stmt = $pdo->prepare("INSERT INTO usuarios (email, password_hash, nombre_completo, rol_id, activo, primer_acceso, email_verificado) VALUES (?, ?, ?, ?, ?, ?, ?)");
-        $stmt->execute(['admin@vitalia.app', password_hash('admin123', PASSWORD_BCRYPT), 'Administrador Azaria', 1, 1, 0, 1]);
-        
-        echo " - Usuario 'admin@vitalia.app' restaurado. ✅\n";
-        
-    } catch (Exception $e) {
-        echo "[ERROR FATAL]: " . $e->getMessage() . "\n";
+        // Restauramos el usuario admin para no perder el acceso
+        $pdo->exec("INSERT IGNORE INTO usuarios (email, password_hash, nombre_completo, rol_id) VALUES ('admin@vitalia.app', '" . password_hash('admin123', PASSWORD_BCRYPT) . "', 'Administrador Azaria', 1)");
+        echo " - Usuario Administrador verificado. ✅\n";
+    } else {
+        echo " [!] No se encontró el archivo SQL en " . $archivoSql . "\n";
     }
     exit;
 }
