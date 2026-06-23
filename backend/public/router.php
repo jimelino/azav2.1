@@ -1,20 +1,23 @@
 <?php
 /**
- * Router para el servidor de desarrollo PHP built-in.
- *
- * Uso: php -S localhost:8000 -t public public/router.php
- *
- * El servidor built-in de PHP no procesa .htaccess, entonces las URLs
- * con extensión de archivo (como /uploads/archivo.pdf) reciben 404
- * sin pasar por index.php. Este router resuelve eso.
+ * Router para el servidor de desarrollo PHP built-in en producción (Railway).
  */
 
 $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 
-// Si el archivo existe fisicamente en public/, dejar que PHP lo sirva
-if ($uri !== '/' && file_exists(__DIR__ . $uri)) {
-    return false;
+// Si entran a la raíz, forzar a que busque el index.html de React
+if ($uri === '/') {
+    $uri = '/index.html';
 }
 
-// Todo lo demás va a index.php (rutas API + archivos de uploads)
+// Si el archivo existe físicamente en public/ (HTML, JS, CSS, imágenes, etc.)
+if (file_exists(__DIR__ . $uri) && !is_dir(__DIR__ . $uri)) {
+    // Si es el index.html de React, especificar el Content-Type correcto para evitar bugs
+    if (pathinfo($uri, PATHINFO_EXTENSION) === 'html') {
+        header("Content-Type: text/html; charset=UTF-8");
+    }
+    return false; // PHP sirve el archivo estático directamente
+}
+
+// Todo lo demás (peticiones API que no son archivos reales) va a index.php
 require __DIR__ . '/index.php';
