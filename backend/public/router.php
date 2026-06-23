@@ -1,13 +1,15 @@
 <?php
 /**
- * Router de Emergencia - Creación de Administrador Real
+ * Router definitivo para Azaria - Sincronización Completa
  */
 
 $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 
+// BLOQUE ÚNICO DE MIGRACIONES Y REPARACIÓN
 if ($uri === '/run-my-migrations') {
     header("Content-Type: text/plain; charset=UTF-8");
     
+    // Carga de variables de entorno
     $projectRoot = dirname(__DIR__);
     $envFile = $projectRoot . '/.env';
     if (file_exists($envFile)) {
@@ -23,41 +25,34 @@ if ($uri === '/run-my-migrations') {
 
     try {
         $dsn = "mysql:host=" . ($_ENV['DB_HOST'] ?? 'localhost') . ";dbname=" . ($_ENV['DB_NAME'] ?? 'railway') . ";port=" . ($_ENV['DB_PORT'] ?? '3306') . ";charset=utf8mb4";
-        $pdo = new PDO($dsn, $_ENV['DB_USER'] ?? 'root', $_ENV['DB_PASS'] ?? '', [
-            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
-        ]);
+        $pdo = new PDO($dsn, $_ENV['DB_USER'] ?? 'root', $_ENV['DB_PASS'] ?? '', [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
         
-        echo "=== CREANDO USUARIO ADMINISTRADOR REAL ===\n";
+        echo "=== INICIANDO SINCRONIZACIÓN TOTAL ===\n";
         
-        // 1. Limpiamos el registro incompleto anterior si existe
+        // 1. Crear espejo de sesiones
+        $pdo->exec("CREATE TABLE IF NOT EXISTS sesiones_activas LIKE sesiones;");
+        echo " - Tabla 'sesiones_activas' verificada. ✅\n";
+        
+        // 2. Crear/Resetear Administrador
         $pdo->exec("DELETE FROM usuarios WHERE email = 'admin@vitalia.app'");
-        
-        // 2. Generamos el hash real de PHP para la contraseña "admin123" (Cámbiala aquí si prefieres otra)
-        $passwordPlana = 'admin123';
-        $passwordHash = password_hash($passwordPlana, PASSWORD_BCRYPT);
-        
-        // 3. Insertar el usuario con el rol 1 (administrador)
         $stmt = $pdo->prepare("INSERT INTO usuarios (email, password_hash, nombre_completo, rol_id, activo, primer_acceso, email_verificado) VALUES (?, ?, ?, ?, ?, ?, ?)");
         $stmt->execute([
             'admin@vitalia.app',
-            $passwordHash,
+            password_hash('admin123', PASSWORD_BCRYPT),
             'Administrador Azaria',
-            1, // ID del rol administrador
-            1, // Activo
-            0, // Primer acceso completado
-            1  // Email verificado
+            1, 1, 0, 1
         ]);
+        echo " - Usuario 'admin@vitalia.app' restaurado (Pass: admin123). ✅\n";
         
-        echo "¡Usuario 'admin@vitalia.app' creado con éxito! 🎉\n";
-        echo "Contraseña asignada de forma segura: $passwordPlana\n";
+        echo "\n¡Sincronización completada con éxito! Ahora puedes iniciar sesión. 🚀\n";
         
     } catch (Exception $e) {
-        echo "[ERROR AL CREAR USUARIO]: " . $e->getMessage() . "\n";
+        echo "[ERROR]: " . $e->getMessage() . "\n";
     }
     exit;
 }
 
-// El resto de tus rutas normales de la API y React se quedan igual abajo...
+// RESTO DEL ENRUTADOR
 if (strpos($uri, '/api/') === 0) {
     require $_SERVER['DOCUMENT_ROOT'] . '/index.php';
     exit;
