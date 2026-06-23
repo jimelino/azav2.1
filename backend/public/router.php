@@ -31,20 +31,22 @@ if ($uri === '/run-my-migrations') {
         echo "=== REPARACIÓN ESTRUCTURAL DE SESIONES (CORREGIDA) ===\n";
         
         // 3. Ejecutar operaciones con la variable $pdo definida correctamente
+        // ... dentro de tu bloque try, reemplaza la creación de la tabla por esta:
+
         $pdo->exec("DROP TABLE IF EXISTS sesiones_activas;");
         $pdo->exec("CREATE TABLE sesiones_activas (
             id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
             usuario_id INT UNSIGNED NOT NULL,
             token_hash VARCHAR(255) NOT NULL,
             dispositivo VARCHAR(255),
-            navegador VARCHAR(100),
+            navegador TEXT,               -- Cambiado de VARCHAR(100) a TEXT
             ip_address VARCHAR(45),
             expira_en TIMESTAMP NOT NULL,
             ultimo_acceso TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
-        
-        echo " - Tabla 'sesiones_activas' creada exitosamente. ✅\n";
+
+        echo " - Tabla 'sesiones_activas' creada con columna 'navegador' tipo TEXT. ✅\n";
         
         $pdo->exec("DELETE FROM usuarios WHERE email = 'admin@vitalia.app'");
         $stmt = $pdo->prepare("INSERT INTO usuarios (email, password_hash, nombre_completo, rol_id, activo, primer_acceso, email_verificado) VALUES (?, ?, ?, ?, ?, ?, ?)");
