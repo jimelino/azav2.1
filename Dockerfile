@@ -22,8 +22,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends unzip git \
 # Copiar todo el contenido de la carpeta backend
 COPY backend/ ./
 
-# Copiar los archivos compilados de React de la Etapa 1 a la carpeta pública de PHP
-COPY --from=frontend-builder /app/frontend/build ./public
+# Copiar el contenido interior de build directamente dentro de la carpeta public de PHP
+COPY --from=frontend-builder /app/frontend/build/. ./public/
 
 # Instalar dependencias de Composer desde el backend copiado
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
