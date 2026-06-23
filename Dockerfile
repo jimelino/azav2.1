@@ -1,10 +1,12 @@
 # --- ETAPA 1: Compilar el Frontend de React ---
-FROM node:22 AS frontend-builder
+FROM node:22-alpine AS frontend-builder
 WORKDIR /app/frontend
-# Copiar el package.json del frontend e instalar dependencias
+
+# Copiar archivos de dependencias desde la raíz/frontend
 COPY frontend/package*.json ./
-RUN npm install
-# Copiar el resto del frontend y compilar
+RUN npm ci
+
+# Copiar el resto del código del frontend y compilar
 COPY frontend/ ./
 RUN CI=false npm run build
 
@@ -13,16 +15,18 @@ FROM php:8.2-cli
 WORKDIR /app
 
 # Instalar dependencias del sistema y extensiones de PHP
-RUN apt-get update && apt-get install -y unzip git \
-    && docker-php-ext-install pdo pdo_mysql
+RUN apt-get update && apt-get install -y --no-install-recommends unzip git \
+    && docker-php-ext-install pdo pdo_mysql \
+    && rm -rf /var/lib/apt/lists/*
 
-# Copiar todo el contenido del backend
+# Copiar todo el contenido de la carpeta backend
 COPY backend/ ./
 
 # Copiar los archivos compilados de React de la Etapa 1 a la carpeta pública de PHP
 COPY --from=frontend-builder /app/frontend/build ./public
 
-# Instalar dependencias de Composer
+# Instalar dependencias de Composer desde el backend copiado
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" \
     && php composer-setup.php \
     && php -r "unlink('composer-setup.php');" \
