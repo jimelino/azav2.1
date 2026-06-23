@@ -35,5 +35,6 @@ RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" \
 # Exponer el puerto que Railway asigna automáticamente
 EXPOSE 8080
 
-# Comando para levantar el servidor interno de PHP sirviendo la carpeta pública
-CMD ["php", "-S", "0.0.0.0:8080", "-t", "public"]
+
+# Comando modificado para usar la variable de entorno PORT instalada por Railway
+CMD ["sh", "-c", "php -S 0.0.0.0:$PORT -t public"]
