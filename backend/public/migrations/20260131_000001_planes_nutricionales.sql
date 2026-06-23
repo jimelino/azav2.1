@@ -90,6 +90,21 @@ CREATE TABLE IF NOT EXISTS seguimiento_plan_nutricional (
     FOREIGN KEY (comida_id) REFERENCES plan_comidas(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS catalogo_equivalentes (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    grupo_smae VARCHAR(100) NOT NULL, -- Ej: 'Frutas', 'Cereales sin grasa'
+    alimento VARCHAR(255) NOT NULL,
+    porcion_sugerida VARCHAR(100) NOT NULL, -- Ej: '1/2 taza'
+    calorias_por_equivalente INT DEFAULT 0
+) ENGINE=InnoDB;
+
+ALTER TABLE plan_comidas 
+ADD COLUMN equivalentes_json JSON COMMENT 'Estructura ej: {"frutas": 1, "cereales": 2}';
+
+ALTER TABLE seguimiento_plan_nutricional 
+ADD COLUMN equivalentes_consumidos JSON COMMENT 'Lo que el paciente realmente consumió',
+ADD COLUMN desviacion_plan TINYINT(1) DEFAULT 0; -- Para saber si se salió del plan
+
 -- Índices para optimizar consultas
 CREATE INDEX idx_planes_especialista ON planes_nutricionales(especialista_id);
 CREATE INDEX idx_planes_estado ON planes_nutricionales(estado);
