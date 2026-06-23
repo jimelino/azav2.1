@@ -1,6 +1,6 @@
 <?php
 /**
- * Router de Emergencia - Inyección de Módulos de Autenticación Faltantes
+ * Router de Emergencia - Creación de Administrador Real
  */
 
 $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
@@ -27,72 +27,37 @@ if ($uri === '/run-my-migrations') {
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
         ]);
         
-        echo "=== INYECTANDO MÓDULO DE AUTENTICACIÓN Y LOGS ===\n";
+        echo "=== CREANDO USUARIO ADMINISTRADOR REAL ===\n";
         
-        $sqlAutenticacion = <<<'SQL'
-SET NAMES utf8mb4;
-SET FOREIGN_KEY_CHECKS = 0;
-
--- 1. Tabla de sesiones persistentes
-CREATE TABLE IF NOT EXISTS sesiones (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    usuario_id INT UNSIGNED NOT NULL,
-    token_hash VARCHAR(255) NOT NULL UNIQUE,
-    dispositivo VARCHAR(255),
-    navegador VARCHAR(100),
-    sistema_operativo VARCHAR(100),
-    ip_address VARCHAR(45),
-    ubicacion_aproximada VARCHAR(255),
-    es_confiable TINYINT(1) DEFAULT 0,
-    ultima_actividad TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    expira_en TIMESTAMP NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
--- 2. Tabla de tokens de recuperación
-CREATE TABLE IF NOT EXISTS tokens_recuperacion (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    usuario_id INT UNSIGNED NOT NULL,
-    codigo VARCHAR(6) NOT NULL,
-    tipo ENUM('password', 'pin', 'email_verificacion') NOT NULL,
-    intentos INT UNSIGNED DEFAULT 0,
-    usado TINYINT(1) DEFAULT 0,
-    expira_en TIMESTAMP NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
--- 3. Tabla de log de accesos (La que causó el error)
-CREATE TABLE IF NOT EXISTS log_accesos (
-    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    usuario_id INT UNSIGNED,
-    email_intento VARCHAR(255),
-    accion ENUM('login_exitoso', 'login_fallido', 'logout', 'recuperacion_solicitada', 'recuperacion_exitosa', 'bloqueo_cuenta', 'cambio_password', 'cambio_pin') NOT NULL,
-    ip_address VARCHAR(45),
-    user_agent TEXT,
-    detalles JSON,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
--- 4. Crear un usuario Administrador de prueba si no existe para que puedas loguearte
--- Nota: Asegúrate de que las contraseñas coincidan con el hash de tu sistema o cámbialo en el login
-INSERT IGNORE INTO usuarios (id, email, password_hash, nombre_completo, rol_id, activo, primer_acceso) VALUES
-(1, 'admin@vitalia.app', '$2y$10$oR1G3H4S5H6a7b8c9d0e1uF...TuHashAqui...', 'Administrador Azaria', 1, 1, 0);
-
-SET FOREIGN_KEY_CHECKS = 1;
-SQL;
-
-        $pdo->exec($sqlAutenticacion);
-        echo "¡Tablas 'log_accesos', 'sesiones' y 'tokens_recuperacion' creadas exitosamente! ✅\n";
+        // 1. Limpiamos el registro incompleto anterior si existe
+        $pdo->exec("DELETE FROM usuarios WHERE email = 'admin@vitalia.app'");
+        
+        // 2. Generamos el hash real de PHP para la contraseña "admin123" (Cámbiala aquí si prefieres otra)
+        $passwordPlana = 'admin123';
+        $passwordHash = password_hash($passwordPlana, PASSWORD_BCRYPT);
+        
+        // 3. Insertar el usuario con el rol 1 (administrador)
+        $stmt = $pdo->prepare("INSERT INTO usuarios (email, password_hash, nombre_completo, rol_id, activo, primer_acceso, email_verificado) VALUES (?, ?, ?, ?, ?, ?, ?)");
+        $stmt->execute([
+            'admin@vitalia.app',
+            $passwordHash,
+            'Administrador Azaria',
+            1, // ID del rol administrador
+            1, // Activo
+            0, // Primer acceso completado
+            1  // Email verificado
+        ]);
+        
+        echo "¡Usuario 'admin@vitalia.app' creado con éxito! 🎉\n";
+        echo "Contraseña asignada de forma segura: $passwordPlana\n";
         
     } catch (Exception $e) {
-        echo "[ERROR]: " . $e->getMessage() . "\n";
+        echo "[ERROR AL CREAR USUARIO]: " . $e->getMessage() . "\n";
     }
     exit;
 }
 
+// El resto de tus rutas normales de la API y React se quedan igual abajo...
 if (strpos($uri, '/api/') === 0) {
     require $_SERVER['DOCUMENT_ROOT'] . '/index.php';
     exit;
