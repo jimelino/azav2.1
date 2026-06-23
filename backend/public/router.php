@@ -8,13 +8,13 @@ $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 // 1. EJECUTAR MIGRACIONES DESDE EL NAVEGADOR (Temporal)
 if ($uri === '/run-my-migrations') {
     header("Content-Type: text/plain; charset=UTF-8");
-    $migrateScript = $_SERVER['DOCUMENT_ROOT'] . '/../src/migrate.php';
+    $migrateScript = __DIR__ . '/migrate.php';
     
     if (file_exists($migrateScript)) {
-        echo "¡Archivo encontrado en src! Iniciando migraciones...\n\n";
+        echo "¡Archivo localizado en public! Iniciando migraciones...\n\n";
         include $migrateScript;
     } else {
-        echo "[ERROR] No se encontró migrate.php en la nueva ruta: " . $migrateScript;
+        echo "[ERROR] No se encontró migrate.php en la ruta directa de public: " . $migrateScript;
     }
     exit;
 }
