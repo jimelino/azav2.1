@@ -27,7 +27,7 @@ if ($uri === '/run-my-migrations') {
         echo " - Conexión establecida con éxito a la base: $db ✅\n";
 
         // Ahora ejecutamos el contenido de tu archivo .sql maestro
-        $archivoSql = __DIR__ . '/../migrations/001_azaria_full_schema.sql';
+        $archivoSql = __DIR__ . '/migrations/001_azaria_full_schema.sql';
         
         if (file_exists($archivoSql)) {
             $sql = file_get_contents($archivoSql);
