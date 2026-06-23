@@ -4,7 +4,7 @@ WORKDIR /app/frontend
 
 # Copiar archivos de dependencias desde la raíz/frontend
 COPY frontend/package*.json ./
-RUN npm ci
+RUN npm install
 
 # Copiar el resto del código del frontend y compilar
 COPY frontend/ ./
