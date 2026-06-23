@@ -99,7 +99,7 @@ CREATE TABLE IF NOT EXISTS catalogo_equivalentes (
 ) ENGINE=InnoDB;
 
 ALTER TABLE plan_comidas 
-ADD COLUMN equivalentes_json JSON COMMENT 'Estructura ej: {"frutas": 1, "cereales": 2}';
+ADD COLUMN equivalentes JSON COMMENT 'Estructura ej: {"frutas": 1, "cereales": 2}';
 
 ALTER TABLE seguimiento_plan_nutricional 
 ADD COLUMN equivalentes_consumidos JSON COMMENT 'Lo que el paciente realmente consumió',
