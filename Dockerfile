@@ -36,5 +36,5 @@ RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" \
 EXPOSE 8080
 
 
-# Comando modificado para usar la variable de entorno PORT instalada por Railway
-CMD ["sh", "-c", "php -S 0.0.0.0:$PORT -t public"]
+# Comando modificado para usar el puerto dinámico de Railway y el router.php
+CMD ["sh", "-c", "php -S 0.0.0.0:$PORT -t public public/router.php"]
