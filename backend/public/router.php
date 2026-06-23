@@ -1,22 +1,37 @@
 <?php
 /**
- * Router definitivo para Azaria - Sincronización Completa
+ * Router definitivo - Sincronización de Sesiones (Alcance PDO corregido)
  */
 
 $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 
-// BLOQUE ÚNICO DE MIGRACIONES Y REPARACIÓN
 if ($uri === '/run-my-migrations') {
     header("Content-Type: text/plain; charset=UTF-8");
-    // ... (Carga de variables y conexión PDO igual que antes)
+    
+    // 1. Cargar variables de entorno
+    $projectRoot = dirname(__DIR__);
+    $envFile = $projectRoot . '/.env';
+    if (file_exists($envFile)) {
+        $lines = file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+        foreach ($lines as $line) {
+            if (strpos($line, '=') !== false) {
+                list($key, $value) = explode('=', $line, 2);
+                $_ENV[trim($key)] = trim($value);
+            }
+        }
+    }
+
     try {
-        // ... (Conexión $pdo)
-        echo "=== REPARACIÓN ESTRUCTURAL DE SESIONES ===\n";
+        // 2. Conectar a la base de datos
+        $dsn = "mysql:host=" . ($_ENV['DB_HOST'] ?? 'localhost') . ";dbname=" . ($_ENV['DB_NAME'] ?? 'railway') . ";port=" . ($_ENV['DB_PORT'] ?? '3306') . ";charset=utf8mb4";
+        $pdo = new PDO($dsn, $_ENV['DB_USER'] ?? 'root', $_ENV['DB_PASS'] ?? '', [
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
+        ]);
         
-        // 1. Eliminar la tabla que está mal definida para recrearla bien
+        echo "=== REPARACIÓN ESTRUCTURAL DE SESIONES (CORREGIDA) ===\n";
+        
+        // 3. Ejecutar operaciones con la variable $pdo definida correctamente
         $pdo->exec("DROP TABLE IF EXISTS sesiones_activas;");
-        
-        // 2. Crear la tabla con todas las columnas necesarias que espera el código
         $pdo->exec("CREATE TABLE sesiones_activas (
             id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
             usuario_id INT UNSIGNED NOT NULL,
@@ -29,9 +44,8 @@ if ($uri === '/run-my-migrations') {
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
         
-        echo " - Tabla 'sesiones_activas' creada con esquema completo. ✅\n";
+        echo " - Tabla 'sesiones_activas' creada exitosamente. ✅\n";
         
-        // 3. Reset administrador
         $pdo->exec("DELETE FROM usuarios WHERE email = 'admin@vitalia.app'");
         $stmt = $pdo->prepare("INSERT INTO usuarios (email, password_hash, nombre_completo, rol_id, activo, primer_acceso, email_verificado) VALUES (?, ?, ?, ?, ?, ?, ?)");
         $stmt->execute(['admin@vitalia.app', password_hash('admin123', PASSWORD_BCRYPT), 'Administrador Azaria', 1, 1, 0, 1]);
@@ -39,12 +53,12 @@ if ($uri === '/run-my-migrations') {
         echo " - Usuario 'admin@vitalia.app' restaurado. ✅\n";
         
     } catch (Exception $e) {
-        echo "[ERROR]: " . $e->getMessage() . "\n";
+        echo "[ERROR FATAL]: " . $e->getMessage() . "\n";
     }
     exit;
 }
 
-// RESTO DEL ENRUTADOR
+// RESTO DEL ENRUTADOR (API y SPA)
 if (strpos($uri, '/api/') === 0) {
     require $_SERVER['DOCUMENT_ROOT'] . '/index.php';
     exit;
