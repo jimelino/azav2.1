@@ -8,25 +8,42 @@ $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 if ($uri === '/run-my-migrations') {
     header("Content-Type: text/plain; charset=UTF-8");
     
-    // Conexión PDO (mismo código que ya tienes)
-    $pdo = new PDO($dsn, $_ENV['DB_USER'], $_ENV['DB_PASS']);
+    echo "=== INICIANDO MIGRACIÓN CON CONEXIÓN DIRECTA ===\n";
 
-    echo "=== APLICANDO ESQUEMA MAESTRO AZARIA ===\n";
-    
-    $archivoSql = __DIR__ . '/../migrations/001_azaria_full_schema.sql';
-    
-    if (file_exists($archivoSql)) {
-        $sql = file_get_contents($archivoSql);
+    try {
+        // Obtenemos las variables directamente del entorno de Railway
+        $host = getenv('DB_HOST') ?: 'localhost';
+        $db   = getenv('DB_NAME') ?: 'railway';
+        $user = getenv('DB_USER') ?: 'root';
+        $pass = getenv('DB_PASS') ?: '';
+        $port = getenv('DB_PORT') ?: '3306';
+
+        $dsn = "mysql:host=$host;port=$port;dbname=$db;charset=utf8mb4";
         
-        // Ejecutamos el script
-        $pdo->exec($sql);
-        echo " - Esquema aplicado con éxito. ✅\n";
+        $pdo = new PDO($dsn, $user, $pass, [
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
+        ]);
         
-        // Restauramos el usuario admin para no perder el acceso
-        $pdo->exec("INSERT IGNORE INTO usuarios (email, password_hash, nombre_completo, rol_id) VALUES ('admin@vitalia.app', '" . password_hash('admin123', PASSWORD_BCRYPT) . "', 'Administrador Azaria', 1)");
-        echo " - Usuario Administrador verificado. ✅\n";
-    } else {
-        echo " [!] No se encontró el archivo SQL en " . $archivoSql . "\n";
+        echo " - Conexión establecida con éxito a la base: $db ✅\n";
+
+        // Ahora ejecutamos el contenido de tu archivo .sql maestro
+        $archivoSql = __DIR__ . '/../migrations/001_azaria_full_schema.sql';
+        
+        if (file_exists($archivoSql)) {
+            $sql = file_get_contents($archivoSql);
+            // Ejecutamos (usamos exec para scripts completos)
+            $pdo->exec($sql);
+            echo " - Esquema maestro aplicado correctamente. ✅\n";
+            
+            // Re-aseguramos acceso de admin
+            $pdo->exec("INSERT IGNORE INTO usuarios (email, password_hash, nombre_completo, rol_id) VALUES ('admin@vitalia.app', '" . password_hash('admin123', PASSWORD_BCRYPT) . "', 'Administrador Azaria', 1)");
+            echo " - Administrador verificado. ✅\n";
+        } else {
+            echo " [!] ERROR: No se encuentra el archivo en $archivoSql\n";
+        }
+
+    } catch (PDOException $e) {
+        echo "[ERROR DE CONEXIÓN]: " . $e->getMessage() . "\n";
     }
     exit;
 }
