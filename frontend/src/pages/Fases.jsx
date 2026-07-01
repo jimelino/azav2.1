@@ -11,9 +11,9 @@ const FASES_INFO = [
   { numero: 3, nombre: 'Preprotésico', icono: 'bar-chart', descripcion: 'Uso regular del dispositivo, monitoreo constante y correcciones necesarias.' },
   { numero: 4, nombre: 'Protésico', icono: 'trophy', descripcion: 'Uso independiente del dispositivo con seguimiento periodico.' },
   { numero: 5, nombre: 'Posprotésico', icono: 'trophy', descripcion: 'Uso independiente del dispositivo con seguimiento periodico.' },
-  { numero: 6, nombre: 'alta/graduación', icono: 'trophy', descripcion: 'Uso independiente del dispositivo con seguimiento periodico.' },
-  { numero: 7, nombre: 'eguimiento a 6 meses', icono: 'trophy', descripcion: 'Uso independiente del dispositivo con seguimiento periodico.' },
-  { numero: 8, nombre: 'seguimiento a 12 meses', icono: 'trophy', descripcion: 'Uso independiente del dispositivo con seguimiento periodico.' },
+  { numero: 6, nombre: 'Alta/Graduación', icono: 'trophy', descripcion: 'Uso independiente del dispositivo con seguimiento periodico.' },
+  { numero: 7, nombre: 'Seguimiento a 6 meses', icono: 'trophy', descripcion: 'Uso independiente del dispositivo con seguimiento periodico.' },
+  { numero: 8, nombre: 'Seguimiento a 12 meses', icono: 'trophy', descripcion: 'Uso independiente del dispositivo con seguimiento periodico.' },
 ];
 
 const Fases = () => {
@@ -96,11 +96,10 @@ const Fases = () => {
 
   const getProgressMessage = () => {
     const progreso = getProgreso();
-    if (progreso >= 100) return 'Has completado todas las fases. Sigue con tu seguimiento periodico.';
-    if (progreso >= 75) return 'Excelente progreso. Estas muy cerca de la autonomia completa.';
-    if (progreso >= 50) return 'Vas por muy buen camino. Sigue asi.';
-    if (progreso >= 25) return 'Buen inicio. Cada paso cuenta en tu rehabilitacion.';
-    return 'Estas comenzando tu proceso de rehabilitacion. Animo.';
+    if (progreso >= 100) return 'Has completado todas las etapas de tu proceso.';
+    if (progreso >= 75) return 'Estás en la etapa final de tu seguimiento.';
+    if (progreso >= 50) return 'Vas por muy buen camino, continúa con tu proceso.';
+    return 'Estás comenzando tu proceso de rehabilitación. ¡Ánimo!';
   };
 
   const formatFecha = (fecha) => {
@@ -169,7 +168,7 @@ const Fases = () => {
             </div>
             <div className="stat-card">
               <div className="stat-icon" aria-hidden="true"><LucideIcon name="target" size={20} /></div>
-              <p className="stat-value">{faseActualNum}/4</p>
+              <p className="stat-value">{faseActualNum}/{FASES_INFO.length}</p>
               <p className="stat-label">Fase actual</p>
             </div>
             <div className="stat-card">
