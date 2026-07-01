@@ -6,10 +6,14 @@ import LucideIcon from '../components/LucideIcon';
 import '../styles/Fases.css';
 
 const FASES_INFO = [
-  { numero: 1, nombre: 'Evaluacion Inicial', icono: 'search', descripcion: 'Primera aproximacion al dispositivo, evaluaciones medicas y plan de tratamiento.' },
-  { numero: 2, nombre: 'Adaptacion y Aprendizaje', icono: 'book-open', descripcion: 'Aprendizaje de uso del dispositivo, ejercicios basicos y ajustes iniciales.' },
-  { numero: 3, nombre: 'Seguimiento Activo', icono: 'bar-chart', descripcion: 'Uso regular del dispositivo, monitoreo constante y correcciones necesarias.' },
-  { numero: 4, nombre: 'Autonomia Completa', icono: 'trophy', descripcion: 'Uso independiente del dispositivo con seguimiento periodico.' },
+  { numero: 1, nombre: 'Preconsulta', icono: 'search', descripcion: 'Primera aproximacion al dispositivo, evaluaciones medicas y plan de tratamiento.' },
+  { numero: 2, nombre: 'Adaptación al ejercicio', icono: 'book-open', descripcion: 'Aprendizaje de uso del dispositivo, ejercicios basicos y ajustes iniciales.' },
+  { numero: 3, nombre: 'Preprotésico', icono: 'bar-chart', descripcion: 'Uso regular del dispositivo, monitoreo constante y correcciones necesarias.' },
+  { numero: 4, nombre: 'Protésico', icono: 'trophy', descripcion: 'Uso independiente del dispositivo con seguimiento periodico.' },
+  { numero: 5, nombre: 'Posprotésico', icono: 'trophy', descripcion: 'Uso independiente del dispositivo con seguimiento periodico.' },
+  { numero: 6, nombre: 'alta/graduación', icono: 'trophy', descripcion: 'Uso independiente del dispositivo con seguimiento periodico.' },
+  { numero: 7, nombre: 'eguimiento a 6 meses', icono: 'trophy', descripcion: 'Uso independiente del dispositivo con seguimiento periodico.' },
+  { numero: 8, nombre: 'seguimiento a 12 meses', icono: 'trophy', descripcion: 'Uso independiente del dispositivo con seguimiento periodico.' },
 ];
 
 const Fases = () => {
