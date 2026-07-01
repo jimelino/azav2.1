@@ -472,7 +472,7 @@ const Neuropsicologia = () => {
           Estado de Animo
         </button>
         <button className={`tab ${activeTab === 'ejercicios' ? 'active' : ''}`} onClick={() => setActiveTab('ejercicios')}>
-          Herramientas ACT
+          Intervención
         </button>
         <button className={`tab ${activeTab === 'evaluaciones' ? 'active' : ''}`} onClick={() => setActiveTab('evaluaciones')}>
           Evaluaciones Neuropsicologicas
@@ -826,52 +826,6 @@ const Neuropsicologia = () => {
           {activeTab === 'evaluaciones' && (
             <div className="evaluaciones-section">
 
-              {/* --- Sección: Cuestionarios --- */}
-              <div className="eval-subsection">
-                <div className="eval-subsection-header">
-                  <LucideIcon name="clipboard-list" size={22} />
-                  <h2>Cuestionarios</h2>
-                </div>
-                <p className="intro-text">
-                  Cuestionarios validados de flexibilidad psicologica y valores. Tus respuestas son confidenciales.
-                </p>
-
-                <div className="cuestionarios-list">
-                  {CUESTIONARIOS.map(c => (
-                    <div key={c.id} className="cuestionario-card">
-                      <div className="cuestionario-card-header">
-                        <h3>{c.nombre}</h3>
-                        {c.tiempo && <span className="cuestionario-tiempo"><LucideIcon name="alarm-clock" size={14} /> {c.tiempo} min</span>}
-                      </div>
-                      <p className="cuestionario-nombre-completo">{c.nombreCompleto}</p>
-                      <p>{c.descripcion}</p>
-                      <button
-                        className="btn btn-primary"
-                        onClick={() => handleIniciarCuestionario(c.id)}
-                      >
-                        Comenzar
-                      </button>
-                    </div>
-                  ))}
-                </div>
-
-                {historialCuestionarios.length > 0 && (
-                  <div className="historial-cuestionarios">
-                    <h3>Cuestionarios completados</h3>
-                    {historialCuestionarios.map(c => (
-                      <div key={c.id} className="cuestionario-completado">
-                        <span className="cuestionario-nombre">{c.tipo_cuestionario}</span>
-                        <span className="cuestionario-fecha">
-                          {new Date(c.fecha).toLocaleDateString('es-MX')}
-                        </span>
-                        <span className="cuestionario-resultado">
-                          Puntuacion: {c.puntuacion_total}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
 
               {/* --- Sección: Cuestionarios del Especialista (interactivos) --- */}
               {misCuestionarios.length > 0 && (

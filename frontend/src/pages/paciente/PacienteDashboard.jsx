@@ -22,7 +22,7 @@ const CATEGORIAS = [
   { id: 'nutricion', nombre: 'Nutrición', icon: 'salad', color: '#66BB6A', ruta: '/nutricion', desc: 'Alimentación saludable' },
   { id: 'medicina', nombre: 'Medicina', icon: 'heart', color: '#E57373', ruta: '/medicina', desc: 'Control de salud' },
   { id: 'fisioterapia', nombre: 'Fisioterapia', icon: 'dumbbell', color: '#FFB74D', ruta: '/fisioterapia', desc: 'Ejercicios' },
-  { id: 'neuropsicologia', nombre: 'Mente', icon: 'brain', color: '#BA68C8', ruta: '/neuropsicologia', desc: 'Bienestar mental' },
+  { id: 'neuropsicologia', nombre: 'Neurpsicologia', icon: 'brain', color: '#BA68C8', ruta: '/neuropsicologia', desc: 'Bienestar mental' },
   { id: 'ortesis', nombre: 'Prótesis', icon: 'accessibility', color: '#64B5F6', ruta: '/ortesis', desc: 'Dispositivos' },
   { id: 'fases', nombre: 'Mi Progreso', icon: 'trending-up', color: '#4DB6AC', ruta: '/fases', desc: 'Tu rehabilitación' },
 ];
