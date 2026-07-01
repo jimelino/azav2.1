@@ -6,14 +6,14 @@ import LucideIcon from '../components/LucideIcon';
 import '../styles/Fases.css';
 
 const FASES_INFO = [
-  { numero: 1, nombre: 'Preconsulta', icono: 'search', descripcion: 'Primera aproximacion al dispositivo, evaluaciones medicas y plan de tratamiento.' },
-  { numero: 2, nombre: 'Adaptación al ejercicio', icono: 'book-open', descripcion: 'Aprendizaje de uso del dispositivo, ejercicios basicos y ajustes iniciales.' },
+  { numero: 1, nombre: 'Preconsulta', icono: 'search', descripcion: 'Primera aproximación al dispositivo, evaluaciones médicas y plan de tratamiento.' },
+  { numero: 2, nombre: 'Adaptación al ejercicio', icono: 'book-open', descripcion: 'Aprendizaje de uso del dispositivo, ejercicios básicos y ajustes iniciales.' },
   { numero: 3, nombre: 'Preprotésico', icono: 'bar-chart', descripcion: 'Uso regular del dispositivo, monitoreo constante y correcciones necesarias.' },
-  { numero: 4, nombre: 'Protésico', icono: 'trophy', descripcion: 'Uso independiente del dispositivo con seguimiento periodico.' },
-  { numero: 5, nombre: 'Posprotésico', icono: 'trophy', descripcion: 'Uso independiente del dispositivo con seguimiento periodico.' },
-  { numero: 6, nombre: 'Alta/Graduación', icono: 'trophy', descripcion: 'Uso independiente del dispositivo con seguimiento periodico.' },
-  { numero: 7, nombre: 'Seguimiento a 6 meses', icono: 'trophy', descripcion: 'Uso independiente del dispositivo con seguimiento periodico.' },
-  { numero: 8, nombre: 'Seguimiento a 12 meses', icono: 'trophy', descripcion: 'Uso independiente del dispositivo con seguimiento periodico.' },
+  { numero: 4, nombre: 'Protésico', icono: 'user-check', descripcion: 'Uso independiente del dispositivo con seguimiento periódico.' },
+  { numero: 5, nombre: 'Posprotésico', icono: 'award', descripcion: 'Consolidación de la autonomía y adaptación funcional avanzada a la vida diaria.' },
+  { numero: 6, nombre: 'Alta/Graduación', icono: 'graduation-cap', descripcion: 'Finalización formal del proceso de rehabilitación y alta clínica.' },
+  { numero: 7, nombre: 'Seguimiento a 6 meses', icono: 'clock', descripcion: 'Evaluación de control semestral para asegurar el buen estado del dispositivo y confort.' },
+  { numero: 8, nombre: 'Seguimiento a 12 meses', icono: 'calendar-check', descripcion: 'Evaluación de control anual y cierre de ciclo de seguimiento prolongado.' },
 ];
 
 const Fases = () => {
