@@ -4,11 +4,29 @@ import LucideIcon from '../LucideIcon';
 import VistaPlan from './VistaPlan';
 import './MiPlanNutricional.css';
 
+// Mantenemos tus configuraciones visuales exactas
+const GRUPO_CONFIG = {
+  'Verduras': { icon: 'salad', color: '#4CAF50' },
+  'Frutas': { icon: 'apple', color: '#FF9800' },
+  'Cereales': { icon: 'wheat', color: '#FFC107' },
+  'Leguminosas': { icon: 'bean', color: '#795548' },
+  'Proteínas 1': { icon: 'fish', color: '#F44336' },
+  'Proteínas 2': { icon: 'beef', color: '#E91E63' },
+  'Proteínas 3': { icon: 'egg', color: '#C62828' },
+  'Lácteos': { icon: 'milk', color: '#42A5F5' },
+  'Grasas': { icon: 'droplet', color: '#FF7043' },
+  'Grasas con proteína': { icon: 'nut', color: '#8D6E63' },
+};
+
 const MiPlanNutricional = ({ pacienteId }) => {
   const [plan, setPlan] = useState(null);
   const [loading, setLoading] = useState(true);
   const [diaActual, setDiaActual] = useState('');
   const [seguimientoHoy, setSeguimientoHoy] = useState({});
+  
+  // NUEVO: Estados para el catálogo de equivalentes sin romper lo anterior
+  const [catalogoAlimentos, setCatalogoAlimentos] = useState([]);
+  const [expandedGroups, setExpandedGroups] = useState({});
 
   useEffect(() => {
     // Obtener día actual en español
@@ -16,6 +34,7 @@ const MiPlanNutricional = ({ pacienteId }) => {
     setDiaActual(dias[new Date().getDay()]);
 
     loadPlan();
+    loadCatalogoEquivalentes(); // Cargamos el catálogo en segundo plano
   }, [pacienteId]);
 
   const loadPlan = async () => {
@@ -39,6 +58,16 @@ const MiPlanNutricional = ({ pacienteId }) => {
     }
   };
 
+  // NUEVO: Cargar catálogo de alimentos para los desgloses
+  const loadCatalogoEquivalentes = async () => {
+    try {
+      const response = await api.get('/nutricion/equivalentes/catalogo');
+      if (response.data) setCatalogoAlimentos(response.data);
+    } catch (error) {
+      console.error('Error cargando catálogo de equivalentes:', error);
+    }
+  };
+
   const handleMarcarComida = async (tipoComida, cumplido) => {
     try {
       await api.post(`/nutricion/plan-paciente/${pacienteId}/seguimiento`, {
@@ -57,13 +86,17 @@ const MiPlanNutricional = ({ pacienteId }) => {
     }
   };
 
+  const toggleGroup = (groupKey) => {
+    setExpandedGroups(prev => ({ ...prev, [groupKey]: !prev[groupKey] }));
+  };
+
   const tiposComidaConfig = {
-    desayuno: { label: 'Desayuno', icon: 'sunrise', hora: '7:00 - 9:00' },
-    media_manana: { label: 'Media Mañana', icon: 'apple', hora: '10:00 - 11:00' },
-    almuerzo: { label: 'Almuerzo', icon: 'utensils', hora: '13:00 - 14:00' },
-    merienda: { label: 'Merienda', icon: 'cookie', hora: '16:00 - 17:00' },
-    cena: { label: 'Cena', icon: 'moon', hora: '19:00 - 21:00' },
-    snack: { label: 'Snack', icon: 'cookie', hora: 'Cualquier hora' }
+    desayuno: { label: 'Desayuno', icon: 'sunrise', hora: '7:00 - 9:00', dbField: 'desayuno' },
+    media_manana: { label: 'Media Mañana', icon: 'apple', hora: '10:00 - 11:00', dbField: 'colacion_matutina' },
+    almuerzo: { label: 'Almuerzo', icon: 'utensils', hora: '13:00 - 14:00', dbField: 'comida' },
+    merienda: { label: 'Merienda', icon: 'cookie', hora: '16:00 - 17:00', dbField: 'colacion_vespertina' },
+    cena: { label: 'Cena', icon: 'moon', hora: '19:00 - 21:00', dbField: 'cena' },
+    snack: { label: 'Snack', icon: 'cookie', hora: 'Cualquier hora', dbField: 'snack' }
   };
 
   const tiposOrden = ['desayuno', 'media_manana', 'almuerzo', 'merienda', 'cena', 'snack'];
@@ -98,7 +131,7 @@ const MiPlanNutricional = ({ pacienteId }) => {
 
   return (
     <div className="mi-plan-nutricional">
-      {/* Header del plan */}
+      {/* Header del plan (Tu diseño original intacto) */}
       <div className="plan-header-card">
         <div className="plan-info">
           <h2>{plan.nombre}</h2>
@@ -132,7 +165,7 @@ const MiPlanNutricional = ({ pacienteId }) => {
         </div>
       </div>
 
-      {/* Progreso del día */}
+      {/* Progreso del día (Tu diseño original intacto) */}
       <div className="progreso-dia">
         <div className="progreso-header">
           <h3><LucideIcon name="calendar" size={20} /> Progreso de Hoy - {diaActual.charAt(0).toUpperCase() + diaActual.slice(1)}</h3>
@@ -149,7 +182,7 @@ const MiPlanNutricional = ({ pacienteId }) => {
         </p>
       </div>
 
-      {/* Comidas del día */}
+      {/* Comidas del día (Tu estructura original) */}
       <div className="comidas-hoy">
         <h3><LucideIcon name="utensils" size={20} /> Tu Menu de Hoy</h3>
 
@@ -172,6 +205,7 @@ const MiPlanNutricional = ({ pacienteId }) => {
                   key={tipo}
                   className={`comida-card ${completada ? 'completada' : ''}`}
                 >
+                  {/* Botón de Check original */}
                   <div className="comida-check">
                     <button
                       className={`check-btn ${completada ? 'checked' : ''}`}
@@ -195,6 +229,60 @@ const MiPlanNutricional = ({ pacienteId }) => {
                       <p className="comida-descripcion">{comida.descripcion}</p>
                     )}
 
+                    {/* NUEVA IMPLEMENTACIÓN INTEGRADA: Si el plan incluye porciones de equivalentes para esta comida, las renderizamos aquí de forma limpia */}
+                    {plan.porciones?.length > 0 && (
+                      <div className="equivalentes-comida-desglosados" style={{ marginTop: '12px', paddingTop: '12px', borderTop: '1px dashed #333' }}>
+                        {plan.porciones.map((porcion) => {
+                          const dbFieldName = config.dbField;
+                          const cantidadPorcion = parseFloat(porcion[dbFieldName] || 0);
+                          
+                          if (cantidadPorcion <= 0) return null;
+
+                          const cfgGrupo = GRUPO_CONFIG[porcion.nombre_grupo] || { icon: 'circle', color: '#78909C' };
+                          const groupKey = `${tipo}-${porcion.nombre_grupo}`;
+                          const isGroupExpanded = expandedGroups[groupKey];
+
+                          // Buscar las opciones del catálogo para este grupo específico
+                          const datosCatalogo = catalogoAlimentos.find(c => c.nombre.toLowerCase().trim() === porcion.nombre_grupo.toLowerCase().trim());
+                          const alimentosOpciones = datosCatalogo ? datosCatalogo.alimentos : [];
+
+                          return (
+                            <div key={porcion.id} className="mini-grupo-equivalente-box" style={{ marginBottom: '8px' }}>
+                              <div 
+                                className="grupo-trigger-mini" 
+                                style={{ display: 'flex', justifyContent: 'between', alignItems: 'center', cursor: 'pointer', padding: '6px', borderRadius: '4px', background: '#1e1e1e' }}
+                                onClick={() => toggleGroup(groupKey)}
+                              >
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                  <span style={{ color: cfgGrupo.color }}><LucideIcon name={cfgGrupo.icon} size={16} /></span>
+                                  <span style={{ fontSize: '14px', fontWeight: '500' }}>{porcion.nombre_grupo}</span>
+                                </div>
+                                <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                  <span className="badge-porciones" style={{ backgroundColor: cfgGrupo.color, padding: '2px 6px', borderRadius: '4px', fontSize: '12px', color: '#fff' }}>
+                                    {cantidadPorcion} {cantidadPorcion === 1 ? 'pza' : 'pzas'}
+                                  </span>
+                                  <LucideIcon name={isGroupExpanded ? 'chevron-up' : 'chevron-down'} size={14} />
+                                </div>
+                              </div>
+
+                              {/* Opciones del catálogo desplegables */}
+                              {isGroupExpanded && (
+                                <div className="alimentos-sub-grid" style={{ background: '#121212', padding: '8px', borderRadius: '0 0 4px 4px', fontSize: '13px' }}>
+                                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '4px' }}>
+                                    {alimentosOpciones.map((alimento, aIdx) => (
+                                      <span key={aIdx} style={{ background: '#2a2a2a', padding: '2px 8px', borderRadius: '12px', fontSize: '12px' }}>
+                                        {alimento.nombre} <small style={{ color: '#aaa' }}>({alimento.equivalente || '1 pza'})</small>
+                                      </span>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+
                     {comida.calorias > 0 && (
                       <div className="comida-macros-mini">
                         <span><LucideIcon name="flame" size={14} /> {comida.calorias} kcal</span>
@@ -211,7 +299,7 @@ const MiPlanNutricional = ({ pacienteId }) => {
         )}
       </div>
 
-      {/* Contenido adicional del plan */}
+      {/* Recomendaciones originales (Tu diseño original intacto) */}
       {plan.contenido?.recomendaciones?.length > 0 && (
         <div className="plan-section recomendaciones">
           <h3><LucideIcon name="lightbulb" size={20} /> Recomendaciones</h3>
@@ -223,6 +311,7 @@ const MiPlanNutricional = ({ pacienteId }) => {
         </div>
       )}
 
+      {/* Restricciones originales (Tu diseño original intacto) */}
       {plan.contenido?.restricciones?.length > 0 && (
         <div className="plan-section restricciones">
           <h3><LucideIcon name="alert-triangle" size={20} /> Alimentos a Evitar</h3>
@@ -234,7 +323,7 @@ const MiPlanNutricional = ({ pacienteId }) => {
         </div>
       )}
 
-      {/* Notas personalizadas del especialista */}
+      {/* Notas originales (Tu diseño original intacto) */}
       {plan.notas_personalizadas && (
         <div className="plan-section notas">
           <h3><LucideIcon name="pen-line" size={20} /> Notas de tu Nutricionista</h3>
@@ -242,7 +331,7 @@ const MiPlanNutricional = ({ pacienteId }) => {
         </div>
       )}
 
-      {/* Vista completa tipo documento si es plan generado */}
+      {/* Vistas colapsables de abajo (Tu diseño original intacto) */}
       {plan.contenido?.generado_con_catalogo && (
         <details className="plan-semana-completo">
           <summary><LucideIcon name="eye" size={18} /> Ver plan completo (vista detallada)</summary>
@@ -252,7 +341,6 @@ const MiPlanNutricional = ({ pacienteId }) => {
         </details>
       )}
 
-      {/* Ver plan completo de la semana */}
       <details className="plan-semana-completo">
         <summary><LucideIcon name="calendar" size={18} /> Ver plan completo de la semana</summary>
         <div className="semana-content">

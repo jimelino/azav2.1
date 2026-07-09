@@ -24,6 +24,7 @@ use App\Controllers\AdmisionesController;
 use App\Middleware\AuthMiddleware;
 use App\Middleware\RoleMiddleware;
 use App\Middleware\RateLimitMiddleware;
+use App\Controllers\EquivalentesController;
 
 // Función helper para rutas
 function route($method, $path, $callback, $middleware = []) {
@@ -1141,6 +1142,16 @@ route('DELETE', '/api/nutricion/recetas/catalogo/(\d+)', function($id) {
     $controller->eliminarReceta($id);
 }, ['auth']);
 
+// =====================================================================
+// RUTAS DEL SISTEMA MEXICANO DE EQUIVALENTES (NUTRICIÓN)
+// =====================================================================
+
+// 1. Guardar o actualizar el plan de porciones (Acceso exclusivo para el Especialista)
+route('POST', '/api/nutricion/equivalentes/guardar', 'PlanNutricionalController@guardarPlanEquivalentes', ['auth']);
+
+// 2. Obtener el plan de porciones activo (Acceso para el Paciente y el Especialista)
+route('GET', '/api/nutricion/equivalentes/paciente/{id}', 'PlanNutricionalController@obtenerPlanEquivalentesPaciente', ['auth']);
+
 // Recetas agrupadas por tipo de comida (para wizard)
 route('GET', '/api/nutricion/recetas/por-tipo', function() {
     $controller = new RecetaController();
@@ -1243,7 +1254,24 @@ route('DELETE', '/api/nutricion/planes/(\d+)/imagenes', function($planId) {
     $controller = new PlanNutricionalController();
     $controller->removeImagenPlan($planId);
 }, ['auth']);
+/*******************************************
+ SISTEMA DE EQUIVALENTES
+********************************************/
 
+route('GET', '/api/nutricion/equivalentes', function () {
+
+    $controller = new EquivalentesController();
+    $controller->index();
+
+}, ['auth']);
+//ruta quivalente para plan de paciente
+
+route('GET', '/api/nutricion/pacientes/(\d+)', function($especialistaId) {
+
+    $controller = new PlanNutricionalController();
+    $controller->getPacientesEspecialista($especialistaId);
+
+}, ['auth']);
 // ===== RUTAS DE EXPEDIENTE =====
 
 // Resumen del expediente (glucosa, presion, animo, comida, citas del dia)
