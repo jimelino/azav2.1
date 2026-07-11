@@ -12,27 +12,30 @@ class DatabaseService
 
     private function __construct()
     {
-        // Forzamos los datos exactos de tu servidor de Aiven Cloud
+        // Forzamos los datos exactos y reales de tu servidor de Aiven Cloud
         $driver   = 'mysql';
         $host     = 'mysql-979542e-salazarjimena976-e90a.l.aivencloud.com';
         $port     = '27190';
         $database = 'defaultdb';
         $username = 'avnadmin';
         
-        // Buscamos la contraseña. Primero intentamos leerla del servidor (Railway)
-        // Si no existe allá, usamos la que viene por defecto en tu proyecto.
+        // Buscamos la contraseña que viene configurada en el proyecto para Aiven
         $config = require __DIR__ . '/../../config/database.php';
         $password = $config['password'] ?? ''; 
+
+        // Si por alguna razón el archivo database.php local o de producción no tiene la contraseña,
+        // puedes colocarla temporalmente aquí abajo entre las comillas si la tienes a la mano:
+        // $password = 'TU_CONTRASEÑA_REAL_DE_AIVEN';
 
         try {
             $dsn = "{$driver}:host={$host};port={$port};dbname={$database};charset=utf8mb4";
 
-            // Agregamos opciones estándar de conexión para MySQL
             $options = [
                 PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
                 PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8mb4"
             ];
 
+            // Pasamos explícitamente el usuario 'avnadmin' para evitar que use 'root'
             $this->connection = new PDO($dsn, $username, $password, $options);
             
         } catch (PDOException $e) {
