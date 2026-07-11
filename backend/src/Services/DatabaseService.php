@@ -12,30 +12,34 @@ class DatabaseService
 
     private function __construct()
     {
-        // Forzamos los datos exactos y reales de tu servidor de Aiven Cloud
+        // 1. Jalamos la configuración original del proyecto (para rescatar la contraseña correcta de producción)
+        $config = require __DIR__ . '/../../config/database.php';
+
+        // 2. Forzamos los datos exactos del servidor de Aiven Cloud que Railway necesita resolver
         $driver   = 'mysql';
         $host     = 'mysql-979542e-salazarjimena976-e90a.l.aivencloud.com';
         $port     = '27190';
         $database = 'defaultdb';
         $username = 'avnadmin';
         
-        // Buscamos la contraseña que viene configurada en el proyecto para Aiven
-        $config = require __DIR__ . '/../../config/database.php';
+        // Rescatamos la contraseña dinámica original que Railway maneja internamente
         $password = $config['password'] ?? ''; 
-
-        // Si por alguna razón el archivo database.php local o de producción no tiene la contraseña,
-        // puedes colocarla temporalmente aquí abajo entre las comillas si la tienes a la mano:
-        // $password = 'TU_CONTRASEÑA_REAL_DE_AIVEN';
 
         try {
             $dsn = "{$driver}:host={$host};port={$port};dbname={$database};charset=utf8mb4";
 
+            // Aiven Cloud OBLIGA a usar ciertas configuraciones de PDO. Mantenemos las tuyas y agregamos compatibilidad SSL por si acaso
             $options = [
                 PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-                PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8mb4"
+                PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8mb4",
+                PDO::ATTR_TIMEOUT => 5 // Evita que la página se quede congelada si tarda en responder
             ];
 
-            // Pasamos explícitamente el usuario 'avnadmin' para evitar que use 'root'
+            // Si el archivo original traía opciones específicas (como certificados SSL de Railway), las sumamos
+            if (!empty($config['options'])) {
+                $options = array_replace($options, $config['options']);
+            }
+
             $this->connection = new PDO($dsn, $username, $password, $options);
             
         } catch (PDOException $e) {
