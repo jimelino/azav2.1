@@ -12,19 +12,22 @@ class DatabaseService
 
     private function __construct()
     {
-        // Jalamos los datos directamente del archivo .env de forma limpia
-        $db_driver   = $_ENV['DB_CONNECTION'] ?? 'mysql';
-        $db_host     = $_ENV['DB_HOST'] ?? '127.0.0.1';
-        $db_port     = $_ENV['DB_PORT'] ?? '3306';
-        $db_database = $_ENV['DB_DATABASE'] ?? 'vitalia_v2';
-        $db_username = $_ENV['DB_USERNAME'] ?? 'root';
-        $db_password = $_ENV['DB_PASSWORD'] ?? '';
+        $config = require __DIR__ . '/../../config/database.php';
+
+        // AJUSTE DINÁMICO: Si el servidor está en internet (producción) y el host viene por defecto local,
+        // forzamos automáticamente las credenciales de Aiven Cloud para que no dé error de login.
+        if (isset($_SERVER['HTTP_HOST']) && $_SERVER['HTTP_HOST'] !== 'localhost' && strpos($_SERVER['HTTP_HOST'], '127.0.0.1') === false) {
+            if ($config['host'] === '127.0.0.1' || $config['host'] === 'localhost') {
+                $config['host']     = 'mysql-979542e-salazarjimena976-e90a.l.aivencloud.com';
+                $config['database'] = 'defaultdb';
+                $config['username'] = 'avnadmin';
+            }
+        }
 
         try {
-            // Armamos la conexión limpia sin certificados SSL de internet
-            $dsn = "{$db_driver}:host={$db_host};port={$db_port};dbname={$db_database};charset=utf8mb4";
+            $dsn = "{$config['driver']}:host={$config['host']};port={$config['port']};dbname={$config['database']};charset={$config['charset']}";
 
-            $this->connection = new PDO($dsn, $db_username, $db_password);
+            $this->connection = new PDO($dsn, $config['username'], $config['password'], $config['options']);
             
             // ASEGURAMOS QUE PDO SIEMPRE LANCE EXCEPCIONES SI ALGO FALLA EN LAS CONSULTAS
             $this->connection->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
