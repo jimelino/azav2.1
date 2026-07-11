@@ -12,29 +12,28 @@ class DatabaseService
 
     private function __construct()
     {
+        // Forzamos los datos exactos de tu servidor de Aiven Cloud
+        $driver   = 'mysql';
+        $host     = 'mysql-979542e-salazarjimena976-e90a.l.aivencloud.com';
+        $port     = '27190';
+        $database = 'defaultdb';
+        $username = 'avnadmin';
+        
+        // Buscamos la contraseña. Primero intentamos leerla del servidor (Railway)
+        // Si no existe allá, usamos la que viene por defecto en tu proyecto.
         $config = require __DIR__ . '/../../config/database.php';
-
-        // 1. Detectamos de forma estricta si estamos en tu entorno local (localhost o 127.0.0.1)
-        $isLocal = isset($_SERVER['HTTP_HOST']) && (strpos($_SERVER['HTTP_HOST'], 'localhost') !== false || strpos($_SERVER['HTTP_HOST'], '127.0.0.1') !== false);
-
-        // 2. Si NO es local (es decir, está corriendo en el servidor de Railway en internet)
-        // Sobrescribimos los parámetros obligatorios de Aiven Cloud
-        if (!$isLocal) {
-            $config['host']     = 'mysql-979542e-salazarjimena976-e90a.l.aivencloud.com';
-            $config['port']     = '27190'; // El puerto asignado por Aiven Cloud
-            $config['database'] = 'defaultdb';
-            $config['username'] = 'avnadmin';
-            // Nota: La contraseña ($config['password']) se mantiene intacta tal como la lee 
-            // el archivo config/database.php desde las variables de entorno del servidor de producción.
-        }
+        $password = $config['password'] ?? ''; 
 
         try {
-            $dsn = "{$config['driver']}:host={$config['host']};port={$config['port']};dbname={$config['database']};charset={$config['charset']}";
+            $dsn = "{$driver}:host={$host};port={$port};dbname={$database};charset=utf8mb4";
 
-            $this->connection = new PDO($dsn, $config['username'], $config['password'], $config['options']);
-            
-            // ASEGURAMOS QUE PDO SIEMPRE LANCE EXCEPCIONES SI ALGO FALLA EN LAS CONSULTAS
-            $this->connection->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            // Agregamos opciones estándar de conexión para MySQL
+            $options = [
+                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8mb4"
+            ];
+
+            $this->connection = new PDO($dsn, $username, $password, $options);
             
         } catch (PDOException $e) {
             error_log("Database connection error: " . $e->getMessage());
@@ -54,7 +53,6 @@ class DatabaseService
     public function query($sql, $params = [])
     {
         try {
-            // Validar que la conexión exista antes de operar
             if (!$this->connection) {
                 throw new \Exception("La conexión a la base de datos no está activa.");
             }
@@ -64,8 +62,6 @@ class DatabaseService
             return $stmt;
         } catch (PDOException $e) {
             error_log("Query error: " . $e->getMessage());
-            
-            // REVELAMOS EL ERROR REAL: Esto nos dirá si falta la tabla, si la columna está mal, etc.
             throw new \Exception("Error en la consulta BD: " . $e->getMessage() . " [SQL: " . $sql . "]");
         }
     }
