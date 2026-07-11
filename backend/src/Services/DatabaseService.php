@@ -14,14 +14,17 @@ class DatabaseService
     {
         $config = require __DIR__ . '/../../config/database.php';
 
-        // AJUSTE DINÁMICO: Si el servidor está en internet (producción) y el host viene por defecto local,
-        // forzamos automáticamente las credenciales de Aiven Cloud para que no dé error de login.
-        if (isset($_SERVER['HTTP_HOST']) && $_SERVER['HTTP_HOST'] !== 'localhost' && strpos($_SERVER['HTTP_HOST'], '127.0.0.1') === false) {
-            if ($config['host'] === '127.0.0.1' || $config['host'] === 'localhost') {
-                $config['host']     = 'mysql-979542e-salazarjimena976-e90a.l.aivencloud.com';
-                $config['database'] = 'defaultdb';
-                $config['username'] = 'avnadmin';
-            }
+        // DETECCIÓN DEFINITIVA: Si el config viene configurado como local (127.0.0.1) 
+        // pero NO estamos entrando desde 'localhost', significa que está corriendo en el servidor de internet.
+        $isLocalhost = isset($_SERVER['HTTP_HOST']) && (strpos($_SERVER['HTTP_HOST'], 'localhost') !== false || strpos($_SERVER['HTTP_HOST'], '127.0.0.1') !== false);
+
+        if (!$isLocalhost) {
+            // Forzamos los datos de la base de datos en internet (Aiven Cloud)
+            $config['host']     = 'mysql-979542e-salazarjimena976-e90a.l.aivencloud.com';
+            $config['port']     = '27190'; // El puerto original de tu cluster de Aiven
+            $config['database'] = 'defaultdb';
+            $config['username'] = 'avnadmin';
+            // Aquí el servidor web original ya debería tener su propia contraseña o SSL activo mediante el array de options
         }
 
         try {
