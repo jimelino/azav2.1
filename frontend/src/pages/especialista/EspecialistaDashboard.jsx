@@ -35,6 +35,8 @@ import api from '../../services/api';
 
 import '../../components/layouts/institutional.css';
 import './EspecialistaDashboard.css';
+import PorcionesNutricionales from './PorcionesNutricionales';
+
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Filler, Title, Tooltip, Legend);
 
@@ -2054,7 +2056,19 @@ const EspecialistaDashboard = () => {
       />
     );
   };
+// Vista: Módulo de Porciones (Nutrición)
+const renderPorcionesNutricionales = () => {
+  const especialistaId = user?.especialista_id || user?.id;
+  
 
+  return (
+    <PorcionesNutricionales
+      especialistaId={especialistaId}
+      pacientes={dashboardData.pacientes}
+      onBack={() => setActiveView('inicio')}
+    />
+  );
+};
   // Renderizar contenido según vista activa
   const renderContent = () => {
     switch (activeView) {
@@ -2069,6 +2083,7 @@ const EspecialistaDashboard = () => {
       case 'mod-signos-vitales': return renderModSignosVitales();
       case 'mod-estudios': return renderModEstudios();
       case 'mod-recetas': return renderModRecetas();
+      case 'mod-porciones-nutricionales': return renderPorcionesNutricionales();
 
       // Módulos de Fisioterapia
       case 'mod-ejercicios':
