@@ -4,7 +4,7 @@ import LucideIcon from '../LucideIcon';
 import VistaPlan from './VistaPlan';
 import VistaEquivalentes from './VistaEquivalentes';
 import CatalogoRecetas from './CatalogoRecetas';
-import EditorGrupoAlimentos from './EditorGrupoAlimentos'; // 👈 Tu componente importado
+import { EditorGrupoAlimentos } from './EditorGrupoAlimentos';
 import { extractTextFromPDF } from '../../utils/pdfExtractor';
 import './PlanesNutricionales.css';
 
