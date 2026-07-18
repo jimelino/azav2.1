@@ -4,6 +4,7 @@ import LucideIcon from '../LucideIcon';
 import VistaPlan from './VistaPlan';
 import VistaEquivalentes from './VistaEquivalentes';
 import CatalogoRecetas from './CatalogoRecetas';
+import EditorGrupoAlimentos from './EditorGrupoAlimentos'; // 👈 Tu componente importado
 import { extractTextFromPDF } from '../../utils/pdfExtractor';
 import './PlanesNutricionales.css';
 
@@ -14,6 +15,7 @@ const PlanesNutricionales = ({ especialistaId, pacientes, onBack, onOpenGenerato
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [showPlanDetail, setShowPlanDetail] = useState(null);
   const [showAsignarModal, setShowAsignarModal] = useState(null);
+  const [showEditorPorciones, setShowEditorPorciones] = useState(false); // 👈 Estado para controlar tu modal
   const [uploadProgress, setUploadProgress] = useState(0);
 
   // Formulario de upload
@@ -85,14 +87,12 @@ const PlanesNutricionales = ({ especialistaId, pacientes, onBack, onOpenGenerato
       formData.append('nombre', uploadForm.nombre || `Plan Nutricional ${new Date().toLocaleDateString()}`);
       formData.append('descripcion', uploadForm.descripcion);
 
-      // For PDF files, extract text in the browser using pdf.js
-      // This produces much better results than server-side PHP extraction
       const isPDF = uploadForm.file.name.toLowerCase().endsWith('.pdf');
       if (isPDF) {
         try {
           setExtractionStatus('Extrayendo texto del PDF...');
           const textoExtraido = await extractTextFromPDF(uploadForm.file, (progress) => {
-            setUploadProgress(Math.round(progress * 0.5)); // First 50% is extraction
+            setUploadProgress(Math.round(progress * 0.5));
           });
           if (textoExtraido && textoExtraido.length > 50) {
             formData.append('texto_extraido', textoExtraido);
@@ -118,7 +118,6 @@ const PlanesNutricionales = ({ especialistaId, pacientes, onBack, onOpenGenerato
         setUploadForm({ nombre: '', descripcion: '', file: null });
         loadPlanes();
 
-        // Mostrar el plan recién creado para edición
         if (response.data.plan_id) {
           loadPlanDetail(response.data.plan_id);
         }
@@ -347,9 +346,7 @@ const PlanesNutricionales = ({ especialistaId, pacientes, onBack, onOpenGenerato
     const plan = showPlanDetail;
     const contenido = plan.contenido || {};
 
-    // Detectar si es un plan generado desde catálogo
     const esGenerado = contenido.generado_con_catalogo === true;
-    // Detectar si es un plan de equivalentes
     const esEquivalentes = contenido.tipo === 'equivalentes';
 
     return (
@@ -360,12 +357,10 @@ const PlanesNutricionales = ({ especialistaId, pacientes, onBack, onOpenGenerato
             <button className="modal-close" onClick={() => setShowPlanDetail(null)}>✕</button>
           </div>
           <div className="modal-body">
-            {/* Vista de equivalentes para planes con Sistema de Equivalentes */}
             {esEquivalentes ? (
               <>
                 <VistaEquivalentes plan={plan} contenido={contenido} />
 
-                {/* Recetas adjuntas al plan */}
                 {(() => {
                   const recetasAdjuntas = (plan.comidas || []).filter(c => c.receta_id);
                   const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8000';
@@ -406,7 +401,6 @@ const PlanesNutricionales = ({ especialistaId, pacientes, onBack, onOpenGenerato
                   );
                 })()}
 
-                {/* Imágenes/Material visual del plan */}
                 {(() => {
                   const imagenes = contenido.imagenes || [];
                   const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8000';
@@ -459,7 +453,6 @@ const PlanesNutricionales = ({ especialistaId, pacientes, onBack, onOpenGenerato
               <VistaPlan plan={plan} contenido={contenido} compact />
             ) : (
               <>
-                {/* Vista clásica para planes PDF */}
                 {contenido.paciente && (
                   <div className="plan-paciente-info">
                     <span className="paciente-badge"><LucideIcon name="user" size={16} /> {contenido.paciente}</span>
@@ -518,7 +511,6 @@ const PlanesNutricionales = ({ especialistaId, pacientes, onBack, onOpenGenerato
                   </div>
                 )}
 
-                {/* Comidas - Vista clásica timeline */}
                 <div className="plan-comidas-section">
                   <h3><LucideIcon name="utensils" size={20} /> Menu del Dia</h3>
                   {(contenido.comidas || []).length > 0 ? (
@@ -602,7 +594,6 @@ const PlanesNutricionales = ({ especialistaId, pacientes, onBack, onOpenGenerato
                   </div>
                 )}
 
-                {/* Gráficas */}
                 {(contenido.graficas?.length > 0 || contenido.imagenes?.length > 0) && (
                   <div className="plan-graficas-section">
                     <h3><LucideIcon name="bar-chart" size={20} /> Material Visual</h3>
@@ -655,7 +646,6 @@ const PlanesNutricionales = ({ especialistaId, pacientes, onBack, onOpenGenerato
           </div>
         </div>
 
-        {/* Sub-modal: Selector de recetas del catálogo */}
         {showRecetaSelector && (
           <div className="modal-overlay receta-selector-overlay" onClick={() => setShowRecetaSelector(false)}>
             <div className="modal-content receta-selector-modal" onClick={e => e.stopPropagation()}>
@@ -768,6 +758,11 @@ const PlanesNutricionales = ({ especialistaId, pacientes, onBack, onOpenGenerato
         </button>
         <h2><LucideIcon name="utensils" size={22} /> Planes Nutricionales</h2>
         <div className="planes-header-actions">
+          {/* 👇 Botón del Editor de Porciones integrado con el estilo gris de la interfaz */}
+          <button className="btn-generar-plan" style={{ backgroundColor: '#4a5568' }} onClick={() => setShowEditorPorciones(true)}>
+            <LucideIcon name="settings" size={16} /> Configurar Porciones
+          </button>
+
           {onOpenGenerator && (
             <button className="btn-generar-plan" onClick={onOpenGenerator}>
               <LucideIcon name="cooking-pot" size={16} /> Generar Plan
@@ -835,6 +830,21 @@ const PlanesNutricionales = ({ especialistaId, pacientes, onBack, onOpenGenerato
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* 👇 Renderizado de tu nuevo Modal para configurar los grupos de alimentos */}
+      {showEditorPorciones && (
+        <div className="modal-overlay" onClick={() => setShowEditorPorciones(false)}>
+          <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '1000px', width: '95%' }}>
+            <div className="modal-header">
+              <h2><LucideIcon name="settings" size={22} /> Editor de Grupos de Alimentos y Porciones</h2>
+              <button className="modal-close" onClick={() => setShowEditorPorciones(false)}>✕</button>
+            </div>
+            <div className="modal-body">
+              <EditorGrupoAlimentos especialistaId={especialistaId} onSave={() => setShowEditorPorciones(false)} />
+            </div>
+          </div>
         </div>
       )}
 
