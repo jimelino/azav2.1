@@ -74,9 +74,18 @@ const AREAS_CONFIG = {
       { id: 'historial-alimenticio', nombre: 'Historial Alimenticio', icon: 'salad', descripcion: 'Ver registros de alimentación', view: 'mod-historial-alimenticio' },
       { id: 'imc-pacientes', nombre: 'IMC de Usuarios', icon: 'scale', descripcion: 'Ver índice de masa corporal', view: 'mod-imc' },
       { id: 'calculadora-calorica', nombre: 'Calculadora Calórica', icon: 'target', descripcion: 'Calcular requerimiento calórico', view: 'mod-calculadora-calorica' },
-      { id: 'historial-planes', nombre: 'Historial de Planes', icon: 'file-text', descripcion: 'Ver planes asignados al usuario', view: 'mod-historial-planes' },
+      { id: 'historial-planes', nSombre: 'Historial de Planes', icon: 'file-text', descripcion: 'Ver planes asignados al usuario', view: 'mod-historial-planes' },
       { id: 'catalogo-recetas', nombre: 'Catálogo de Recetas', icon: 'book-open', descripcion: 'Gestionar recetas del catálogo', view: 'mod-catalogo-recetas' },
       { id: 'generador-plan', nombre: 'Generar Plan', icon: 'cooking-pot', descripcion: 'Crear plan desde recetas', view: 'mod-generador-plan' },
+      
+      {
+        id: 'porciones-nutricionales',
+        nombre: 'Porciones Nutricionales',
+        icon: 'scale',
+        view: 'mod-porciones-nutricionales',
+        descripcion: 'Cálculo de porciones y equivalentes de alimentos'
+      }
+
     ],
     herramientas: [
       { nombre: 'Tabla de Alimentos', icon: 'bar-chart' },
@@ -2056,10 +2065,9 @@ const EspecialistaDashboard = () => {
       />
     );
   };
-// Vista: Módulo de Porciones (Nutrición)
+  // Vista: Módulo de Porciones (Nutrición)
 const renderPorcionesNutricionales = () => {
   const especialistaId = user?.especialista_id || user?.id;
-  
 
   return (
     <PorcionesNutricionales
@@ -2069,6 +2077,7 @@ const renderPorcionesNutricionales = () => {
     />
   );
 };
+
   // Renderizar contenido según vista activa
   const renderContent = () => {
     switch (activeView) {
@@ -2083,7 +2092,7 @@ const renderPorcionesNutricionales = () => {
       case 'mod-signos-vitales': return renderModSignosVitales();
       case 'mod-estudios': return renderModEstudios();
       case 'mod-recetas': return renderModRecetas();
-      case 'mod-porciones-nutricionales': return renderPorcionesNutricionales();
+      case 'mod-porciones-nutricionales':return renderPorcionesNutricionales();
 
       // Módulos de Fisioterapia
       case 'mod-ejercicios':
