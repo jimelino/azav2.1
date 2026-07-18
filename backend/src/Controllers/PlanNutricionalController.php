@@ -6,6 +6,7 @@ use App\Services\DatabaseService;
 use App\Services\AlimentosDatabase;
 use App\Utils\Response;
 use App\Middleware\AuthMiddleware;
+use App\Models\PlanEquivalente;
 
 class PlanNutricionalController
 {
@@ -2628,4 +2629,139 @@ class PlanNutricionalController
 
         return Response::success(['mensaje' => 'Imagen eliminada', 'imagenes' => $contenido['imagenes']]);
     }
+
+    /**
+ * Obtiene todos los pacientes del especialista
+ * con su nombre y folio.
+ */
+public function getPacientesEspecialista($especialistaId)
+{
+    try {
+
+        $sql = "
+            SELECT
+                u.id,
+                u.nombre,
+                u.apellido_paterno,
+                u.apellido_materno,
+                p.folio
+            FROM pacientes p
+            INNER JOIN usuarios u
+                ON u.id = p.usuario_id
+            INNER JOIN asignaciones_especialista_paciente a
+                ON a.paciente_id = p.id
+            WHERE a.especialista_id = ?
+            ORDER BY u.nombre
+        ";
+
+        $pacientes = $this->db
+            ->query($sql, [$especialistaId])
+            ->fetchAll();
+
+        Response::success($pacientes);
+
+    } catch (\Exception $e) {
+
+        Response::error(
+            "Error al obtener pacientes",
+            500
+        );
+
+    }
 }
+/**
+     * =====================================================================
+     * GUARDAR UN PLAN DE EQUIVALENTES (SISTEMA MEXICANO DE EQUIVALENTES)
+     * =====================================================================
+     */
+    public function guardarPlanEquivalentes($especialistaId)
+    {
+        try {
+            // 1. Obtener los datos enviados desde el Frontend (React)
+            $input = json_decode(file_get_contents('php://input'), true);
+
+            if (!$input || !isset($input['paciente_id']) || !isset($input['porciones'])) {
+                return Response::error('Datos incompletos para guardar el plan de equivalentes.', 400);
+            }
+
+            $pacienteId      = $input['paciente_id'];
+            $calorias        = $input['calorias_totales'] ?? 0;
+            $proteinas       = $input['proteinas_g'] ?? 0;
+            $carbohidratos   = $input['carbohidratos_g'] ?? 0;
+            $grasas          = $input['grasas_g'] ?? 0;
+            $recomendaciones = $input['recomendaciones'] ?? '';
+            $porciones       = $input['porciones']; // Arreglo con la cuadrícula de porciones
+
+            // Instanciamos el modelo de equivalentes
+            $modeloPlan = new PlanEquivalente();
+
+            // Iniciamos una transacción SQL por seguridad (si falla un registro, no se guarda nada)
+            $this->db->beginTransaction();
+
+            // 2. Guardar encabezado del plan (Esto desactiva automáticamente los planes viejos de este paciente)
+            $planId = $modeloPlan->guardarEncabezado(
+                $pacienteId,
+                $especialistaId,
+                $calorias,
+                $proteinas,
+                $carbohidratos,
+                $grasas,
+                $recomendaciones
+            );
+
+            // 3. Recorrer la cuadrícula de porciones y guardarlas una a una
+            foreach ($porciones as $fila) {
+                // Verificamos que tenga el id del grupo alimenticio
+                if (!isset($fila['grupo_alimenticio_id'])) {
+                    continue;
+                }
+
+                $modeloPlan->guardarPorcionDetalle(
+                    $planId,
+                    $fila['grupo_alimenticio_id'],
+                    $fila['desayuno'] ?? 0.00,
+                    $fila['colacion_matutina'] ?? 0.00,
+                    $fila['comida'] ?? 0.00,
+                    $fila['colacion_vespertina'] ?? 0.00,
+                    $fila['cena'] ?? 0.00
+                );
+            }
+
+            // Si todo salió bien, confirmamos los cambios en MySQL
+            $this->db->commit();
+
+            return Response::success(['mensaje' => 'Plan por equivalentes guardado exitosamente.', 'plan_id' => $planId]);
+
+        } catch (\Exception $e) {
+            // Si algo truena, revertimos los cambios para no dejar datos basura
+            if ($this->db->getConnection()->inTransaction()) {
+                $this->db->rollBack();
+            }
+            error_log("Error en PlanNutricionalController::guardarPlanEquivalentes: " . $e->getMessage());
+            return Response::error("Error en el servidor: " . $e->getMessage(), 500);
+        }
+    }
+
+    /**
+     * =====================================================================
+     * OBTENER EL PLAN DE EQUIVALENTES ACTIVO DE UN PACIENTE
+     * =====================================================================
+     */
+    public function obtenerPlanEquivalentesPaciente($pacienteId)
+    {
+        try {
+            $modeloPlan = new PlanEquivalente();
+            $plan = $modeloPlan->obtenerPlanActivoPorPaciente($pacienteId);
+
+            if (!$plan) {
+                return Response::success(['mensaje' => 'El paciente no tiene un plan de equivalentes activo.', 'plan' => null]);
+            }
+
+            return Response::success($plan);
+
+        } catch (\Exception $e) {
+            error_log("Error en PlanNutricionalController::obtenerPlanEquivalentesPaciente: " . $e->getMessage());
+            return Response::error("Error al obtener el plan: " . $e->getMessage(), 500);
+        }
+    }
+};

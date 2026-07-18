@@ -3,7 +3,7 @@
 -- Ejecutar después de azaria_db.sql
 -- =====================================================
 
-USE azaria_db;
+USE vitalia_v2;
 
 SET FOREIGN_KEY_CHECKS = 0;
 

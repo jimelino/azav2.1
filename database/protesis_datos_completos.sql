@@ -3,7 +3,7 @@
 -- Ejecutar en MySQL Workbench
 -- =====================================================
 
-USE vitalia_db;
+USE vitalia_v2;
 
 -- =====================================================
 -- 1. CREAR TABLA DE PROBLEMAS SI NO EXISTE

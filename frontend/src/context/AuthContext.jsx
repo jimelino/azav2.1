@@ -12,12 +12,21 @@ export const useAuth = () => {
 };
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [token, setToken] = useState(localStorage.getItem('token'));
+  // ⚡ TRUCO: Forzamos que el usuario logueado por defecto sea el Técnico de Prótesis
+  const [user, setUser] = useState({
+    id: 5, // ID simulado en la base de datos
+    email: "lic.rodriguez@azaria.app",
+    role: "medicina", // o "protesis"/"tecnico" según los nombres de tu sistema
+    nombre: "medicina"
+  });
+  
+  // ⚡ TRUCO: Desactivamos la pantalla de carga para que cargue la interfaz directo
+  const [loading, setLoading] = useState(false);
+  const [token, setToken] = useState('token-falso-de-prueba');
 
   useEffect(() => {
-    checkSession();
+    // Comentamos la revisión de sesión original para que no intente buscar en internet
+    // checkSession();
   }, []);
 
   const checkSession = async () => {
