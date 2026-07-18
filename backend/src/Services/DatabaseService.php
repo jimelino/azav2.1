@@ -12,12 +12,26 @@ class DatabaseService
 
     private function __construct()
     {
-        $config = require __DIR__ . '/../../config/database.php';
+        // Intentamos cargar el archivo local, si no existe usamos un array vacío
+        $config_file = __DIR__ . '/../../config/database.php';
+        $config = file_exists($config_file) ? require $config_file : [];
+
+        // Obtenemos los valores desde las variables de entorno de Railway
+        // o caemos al valor que está en tu archivo config/database.php
+        $host = getenv('DB_HOST') ?: ($config['host'] ?? 'mysql.railway.internal');
+        $port = getenv('DB_PORT') ?: ($config['port'] ?? '3306');
+        $db   = getenv('DB_NAME') ?: ($config['database'] ?? 'railway');
+        $user = getenv('DB_USER') ?: ($config['username'] ?? 'root');
+        $pass = getenv('DB_PASS') ?: ($config['password'] ?? '');
+        
+        $driver = $config['driver'] ?? 'mysql';
+        $charset = $config['charset'] ?? 'utf8mb4';
+        $options = $config['options'] ?? [];
 
         try {
-            $dsn = "{$config['driver']}:host={$config['host']};port={$config['port']};dbname={$config['database']};charset={$config['charset']}";
+            $dsn = "{$driver}:host={$host};port={$port};dbname={$db};charset={$charset}";
 
-            $this->connection = new PDO($dsn, $config['username'], $config['password'], $config['options']);
+            $this->connection = new PDO($dsn, $user, $pass, $options);
             
             // ASEGURAMOS QUE PDO SIEMPRE LANCE EXCEPCIONES SI ALGO FALLA EN LAS CONSULTAS
             $this->connection->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
@@ -40,7 +54,6 @@ class DatabaseService
     public function query($sql, $params = [])
     {
         try {
-            // Validar que la conexión exista antes de operar
             if (!$this->connection) {
                 throw new \Exception("La conexión a la base de datos no está activa.");
             }
@@ -51,7 +64,6 @@ class DatabaseService
         } catch (PDOException $e) {
             error_log("Query error: " . $e->getMessage());
             
-            // REVELAMOS EL ERROR REAL: Esto nos dirá si falta la tabla, si la columna está mal, etc.
             throw new \Exception("Error en la consulta BD: " . $e->getMessage() . " [SQL: " . $sql . "]");
         }
     }
