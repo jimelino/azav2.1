@@ -953,6 +953,11 @@ route('GET', '/api/mensajes/conversaciones/(\d+)', function($userId) {
     $controller->getConversaciones($userId);
 }, ['auth']);
 
+route('GET', '/api/mensajes/contactos/(\d+)', function($userId) {
+    $controller = new MensajesController();
+    $controller->getContactos($userId);
+}, ['auth']);
+
 route('GET', '/api/mensajes/conversacion/(\d+)/(\d+)', function($conversacionId, $userId) {
     $controller = new MensajesController();
     $controller->getMensajes($conversacionId, $userId);
