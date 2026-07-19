@@ -169,6 +169,63 @@ input[type="checkbox"], input[type="radio"] {
   }
 }
 
+/* Shell responsive mobile-first para pantallas nuevas o refactors */
+.responsive-shell {
+  width: 100%;
+  min-height: 100dvh;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  background: var(--background-primary, #F5F7F2);
+}
+
+.responsive-navbar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-sm, 8px);
+  padding: var(--spacing-sm, 8px) var(--spacing-md, 16px);
+  background: var(--surface-primary, #FFFFFF);
+  border-bottom: 1px solid var(--border-color, #E0E0E0);
+}
+
+.responsive-body {
+  width: min(100%, 1200px);
+  margin-inline: auto;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--spacing-md, 16px);
+  padding: var(--spacing-md, 16px);
+}
+
+.responsive-sidebar {
+  display: none;
+}
+
+.responsive-content {
+  min-width: 0;
+  width: 100%;
+}
+
+.responsive-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+  gap: var(--spacing-md, 16px);
+}
+
+.responsive-table {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.responsive-table table {
+  min-width: 640px;
+}
+
 /* ========================================
    Espaciado
    ======================================== */
@@ -377,7 +434,11 @@ h4 { font-size: var(--font-size-lg, 20px); }
     padding: 0 var(--spacing-sm, 8px);
   }
 
-  button {
+  .btn,
+  .btn-primary,
+  .btn-secondary,
+  .btn-outline,
+  .btn-danger {
     width: 100%;
     padding: var(--spacing-md, 16px);
   }
@@ -386,6 +447,10 @@ h4 { font-size: var(--font-size-lg, 20px); }
 @media (min-width: 768px) {
   html {
     font-size: 18px;
+  }
+
+  .responsive-body {
+    padding: var(--spacing-lg, 24px);
   }
 }
 
@@ -396,6 +461,19 @@ h4 { font-size: var(--font-size-lg, 20px); }
 
   .container {
     padding: 0 var(--spacing-lg, 24px);
+  }
+
+  .responsive-body {
+    grid-template-columns: minmax(220px, 280px) minmax(0, 1fr);
+    align-items: start;
+  }
+
+  .responsive-sidebar {
+    position: sticky;
+    top: 84px;
+    display: block;
+    max-height: calc(100dvh - 100px);
+    overflow-y: auto;
   }
 }
 
