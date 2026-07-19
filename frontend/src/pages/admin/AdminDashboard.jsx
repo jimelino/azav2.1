@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useAccessibility } from '../../context/AccessibilityContext';
@@ -47,6 +47,7 @@ const AdminDashboard = () => {
   const navigate = useNavigate();
 
   const [activeTab, setActiveTab] = useState('resumen');
+  const [filtroEspecialistas, setFiltroEspecialistas] = useState('todos');
   const [isLoading, setIsLoading] = useState(true);
   const [showModal, setShowModal] = useState(null); // 'user', 'especialista', 'faq'
   const [editingItem, setEditingItem] = useState(null);
@@ -206,6 +207,24 @@ const AdminDashboard = () => {
     const id = parseInt(rolId);
     return Object.keys(ROLES).find(key => ROLES[key] === id) || 'paciente';
   };
+
+  const normalizarAreaEspecialista = (area) => {
+    if (!area) return '';
+    const areaTexto = String(area).toLowerCase().trim();
+    const areaPorSlug = AREAS_MEDICAS.find(a => a.id === areaTexto);
+    if (areaPorSlug) return areaPorSlug.id;
+
+    const areaPorNombre = AREAS_MEDICAS.find(a => a.nombre.toLowerCase() === areaTexto);
+    if (areaPorNombre) return areaPorNombre.id;
+
+    const areaPorDbId = AREAS_MEDICAS.find(a => String(a.db_id) === areaTexto);
+    return areaPorDbId?.id || areaTexto;
+  };
+
+  const especialistasFiltrados = useMemo(() => {
+    if (filtroEspecialistas === 'todos') return especialistas;
+    return especialistas.filter(esp => normalizarAreaEspecialista(esp.area_medica) === filtroEspecialistas);
+  }, [especialistas, filtroEspecialistas]);
 
   // Handlers CRUD
   const handleOpenModal = (type, item = null) => {
@@ -679,9 +698,23 @@ const AdminDashboard = () => {
       <div className="filter-bar">
         <span className="filter-label">Filtrar por área:</span>
         <div className="filter-chips">
-          <button className="filter-chip active">Todos</button>
+          <button
+            type="button"
+            className={`filter-chip ${filtroEspecialistas === 'todos' ? 'active' : ''}`}
+            onClick={() => setFiltroEspecialistas('todos')}
+            aria-pressed={filtroEspecialistas === 'todos'}
+          >
+            Todos
+          </button>
           {AREAS_MEDICAS.map(area => (
-            <button key={area.id} className="filter-chip" style={{ '--chip-color': area.color }}>
+            <button
+              key={area.id}
+              type="button"
+              className={`filter-chip ${filtroEspecialistas === area.id ? 'active' : ''}`}
+              style={{ '--chip-color': area.color }}
+              onClick={() => setFiltroEspecialistas(area.id)}
+              aria-pressed={filtroEspecialistas === area.id}
+            >
               <LucideIcon name={area.icon} size={16} /> {area.nombre}
             </button>
           ))}
@@ -689,8 +722,8 @@ const AdminDashboard = () => {
       </div>
 
       <div className="specialists-grid">
-        {especialistas.map(esp => {
-          const area = AREAS_MEDICAS.find(a => a.id === esp.area_medica);
+        {especialistasFiltrados.map(esp => {
+          const area = AREAS_MEDICAS.find(a => a.id === normalizarAreaEspecialista(esp.area_medica));
           return (
             <div key={esp.id} className="specialist-card" style={{ '--area-color': area?.color }}>
               <div className="specialist-avatar">
@@ -734,6 +767,11 @@ const AdminDashboard = () => {
             </div>
           );
         })}
+        {especialistasFiltrados.length === 0 && (
+          <div className="empty-filter-state" role="status">
+            No hay especialistas para este filtro.
+          </div>
+        )}
       </div>
     </div>
   );
