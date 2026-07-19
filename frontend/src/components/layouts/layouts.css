@@ -203,6 +203,7 @@
 .layout-body {
   display: flex;
   flex: 1;
+  min-width: 0;
   overflow: hidden;
 }
 
@@ -519,6 +520,7 @@
 
 .layout-main {
   flex: 1;
+  min-width: 0;
   overflow-y: auto;
   padding: var(--spacing-lg);
   padding-bottom: calc(80px + var(--spacing-lg));
@@ -624,6 +626,16 @@
 }
 
 @media (max-width: 768px) {
+  .layout-header {
+    flex-wrap: wrap;
+    gap: var(--spacing-sm);
+  }
+
+  .header-left,
+  .header-right {
+    min-width: 0;
+  }
+
   .layout-sidebar {
     display: none;
   }
@@ -635,6 +647,8 @@
 
   .bottom-nav {
     display: flex;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
   .header-title {
