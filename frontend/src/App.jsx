@@ -10,6 +10,7 @@ import { VoiceProvider } from './components/VoiceHelper';
 // Route Protection
 import ProtectedRoute from './components/shared/ProtectedRoute';
 import { AdminRoute, EspecialistaRoute } from './components/shared/RoleBasedRoute';
+import ScrollToTop from './components/shared/ScrollToTop';
 
 // Layout
 import ModuleLayout from './components/layouts/ModuleLayout';
@@ -116,6 +117,7 @@ function App() {
         <AccessibilityProvider>
           <VoiceProvider>
             <NotificationProvider>
+              <ScrollToTop />
               <div className="App">
                 <Routes>
                   {/* ===== RUTAS PÚBLICAS ===== */}
@@ -200,7 +202,7 @@ function App() {
 
                   <Route path="/citas" element={
                     <ProtectedRoute>
-                      <ModuleLayout><Citas /></ModuleLayout>
+                      <ModuleLayout showBackButton={false}><Citas /></ModuleLayout>
                     </ProtectedRoute>
                   } />
 
@@ -218,7 +220,7 @@ function App() {
 
                   <Route path="/recordatorios" element={
                     <ProtectedRoute>
-                      <ModuleLayout><Recordatorios /></ModuleLayout>
+                      <ModuleLayout showBackButton={false}><Recordatorios /></ModuleLayout>
                     </ProtectedRoute>
                   } />
 
