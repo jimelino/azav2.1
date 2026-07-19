@@ -21,13 +21,16 @@ const Chat = () => {
   const [especialistas, setEspecialistas] = useState([]);
   const [showNuevaConversacion, setShowNuevaConversacion] = useState(false);
   const mensajesRef = useRef(null);
+  const puedeIniciarConversacion = user?.rol_id === 3 || user?.rol === 'paciente' || user?.rol_id === 2 || user?.rol === 'especialista';
 
   useEffect(() => {
+    if (!user?.id) return;
     cargarConversaciones();
-    if (user?.rol_id === 3 || user?.rol === 'paciente') {
-      cargarEspecialistas();
+    if (puedeIniciarConversacion) {
+      cargarContactos();
     }
-  }, [user]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id, puedeIniciarConversacion]);
 
   useEffect(() => {
     if (conversacionActiva) {
@@ -77,16 +80,22 @@ const Chat = () => {
     }
   };
 
-  const cargarEspecialistas = async () => {
+  const cargarContactos = async () => {
     try {
-      // Cargar especialistas asignados al paciente
-      const pacienteId = user?.paciente_id || user?.id;
-      const response = await api.get(`/pacientes/${pacienteId}/especialistas`);
-      const especialistasData = response?.data || response || [];
+      const response = await api.get(`/mensajes/contactos/${user?.id}`);
+      const especialistasData = response?.data?.contactos || response?.contactos || [];
       setEspecialistas(Array.isArray(especialistasData) ? especialistasData : []);
     } catch (err) {
-      console.error('Error al cargar especialistas:', err);
-      setEspecialistas([]);
+      try {
+        const fallback = user?.rol_id === 3 || user?.rol === 'paciente'
+          ? await api.get(`/pacientes/${user?.paciente_id || user?.id}/especialistas`)
+          : await api.get('/especialistas');
+        const fallbackData = fallback?.data || fallback || [];
+        setEspecialistas(Array.isArray(fallbackData) ? fallbackData : []);
+      } catch (fallbackErr) {
+        console.error('Error al cargar contactos:', fallbackErr);
+        setEspecialistas([]);
+      }
     }
   };
 
@@ -143,16 +152,17 @@ const Chat = () => {
     }
   };
 
-  const iniciarConversacion = async (especialistaId) => {
+  const iniciarConversacion = async (contactoId) => {
     try {
-      const response = await api.post(`/mensajes/iniciar/${user.id}/${especialistaId}`);
+      const response = await api.post(`/mensajes/iniciar/${user.id}/${contactoId}`);
       const respData = response?.data || response;
       const { conversacion_id, otro_usuario } = respData;
 
       // Crear objeto de conversación
       const nuevaConv = {
         id: conversacion_id,
-        otro_usuario_id: especialistaId,
+        tipo: respData.tipo,
+        otro_usuario_id: contactoId,
         otro_usuario_nombre: otro_usuario?.nombre_completo,
         otro_usuario_rol: otro_usuario?.rol_id
       };
@@ -234,7 +244,7 @@ const Chat = () => {
     const roles = {
       1: 'Administrador',
       2: 'Especialista',
-      3: 'Usuario'
+      3: 'Paciente'
     };
     return roles[rolId] || 'Usuario';
   };
@@ -246,10 +256,11 @@ const Chat = () => {
         <div className={`conversaciones-sidebar ${!conversacionActiva ? 'active' : ''}`}>
           <div className="sidebar-header">
             <h2>Mensajes</h2>
-            {(user?.rol_id === 3 || user?.rol === 'paciente') && (
+            {puedeIniciarConversacion && (
               <button
                 className="btn-nueva-conv"
                 onClick={() => setShowNuevaConversacion(!showNuevaConversacion)}
+                aria-label="Nueva conversacion"
               >
                 +
               </button>
@@ -263,7 +274,7 @@ const Chat = () => {
 
           {showNuevaConversacion && (
             <div className="nueva-conversacion-panel">
-              <h4>Contactar especialista</h4>
+              <h4>{user?.rol_id === 2 || user?.rol === 'especialista' ? 'Contactar especialista' : 'Contactar a mi equipo'}</h4>
               {especialistas.length > 0 ? (
                 <div className="especialistas-lista">
                   {especialistas.map(esp => (
@@ -279,7 +290,7 @@ const Chat = () => {
                   ))}
                 </div>
               ) : (
-                <p className="no-especialistas">No hay especialistas asignados</p>
+                <p className="no-especialistas">No hay contactos disponibles</p>
               )}
             </div>
           )}
@@ -327,7 +338,7 @@ const Chat = () => {
               <p className="help-text">
                 {(user?.rol_id === 3 || user?.rol === 'paciente')
                   ? 'Usa el botón + para contactar a tu especialista'
-                  : 'Tus usuarios pueden contactarte aquí'}
+                  : 'Usa el botón + para contactar a otro especialista'}
               </p>
             </div>
           )}
