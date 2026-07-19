@@ -37,7 +37,7 @@ const ADMIN_NAV = [
   { path: '/admin/configuracion', icon: 'settings', label: 'Ajustes' },
 ];
 
-const ModuleLayout = ({ children }) => {
+const ModuleLayout = ({ children, showBackButton = true }) => {
   const { user } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
@@ -68,6 +68,7 @@ const ModuleLayout = ({ children }) => {
       <InstitutionalHeader />
 
       {/* Botón flotante de volver al inicio */}
+      {showBackButton && (
       <button
         className="module-back-fab"
         onClick={() => navigate(getBackPath())}
@@ -75,6 +76,7 @@ const ModuleLayout = ({ children }) => {
       >
         ←
       </button>
+      )}
 
       {/* Contenido de la página */}
       <div className="module-content">
