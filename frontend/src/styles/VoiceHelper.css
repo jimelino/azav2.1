@@ -10,6 +10,7 @@
 .voice-help-btn {
   width: 64px;
   height: 64px;
+  aspect-ratio: 1;
   border-radius: 50%;
   background: linear-gradient(135deg, #0097A7 0%, #006064 100%);
   color: white;
@@ -19,9 +20,41 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  flex: 0 0 auto;
+  line-height: 1;
   font-size: 28px;
   transition: all 0.3s ease;
 }
+
+.voice-help-btn,
+.voice-btn,
+.speak-hint-btn,
+.modulo-voice-btn {
+  aspect-ratio: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  line-height: 1;
+}
+
+.voice-help-btn .lucide-icon,
+.voice-btn .lucide-icon,
+.speak-hint-btn .lucide-icon,
+.modulo-voice-btn .lucide-icon {
+  width: var(--voice-icon-size, 20px);
+  height: var(--voice-icon-size, 20px);
+  min-width: var(--voice-icon-size, 20px);
+  min-height: var(--voice-icon-size, 20px);
+  flex: 0 0 auto;
+  stroke-width: 2;
+}
+
+.voice-help-btn { --voice-icon-size: 22px; }
+.header-btn.voice-btn { --voice-icon-size: 22px; }
+.control-btn.voice-btn,
+.modulo-voice-btn,
+.speak-hint-btn { --voice-icon-size: 20px; }
 
 .voice-help-btn:hover {
   transform: scale(1.1);
@@ -107,6 +140,7 @@
   right: -8px;
   width: 32px;
   height: 32px;
+  aspect-ratio: 1;
   border-radius: 50%;
   background: #0097A7;
   color: white;
@@ -115,6 +149,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  flex: 0 0 auto;
+  line-height: 1;
   font-size: 14px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   animation: fadeIn 0.2s ease;
@@ -124,6 +160,11 @@
 .speak-hint-btn:hover {
   transform: scale(1.1);
   background: #006064;
+}
+
+.speak-hint-btn.speaking {
+  background: #C62828;
+  animation: pulse-speaking 1.5s infinite;
 }
 
 @keyframes fadeIn {

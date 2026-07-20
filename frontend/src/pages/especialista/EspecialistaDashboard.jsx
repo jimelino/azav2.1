@@ -133,6 +133,27 @@ const AREAS_CONFIG = {
   },
 };
 
+const CHAT_ESPECIALISTAS_SIMULADOS = [
+  {
+    id: 'especialista-a',
+    usuario_id: 'especialista-a',
+    tipo: 'especialista',
+    inicial: 'D',
+    nombre: 'Dr. Especialista A',
+    subtitulo: 'Especialista en Nutricion',
+    avatarColor: '#607D8B'
+  },
+  {
+    id: 'especialista-b',
+    usuario_id: 'especialista-b',
+    tipo: 'especialista',
+    inicial: 'B',
+    nombre: 'Dra. Especialista B',
+    subtitulo: 'Fisioterapeuta',
+    avatarColor: '#2E7D32'
+  }
+];
+
 // ============================================================
 // Componente interno: Recetas Médicas (CRUD de medicamentos)
 // ============================================================
@@ -560,6 +581,25 @@ const EspecialistaDashboard = () => {
   // Obtener área médica del especialista
   const areaCodigo = user?.area_medica || 'medicina';
   const areaConfig = AREAS_CONFIG[areaCodigo] || AREAS_CONFIG.medicina;
+  const esSesionEspecialista = user?.rol === 'especialista' || location.pathname.includes('/especialista');
+  const usuariosNuevaConversacion = esSesionEspecialista
+    ? [
+        ...CHAT_ESPECIALISTAS_SIMULADOS,
+        ...dashboardData.pacientes.map((paciente) => ({
+          ...paciente,
+          tipo: 'paciente',
+          inicial: paciente.nombre?.charAt(0) || 'P',
+          subtitulo: paciente.email,
+          avatarColor: areaConfig.color
+        }))
+      ]
+    : dashboardData.pacientes.map((paciente) => ({
+        ...paciente,
+        tipo: 'paciente',
+        inicial: paciente.nombre?.charAt(0) || 'P',
+        subtitulo: paciente.email,
+        avatarColor: areaConfig.color
+      }));
 
   useEffect(() => {
     // Determinar vista activa basada en la URL
@@ -840,14 +880,16 @@ const EspecialistaDashboard = () => {
 
   // Iniciar conversación con paciente
   const handleIniciarConversacion = async (paciente) => {
+    const receptorId = paciente.usuario_id || paciente.id;
+    setOtroUsuarioChat(null);
     try {
-      const response = await api.post(`/mensajes/iniciar/${user?.id}/${paciente.usuario_id || paciente.id}`);
+      const response = await api.post(`/mensajes/iniciar/${user?.id}/${receptorId}`);
       const convId = response.data?.conversacion_id;
 
       if (convId) {
         setConversacionActiva({
           id: convId,
-          otro_usuario_id: paciente.usuario_id || paciente.id,
+          otro_usuario_id: receptorId,
           otro_usuario_nombre: paciente.nombre
         });
         loadMensajes(convId);
@@ -857,7 +899,7 @@ const EspecialistaDashboard = () => {
       // Crear conversación local temporal
       setConversacionActiva({
         id: Date.now(),
-        otro_usuario_id: paciente.usuario_id || paciente.id,
+        otro_usuario_id: receptorId,
         otro_usuario_nombre: paciente.nombre
       });
       setMensajes([]);
@@ -979,16 +1021,19 @@ const EspecialistaDashboard = () => {
   const renderInicio = () => (
     <>
       {/* Bienvenida */}
-      <Speakable text={`${getGreeting()}, Doctor. Panel de ${areaConfig.nombre}.`}>
-        <section className="welcome-section" style={{ '--area-color': areaConfig.color }}>
+      <section className="welcome-section" style={{ '--area-color': areaConfig.color }}>
+        <Speakable
+          text={`${getGreeting()}, Doctor. Panel de ${areaConfig.nombre}.`}
+          className="welcome-text-speakable"
+        >
           <div className="welcome-text">
             <h1>{getGreeting()},</h1>
             <p className="user-name">Dr(a). {user?.nombre?.split(' ')[0] || 'Especialista'}</p>
             <p className="welcome-subtitle">Especialista en {areaConfig.nombre}</p>
           </div>
-          <div className="welcome-illustration"><LucideIcon name={areaConfig.icon} size={48} /></div>
-        </section>
-      </Speakable>
+        </Speakable>
+        <div className="welcome-illustration"><LucideIcon name={areaConfig.icon} size={48} /></div>
+      </section>
 
       {/* Stats rápidos */}
       <section className="quick-stats-section">
@@ -2607,30 +2652,35 @@ const renderPorcionesNutricionales = () => {
                 Selecciona un usuario para iniciar una conversación:
               </p>
 
-              {dashboardData.pacientes.length === 0 ? (
+              {usuariosNuevaConversacion.length === 0 ? (
                 <div className="empty-state">
                   <span className="empty-icon"><LucideIcon name="users" size={32} /></span>
                   <p>No tienes usuarios asignados</p>
                 </div>
               ) : (
                 <div className="pacientes-chat-list">
-                  {dashboardData.pacientes.map((paciente) => (
+                  {usuariosNuevaConversacion.map((contacto) => (
                     <button
-                      key={paciente.id}
+                      key={`${contacto.tipo}-${contacto.id}`}
                       className="paciente-chat-item"
                       onClick={() => {
-                        handleIniciarConversacion(paciente);
+                        handleIniciarConversacion(contacto);
                         setShowModal(null);
                         setActiveView('mensajes');
                       }}
                       style={{ '--area-color': areaConfig.color }}
                     >
-                      <div className="paciente-chat-avatar">
-                        {paciente.nombre?.charAt(0) || 'P'}
+                      <div
+                        className="paciente-chat-avatar"
+                        style={{ background: contacto.avatarColor || areaConfig.color }}
+                      >
+                        {contacto.inicial || contacto.nombre?.charAt(0) || 'P'}
                       </div>
                       <div className="paciente-chat-info">
-                        <span className="nombre">{paciente.nombre}</span>
-                        <span className="email">{paciente.email}</span>
+                        <span className="nombre">{contacto.nombre}</span>
+                        {contacto.subtitulo && (
+                          <span className="email">{contacto.subtitulo}</span>
+                        )}
                       </div>
                     </button>
                   ))}

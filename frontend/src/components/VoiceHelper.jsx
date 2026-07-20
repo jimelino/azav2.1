@@ -435,8 +435,10 @@ export const Speakable = ({
       {children}
       {showHint && (
         <button
-          className="speak-hint-btn"
+          className={`speak-hint-btn ${isSpeaking ? 'speaking' : ''}`}
           onClick={handleSpeak}
+          aria-pressed={isSpeaking}
+          title={isSpeaking ? 'Detener audio' : 'Escuchar descripcion'}
           aria-label={isSpeaking ? 'Detener lectura' : 'Escuchar descripción'}
           type="button"
         >
