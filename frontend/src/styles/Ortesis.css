@@ -21,22 +21,6 @@
   z-index: 100;
 }
 
-.ortesis-page .btn-back-header {
-  background: rgba(255, 255, 255, 0.2);
-  border: none;
-  color: white;
-  padding: 0.5rem 1rem;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 0.9rem;
-  margin-bottom: 0.5rem;
-  transition: background 0.2s;
-}
-
-.ortesis-page .btn-back-header:hover {
-  background: rgba(255, 255, 255, 0.3);
-}
-
 .ortesis-page .header-content h1 {
   margin: 0;
   font-size: 1.5rem;
@@ -452,6 +436,56 @@
   gap: 1rem;
 }
 
+.dispositivos-info-sections {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.dispositivo-info-section {
+  background: var(--bg-secondary, #FFFFFF);
+  border: 1px solid var(--border-color, #E8E8E8);
+  border-radius: 16px;
+  padding: 1.25rem;
+}
+
+.device-section-heading {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.875rem;
+  margin-bottom: 1rem;
+}
+
+.device-section-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: rgba(21, 101, 192, 0.12);
+  color: #1565C0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 44px;
+}
+
+.device-section-heading h3 {
+  margin: 0 0 0.25rem;
+  color: var(--text-primary, #1A1A1A);
+  font-size: 1.15rem;
+}
+
+.device-section-heading p {
+  margin: 0;
+  color: var(--text-secondary, #6B6B6B);
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+.dispositivo-info-section h4 {
+  margin: 0 0 0.875rem;
+  color: #1565C0;
+  font-size: 1rem;
+}
+
 .categoria-card {
   background: var(--bg-secondary, #FFFFFF);
   border-radius: 16px;
@@ -460,12 +494,18 @@
   cursor: pointer;
   transition: all 0.2s;
   border: 2px solid transparent;
+  width: 100%;
 }
 
 .categoria-card:hover {
   border-color: #1565C0;
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.categoria-card:focus-visible {
+  outline: 3px solid #1565C0;
+  outline-offset: 2px;
 }
 
 .categoria-icon {
@@ -1240,16 +1280,6 @@
   to { transform: rotate(360deg); }
 }
 
-.error-container {
-  text-align: center;
-  padding: 2rem;
-}
-
-.error-container p {
-  color: #C62828;
-  margin-bottom: 1rem;
-}
-
 /* =====================================================
    MODO CLARO (ya es el default, mantener para compat)
    ===================================================== */
@@ -1509,6 +1539,24 @@
 
 [data-theme="dark"] .guia-card:hover {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] .dispositivo-info-section {
+  background: var(--surface-primary);
+  border-color: var(--border-color);
+}
+
+[data-theme="dark"] .device-section-heading h3 {
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .device-section-heading p {
+  color: var(--text-secondary);
+}
+
+[data-theme="dark"] .device-section-icon {
+  background: rgba(56, 139, 253, 0.15);
+  color: #58A6FF;
 }
 
 [data-theme="dark"] .guia-card h4 {

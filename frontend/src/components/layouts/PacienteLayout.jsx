@@ -22,7 +22,7 @@ const HEALTH_MODULES = [
   { path: '/medicina', icon: 'pill', label: 'Medicina', color: 'var(--color-medicina)' },
   { path: '/fisioterapia', icon: 'dumbbell', label: 'Fisioterapia', color: 'var(--color-fisioterapia)' },
   { path: '/neuropsicologia', icon: 'brain', label: 'Neuropsicología', color: 'var(--color-neuropsicologia)' },
-  { path: '/ortesis', icon: 'accessibility', label: 'Prótesis', color: 'var(--color-ortesis)' },
+  { path: '/ortesis', icon: 'accessibility', label: 'Órtesis y prótesis', color: 'var(--color-ortesis)' },
 ];
 
 const SECONDARY_NAV = [

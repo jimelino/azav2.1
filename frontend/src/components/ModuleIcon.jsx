@@ -41,7 +41,7 @@ const MODULE_ICONS = {
   },
   ortesis: {
     icon: Accessibility,
-    label: 'Prótesis',
+    label: 'Órtesis y prótesis',
     color: '#1565C0'
   },
   comunidad: {

@@ -23,7 +23,7 @@ const CATEGORIAS = [
   { id: 'medicina', nombre: 'Medicina', icon: 'heart', color: '#E57373', ruta: '/medicina', desc: 'Control de salud' },
   { id: 'fisioterapia', nombre: 'Fisioterapia', icon: 'dumbbell', color: '#FFB74D', ruta: '/fisioterapia', desc: 'Ejercicios' },
   { id: 'neuropsicologia', nombre: 'Neurpsicologia', icon: 'brain', color: '#BA68C8', ruta: '/neuropsicologia', desc: 'Bienestar mental' },
-  { id: 'ortesis', nombre: 'Prótesis', icon: 'accessibility', color: '#64B5F6', ruta: '/ortesis', desc: 'Dispositivos' },
+  { id: 'ortesis', nombre: 'Órtesis y prótesis', icon: 'accessibility', color: '#64B5F6', ruta: '/ortesis', desc: 'Dispositivos ortopédicos' },
   { id: 'fases', nombre: 'Mi Progreso', icon: 'trending-up', color: '#4DB6AC', ruta: '/fases', desc: 'Tu rehabilitación' },
 ];
 

@@ -1,26 +1,161 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { useAccessibility } from '../context/AccessibilityContext';
 import AccessibilityPanel, { AccessibilityFAB } from '../components/accessibility/AccessibilityPanel';
 import api from '../services/api';
 import LucideIcon from '../components/LucideIcon';
 import '../styles/Ortesis.css';
 
+const MODULO_NOMBRE = 'Órtesis y prótesis';
+
+const TIPOS_ORTESIS_SIMULADOS = {
+  soportes_plantillas: [
+    {
+      id: 'ortesis-plantillas',
+      categoria: 'soportes_plantillas',
+      grupo_dispositivo: 'ortesis',
+      nombre: 'Plantillas ortopédicas',
+      descripcion: 'Dispositivos personalizados o prefabricados que se colocan dentro del calzado para mejorar apoyo, alineación y distribución de carga.',
+      componentes: ['Base termoformada o modular', 'Apoyos de arco', 'Descargas por presión', 'Forro de contacto'],
+      ventajas: ['Ayudan a mejorar la postura del pie', 'Reducen puntos de presión', 'Pueden usarse con calzado cotidiano'],
+      cuidados_especificos: ['Ventila las plantillas cada día', 'Limpia con paño húmedo y jabón neutro', 'Revisa desgaste o deformación']
+    }
+  ],
+  soporte_tronco: [
+    {
+      id: 'ortesis-faja-lumbar',
+      categoria: 'soporte_tronco',
+      grupo_dispositivo: 'ortesis',
+      nombre: 'Fajas lumbares',
+      descripcion: 'Órtesis de soporte para la zona lumbar que ayudan a limitar movimientos dolorosos y dar estabilidad durante actividades indicadas.',
+      componentes: ['Banda elástica o semirrígida', 'Varillas posteriores', 'Sistema de ajuste con velcro', 'Panel abdominal'],
+      ventajas: ['Aporta soporte durante la recuperación', 'Facilita control postural', 'Permite ajuste gradual de compresión'],
+      cuidados_especificos: ['No la uses más tiempo del indicado', 'Lava según indicación del fabricante', 'Evita doblar las varillas']
+    }
+  ]
+};
+
+const TIPOS_PROTESIS_SIMULADOS = {
+  transtibial: [
+    {
+      id: 'protesis-transtibial',
+      categoria: 'transtibial',
+      grupo_dispositivo: 'protesis',
+      nombre: 'Prótesis transtibiales',
+      descripcion: 'Prótesis para amputación por debajo de la rodilla. Conservan la articulación de rodilla y suelen permitir una marcha eficiente con entrenamiento.',
+      componentes: ['Socket de contacto', 'Liner o interfaz', 'Sistema de suspensión', 'Tubo adaptador', 'Pie protésico'],
+      nivel_k_minimo: 'K1',
+      ventajas: ['Conserva la rodilla natural', 'Facilita una marcha más estable', 'Tiene múltiples opciones de pie protésico'],
+      desventajas: ['Requiere ajuste preciso del socket', 'El volumen del muñón puede cambiar durante el día'],
+      cuidados_especificos: ['Limpia socket y liner diariamente', 'Revisa piel y puntos de presión', 'Reporta cambios de ajuste']
+    }
+  ],
+  transfemoral: [
+    {
+      id: 'protesis-transfemoral',
+      categoria: 'transfemoral',
+      grupo_dispositivo: 'protesis',
+      nombre: 'Prótesis transfemorales',
+      descripcion: 'Prótesis para amputación por encima de la rodilla. Integran una rodilla protésica y requieren entrenamiento específico para control y seguridad.',
+      componentes: ['Socket transfemoral', 'Rodilla protésica', 'Adaptadores', 'Pie protésico', 'Sistema de suspensión'],
+      nivel_k_minimo: 'K2',
+      ventajas: ['Permite movilidad independiente', 'Puede adaptarse a distintos niveles funcionales', 'Hay opciones mecánicas y electrónicas'],
+      desventajas: ['Mayor demanda energética', 'Curva de aprendizaje más amplia'],
+      cuidados_especificos: ['Revisa alineación y estabilidad', 'Da mantenimiento a la rodilla según fabricante', 'Consulta ante ruidos o bloqueos']
+    }
+  ]
+};
+
+const CONTENIDO_EDUCATIVO_FALLBACK = {
+  niveles_k: [
+    {
+      nivel: 'K0',
+      nombre: 'No ambulatorio',
+      descripcion: 'Sin capacidad o potencial actual para caminar de forma segura con una prótesis funcional.',
+      caracteristicas: ['Uso principal de silla de ruedas', 'Enfoque en transferencias seguras'],
+      actividades_permitidas: ['Transferencias asistidas', 'Terapia ocupacional adaptada'],
+      tipo_protesis_recomendada: ['Prótesis cosmética opcional', 'Evaluación funcional periódica']
+    },
+    {
+      nivel: 'K1',
+      nombre: 'Ambulador de interiores',
+      descripcion: 'Capacidad para caminar en superficies planas a ritmo fijo, principalmente en interiores.',
+      caracteristicas: ['Marcha lenta y controlada', 'Uso posible de bastón o andadera'],
+      actividades_permitidas: ['Caminar en casa', 'Actividades básicas de la vida diaria'],
+      tipo_protesis_recomendada: ['Pie SACH', 'Socket de contacto total']
+    },
+    {
+      nivel: 'K2',
+      nombre: 'Ambulador comunitario limitado',
+      descripcion: 'Puede superar barreras ambientales bajas como escalones, rampas o superficies irregulares simples.',
+      caracteristicas: ['Caminatas cortas en comunidad', 'Velocidad variable limitada'],
+      actividades_permitidas: ['Compras breves', 'Subir y bajar escaleras con apoyo'],
+      tipo_protesis_recomendada: ['Pie multiaxial', 'Suspensión con pin o vacío']
+    },
+    {
+      nivel: 'K3',
+      nombre: 'Ambulador comunitario ilimitado',
+      descripcion: 'Camina con cadencia variable y participa en actividades comunitarias, laborales o recreativas.',
+      caracteristicas: ['Mayor tolerancia a distancias', 'Buena adaptación a terrenos variados'],
+      actividades_permitidas: ['Caminatas largas', 'Ejercicio recreativo', 'Trabajo activo'],
+      tipo_protesis_recomendada: ['Pie de respuesta dinámica', 'Componentes de mayor desempeño']
+    },
+    {
+      nivel: 'K4',
+      nombre: 'Alta actividad',
+      descripcion: 'Demanda funcional superior a la marcha básica, como deporte, impacto o actividad física intensa.',
+      caracteristicas: ['Alta energía', 'Actividades de impacto o velocidad'],
+      actividades_permitidas: ['Correr', 'Deportes', 'Trabajo físicamente demandante'],
+      tipo_protesis_recomendada: ['Pie deportivo', 'Componentes de alto rendimiento']
+    }
+  ],
+  tipos_ortesis: TIPOS_ORTESIS_SIMULADOS,
+  tipos_protesis: TIPOS_PROTESIS_SIMULADOS,
+  guias_cuidado: {
+    limpieza_protesis: [
+      {
+        id: 'guia-limpieza-dispositivo',
+        titulo: 'Limpieza del dispositivo',
+        contenido: 'La limpieza diaria ayuda a prevenir irritaciones y conserva el funcionamiento de órtesis y prótesis.',
+        pasos: ['Retira el dispositivo si aplica', 'Limpia con paño húmedo y jabón neutro', 'Seca completamente antes de guardar o usar'],
+        tips: ['Evita productos perfumados', 'Revisa desgaste mientras limpias'],
+        advertencias: ['No uses calor directo', 'No sumerjas componentes no lavables']
+      }
+    ],
+    mantenimiento: [
+      {
+        id: 'guia-revision',
+        titulo: 'Revisión periódica',
+        contenido: 'Una revisión breve permite detectar desgaste, cambios de ajuste o piezas flojas.',
+        pasos: ['Observa correas, velcros y uniones', 'Verifica comodidad y estabilidad', 'Reporta cambios a tu especialista'],
+        tips: ['Toma fotos si notas cambios', 'Lleva registro de molestias'],
+        advertencias: ['No ajustes piezas técnicas sin indicación']
+      }
+    ]
+  },
+  faqs: [
+    {
+      id: 'faq-diferencia',
+      pregunta: '¿Cuál es la diferencia entre órtesis y prótesis?',
+      respuesta: 'Una órtesis apoya, corrige o protege una parte del cuerpo. Una prótesis reemplaza parcial o totalmente una parte ausente.'
+    },
+    {
+      id: 'faq-ajuste',
+      pregunta: '¿Qué hago si mi dispositivo molesta?',
+      respuesta: 'Suspende el uso si hay dolor importante, revisa la piel y contacta a tu especialista para valorar ajustes.'
+    }
+  ]
+};
+
 const Ortesis = () => {
   const { user } = useAuth();
-  const { settings } = useAccessibility();
-  const navigate = useNavigate();
 
-  const [activeTab, setActiveTab] = useState('inicio');
+  const [activeTab, setActiveTab] = useState('tipos');
   const [activeSubTab, setActiveSubTab] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
   // Estados para datos
-  const [contenidoEducativo, setContenidoEducativo] = useState(null);
+  const [contenidoEducativo, setContenidoEducativo] = useState(CONTENIDO_EDUCATIVO_FALLBACK);
   const [dispositivo, setDispositivo] = useState(null);
-  const [checklist, setChecklist] = useState([]);
   const [problemas, setProblemas] = useState([]);
   const [selectedItem, setSelectedItem] = useState(null);
   const [showModal, setShowModal] = useState(false);
@@ -59,36 +194,53 @@ const Ortesis = () => {
     'parcial_pie': { nombre: 'Pie Parcial', desc: 'Amputación parcial', icon: 'footprints' }
   };
 
+  const categoriasOrtesis = {
+    'soportes_plantillas': { nombre: 'Soportes y plantillas', desc: 'Apoyo del pie y descarga', icon: 'footprints' },
+    'soporte_tronco': { nombre: 'Soporte de tronco', desc: 'Estabilidad lumbar y postural', icon: 'accessibility' }
+  };
+
+  const categoriasDispositivos = {
+    ...categoriasOrtesis,
+    ...categoriasProtesis
+  };
+
   useEffect(() => {
     cargarDatos();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const cargarDatos = async () => {
     setLoading(true);
-    setError(null);
     try {
       // Cargar contenido educativo
       const response = await api.get('/protesis/educativo');
-      if (response.success) {
-        setContenidoEducativo(response.data);
-      }
+      const data = response?.data || response;
+      setContenidoEducativo({
+        ...CONTENIDO_EDUCATIVO_FALLBACK,
+        ...data,
+        tipos_ortesis: data?.tipos_ortesis || CONTENIDO_EDUCATIVO_FALLBACK.tipos_ortesis,
+        tipos_protesis: data?.tipos_protesis || CONTENIDO_EDUCATIVO_FALLBACK.tipos_protesis,
+        guias_cuidado: data?.guias_cuidado || CONTENIDO_EDUCATIVO_FALLBACK.guias_cuidado,
+        faqs: data?.faqs || CONTENIDO_EDUCATIVO_FALLBACK.faqs,
+        niveles_k: data?.niveles_k || CONTENIDO_EDUCATIVO_FALLBACK.niveles_k
+      });
 
       // Cargar dispositivo del paciente
       if (user?.paciente_id) {
         const dispResponse = await api.get(`/ortesis/dispositivo/${user.paciente_id}`);
-        if (dispResponse.success) {
-          setDispositivo(dispResponse.data);
+        const dispData = dispResponse?.data || dispResponse;
+        if (dispData) {
+          setDispositivo(dispData);
         }
 
         // Cargar problemas
         const probResponse = await api.get(`/ortesis/problemas/${user.paciente_id}`);
-        if (probResponse.success) {
-          setProblemas(probResponse.data || []);
-        }
+        const probData = probResponse?.data || probResponse;
+        setProblemas(Array.isArray(probData) ? probData : []);
       }
     } catch (err) {
       console.error('Error al cargar datos:', err);
-      setError('Error al cargar la información. Intenta de nuevo.');
+      setContenidoEducativo(CONTENIDO_EDUCATIVO_FALLBACK);
     } finally {
       setLoading(false);
     }
@@ -119,15 +271,6 @@ const Ortesis = () => {
     }
   };
 
-  const getBackRoute = () => {
-    const rol = user?.rol || user?.role;
-    switch (rol) {
-      case 'especialista': return '/especialista';
-      case 'administrador': return '/admin';
-      default: return '/paciente';
-    }
-  };
-
   // Renderizar contenido según tab activo
   const renderContent = () => {
     if (loading) {
@@ -135,15 +278,6 @@ const Ortesis = () => {
         <div className="loading-container">
           <div className="spinner"></div>
           <p>Cargando información...</p>
-        </div>
-      );
-    }
-
-    if (error) {
-      return (
-        <div className="error-container">
-          <p>{error}</p>
-          <button onClick={cargarDatos} className="btn btn-primary">Reintentar</button>
         </div>
       );
     }
@@ -175,8 +309,8 @@ const Ortesis = () => {
     <div className="inicio-section">
       <div className="welcome-banner">
         <div className="welcome-content">
-          <h2>Centro de Información de Prótesis</h2>
-          <p>Todo lo que necesitas saber sobre tu prótesis, cuidados y rehabilitación</p>
+          <h2>Centro de Información de Órtesis y prótesis</h2>
+          <p>Todo lo que necesitas saber sobre dispositivos ortopédicos, cuidados y rehabilitación</p>
         </div>
       </div>
 
@@ -188,18 +322,18 @@ const Ortesis = () => {
         </div>
         <div className="action-card" onClick={() => setActiveTab('tipos')}>
           <span className="action-icon"><LucideIcon name="accessibility" size={24} /></span>
-          <h3>Tipos de Prótesis</h3>
+          <h3>Tipos de órtesis y prótesis</h3>
           <p>Explora las opciones disponibles</p>
         </div>
         <div className="action-card" onClick={() => setActiveTab('cuidados')}>
           <span className="action-icon"><LucideIcon name="book-open" size={24} /></span>
           <h3>Guías de Cuidado</h3>
-          <p>Aprende a cuidar tu prótesis</p>
+          <p>Aprende a cuidar tu dispositivo</p>
         </div>
         <div className="action-card" onClick={() => setActiveTab('mi-protesis')}>
           <span className="action-icon"><LucideIcon name="settings" size={24} /></span>
-          <h3>Mi Prótesis</h3>
-          <p>Información de tu dispositivo</p>
+          <h3>Mi dispositivo</h3>
+          <p>Información de tu órtesis o prótesis</p>
         </div>
       </div>
 
@@ -233,9 +367,12 @@ const Ortesis = () => {
           </div>
           <div className="summary-item">
             <span className="summary-number">
-              {Object.values(contenidoEducativo?.tipos_protesis || {}).flat().length || 0}
+              {(
+                Object.values(contenidoEducativo?.tipos_ortesis || {}).flat().length +
+                Object.values(contenidoEducativo?.tipos_protesis || {}).flat().length
+              ) || 0}
             </span>
-            <span className="summary-label">Tipos de Prótesis</span>
+            <span className="summary-label">Tipos de dispositivos</span>
           </div>
           <div className="summary-item">
             <span className="summary-number">
@@ -259,7 +396,7 @@ const Ortesis = () => {
     <div className="niveles-k-section">
       <div className="section-header">
         <h2>Niveles K de Movilidad</h2>
-        <p>La clasificación K determina tu potencial funcional y el tipo de prótesis recomendada</p>
+        <p>La clasificación K determina tu potencial funcional y el tipo de dispositivo recomendado</p>
       </div>
 
       {selectedItem ? (
@@ -302,7 +439,7 @@ const Ortesis = () => {
               </div>
 
               <div className="nivel-section">
-                <h3>Prótesis Recomendadas</h3>
+                <h3>Dispositivos recomendados</h3>
                 <ul className="protesis-recomendadas">
                   {selectedItem.tipo_protesis_recomendada?.map((tipo, idx) => (
                     <li key={idx}>{tipo}</li>
@@ -341,42 +478,83 @@ const Ortesis = () => {
   );
 
   // =====================================================
-  // RENDERIZAR TIPOS DE PRÓTESIS
+  // RENDERIZAR TIPOS DE ÓRTESIS Y PRÓTESIS
   // =====================================================
   const renderTiposProtesis = () => (
     <div className="tipos-section">
       <div className="section-header">
-        <h2>Tipos de Prótesis</h2>
-        <p>Conoce las diferentes opciones según el nivel de amputación</p>
+        <h2>Tipos de órtesis y prótesis</h2>
+        <p>Conoce los dispositivos que apoyan, corrigen o reemplazan funciones corporales.</p>
       </div>
 
       {!activeSubTab ? (
-        <div className="categorias-grid">
-          {Object.entries(categoriasProtesis).map(([key, cat]) => (
-            <div
-              key={key}
-              className="categoria-card"
-              onClick={() => setActiveSubTab(key)}
-            >
-              <span className="categoria-icon"><LucideIcon name={cat.icon} size={24} /></span>
-              <h3>{cat.nombre}</h3>
-              <p>{cat.desc}</p>
-              <span className="tipos-count">
-                {contenidoEducativo?.tipos_protesis?.[key]?.length || 0} tipos
-              </span>
+        <div className="dispositivos-info-sections">
+          <section className="dispositivo-info-section ortesis-info-section">
+            <div className="device-section-heading">
+              <span className="device-section-icon"><LucideIcon name="accessibility" size={22} /></span>
+              <div>
+                <h3>Información sobre Órtesis</h3>
+                <p>Dispositivos que apoyan, corrigen, protegen o estabilizan una parte del cuerpo.</p>
+              </div>
             </div>
-          ))}
+            <h4>Tipos de Órtesis</h4>
+            <div className="categorias-grid">
+              {Object.entries(categoriasOrtesis).map(([key, cat]) => (
+                <button
+                  key={key}
+                  type="button"
+                  className="categoria-card"
+                  onClick={() => setActiveSubTab(key)}
+                >
+                  <span className="categoria-icon"><LucideIcon name={cat.icon} size={24} /></span>
+                  <h3>{cat.nombre}</h3>
+                  <p>{cat.desc}</p>
+                  <span className="tipos-count">
+                    {contenidoEducativo?.tipos_ortesis?.[key]?.length || 0} tipos
+                  </span>
+                </button>
+              ))}
+            </div>
+          </section>
+
+          <section className="dispositivo-info-section protesis-info-section">
+            <div className="device-section-heading">
+              <span className="device-section-icon"><LucideIcon name="accessibility" size={22} /></span>
+              <div>
+                <h3>Información sobre Prótesis</h3>
+                <p>Dispositivos que reemplazan parcial o totalmente una extremidad o segmento corporal.</p>
+              </div>
+            </div>
+            <h4>Tipos de Prótesis</h4>
+            <div className="categorias-grid">
+              {Object.entries(categoriasProtesis).map(([key, cat]) => (
+                <button
+                  key={key}
+                  type="button"
+                  className="categoria-card"
+                  onClick={() => setActiveSubTab(key)}
+                >
+                  <span className="categoria-icon"><LucideIcon name={cat.icon} size={24} /></span>
+                  <h3>{cat.nombre}</h3>
+                  <p>{cat.desc}</p>
+                  <span className="tipos-count">
+                    {contenidoEducativo?.tipos_protesis?.[key]?.length || 0} tipos
+                  </span>
+                </button>
+              ))}
+            </div>
+          </section>
         </div>
       ) : selectedItem ? (
         <div className="tipo-detail">
           <button className="btn-back" onClick={() => setSelectedItem(null)}>
-            ← Volver a {categoriasProtesis[activeSubTab]?.nombre}
+            ← Volver a {categoriasDispositivos[activeSubTab]?.nombre}
           </button>
 
           <div className="tipo-detail-card">
             <h2>{selectedItem.nombre}</h2>
             <span className="tipo-categoria">
-              {categoriasProtesis[selectedItem.categoria]?.nombre}
+              {selectedItem.grupo_dispositivo === 'ortesis' ? 'Órtesis' : 'Prótesis'} · {categoriasDispositivos[selectedItem.categoria]?.nombre}
             </span>
 
             <p className="tipo-descripcion">{selectedItem.descripcion}</p>
@@ -441,10 +619,10 @@ const Ortesis = () => {
             ← Volver a categorías
           </button>
 
-          <h3><LucideIcon name={categoriasProtesis[activeSubTab]?.icon} size={20} /> {categoriasProtesis[activeSubTab]?.nombre}</h3>
+          <h3><LucideIcon name={categoriasDispositivos[activeSubTab]?.icon} size={20} /> {categoriasDispositivos[activeSubTab]?.nombre}</h3>
 
           <div className="tipos-grid">
-            {contenidoEducativo?.tipos_protesis?.[activeSubTab]?.map((tipo) => (
+            {(contenidoEducativo?.tipos_ortesis?.[activeSubTab] || contenidoEducativo?.tipos_protesis?.[activeSubTab] || []).map((tipo) => (
               <div
                 key={tipo.id}
                 className="tipo-card"
@@ -471,7 +649,7 @@ const Ortesis = () => {
     <div className="guias-section">
       <div className="section-header">
         <h2>Guías de Cuidado</h2>
-        <p>Instrucciones detalladas para el cuidado de tu prótesis y muñón</p>
+        <p>Instrucciones detalladas para el cuidado de tu órtesis, prótesis o muñón</p>
       </div>
 
       {!activeSubTab ? (
@@ -569,20 +747,20 @@ const Ortesis = () => {
   );
 
   // =====================================================
-  // RENDERIZAR MI PRÓTESIS
+  // RENDERIZAR MI DISPOSITIVO
   // =====================================================
   const renderMiProtesis = () => (
     <div className="mi-protesis-section">
       <div className="section-header">
-        <h2>Mi Prótesis</h2>
-        <p>Información sobre tu dispositivo actual</p>
+        <h2>Mi dispositivo</h2>
+        <p>Información sobre tu órtesis o prótesis actual</p>
       </div>
 
       {dispositivo?.tiene_dispositivo ? (
         <div className="dispositivo-info">
           <div className="dispositivo-card main">
             <div className="dispositivo-header">
-              <h3>{dispositivo.tipo || 'Prótesis'}</h3>
+              <h3>{dispositivo.tipo || 'Dispositivo'}</h3>
               {dispositivo.nivel_k && (
                 <span className="nivel-badge">{dispositivo.nivel_k}</span>
               )}
@@ -648,9 +826,9 @@ const Ortesis = () => {
         <div className="no-dispositivo">
           <div className="empty-icon"><LucideIcon name="accessibility" size={32} /></div>
           <h3>Sin dispositivo registrado</h3>
-          <p>Tu especialista registrará la información de tu prótesis cuando sea asignada.</p>
+          <p>Tu especialista registrará la información de tu órtesis o prótesis cuando sea asignada.</p>
           <button className="btn btn-outline" onClick={() => setActiveTab('tipos')}>
-            Explorar tipos de prótesis
+            Explorar tipos de dispositivos
           </button>
         </div>
       )}
@@ -705,7 +883,7 @@ const Ortesis = () => {
       ) : (
         <div className="no-problemas">
           <p>No hay problemas reportados</p>
-          <p className="text-muted">¡Excelente! Tu prótesis está funcionando bien.</p>
+          <p className="text-muted">¡Excelente! Tu dispositivo está funcionando bien.</p>
         </div>
       )}
     </div>
@@ -718,7 +896,7 @@ const Ortesis = () => {
     <div className="faqs-section">
       <div className="section-header">
         <h2>Preguntas Frecuentes</h2>
-        <p>Respuestas a las dudas más comunes sobre prótesis</p>
+        <p>Respuestas a las dudas más comunes sobre órtesis y prótesis</p>
       </div>
 
       <div className="faqs-list">
@@ -740,11 +918,8 @@ const Ortesis = () => {
   return (
     <div className="ortesis-page">
       <header className="page-header">
-        <button className="btn-back-header" onClick={() => navigate(getBackRoute())}>
-          ← Regresar
-        </button>
         <div className="header-content">
-          <h1><LucideIcon name="accessibility" size={24} /> Prótesis</h1>
+          <h1><LucideIcon name="accessibility" size={24} /> {MODULO_NOMBRE}</h1>
           <p className="subtitle">Centro de información y cuidados</p>
         </div>
       </header>
@@ -778,7 +953,7 @@ const Ortesis = () => {
           className={`tab ${activeTab === 'mi-protesis' ? 'active' : ''}`}
           onClick={() => { setActiveTab('mi-protesis'); setActiveSubTab(null); setSelectedItem(null); }}
         >
-          Mi Prótesis
+          Mi dispositivo
         </button>
         <button
           className={`tab ${activeTab === 'problemas' ? 'active' : ''}`}

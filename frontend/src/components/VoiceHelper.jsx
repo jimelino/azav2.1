@@ -44,7 +44,7 @@ const MODULE_DESCRIPTIONS = {
     shortcuts: 'Use las flechas para seleccionar respuestas. Presione Enter para confirmar.'
   },
   ortesis: {
-    title: 'Prótesis y Órtesis',
+    title: 'Órtesis y prótesis',
     description: 'En esta sección puede llevar el control de su dispositivo ortopédico. Registre su uso diario, reporte problemas y vea guías de cuidado.',
     icon: 'accessibility',
     shortcuts: 'Use Tab para navegar entre secciones. Presione Enter para registrar uso.'

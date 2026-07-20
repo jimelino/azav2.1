@@ -51,7 +51,7 @@ const Dashboard = () => {
     { id: 'medicina', nombre: 'Medicina', ruta: '/medicina', color: 'var(--color-medicina)', desc: 'Control de signos vitales', voiceDesc: 'Registra presión, glucosa y peso' },
     { id: 'fisioterapia', nombre: 'Fisioterapia', ruta: '/fisioterapia', color: 'var(--color-fisioterapia)', desc: 'Ejercicios y rutinas', voiceDesc: 'Tus ejercicios de rehabilitación' },
     { id: 'neuropsicologia', nombre: 'Neuropsicología', ruta: '/neuropsicologia', color: 'var(--color-neuropsicologia)', desc: 'Bienestar emocional', voiceDesc: 'Cuida tu salud mental' },
-    { id: 'ortesis', nombre: 'Prótesis', ruta: '/ortesis', color: 'var(--color-ortesis)', desc: 'Cuidado de prótesis', voiceDesc: 'Seguimiento de tu dispositivo ortopédico' },
+    { id: 'ortesis', nombre: 'Órtesis y prótesis', ruta: '/ortesis', color: 'var(--color-ortesis)', desc: 'Cuidado de dispositivos ortopédicos', voiceDesc: 'Seguimiento de tu órtesis o prótesis' },
     { id: 'citas', nombre: 'Citas', ruta: '/citas', color: 'var(--color-citas)', desc: 'Agendar y ver citas', voiceDesc: 'Tus citas médicas' },
     { id: 'chat', nombre: 'Chat', ruta: '/chat', color: 'var(--color-chat)', desc: 'Mensajes', voiceDesc: 'Mensajes con tu equipo médico' },
     { id: 'recordatorios', nombre: 'Recordatorios', ruta: '/recordatorios', color: 'var(--color-recordatorios)', desc: 'Alarmas y avisos', voiceDesc: 'Configura tus recordatorios' },
