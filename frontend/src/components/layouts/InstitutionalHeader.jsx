@@ -1,4 +1,29 @@
-import React from 'react';
+import React, { useState } from 'react';
+
+const assetPath = (path) => encodeURI(`${process.env.PUBLIC_URL || ''}${path}`);
+
+const LogoImage = ({ src, alt, className, fallbackText }) => {
+  const [hasError, setHasError] = useState(false);
+
+  if (hasError) {
+    return (
+      <span className={`${className} institutional-logo-fallback`} aria-label={alt}>
+        {fallbackText}
+      </span>
+    );
+  }
+
+  return (
+    <img
+      src={src}
+      alt={alt}
+      className={className}
+      loading="eager"
+      decoding="async"
+      onError={() => setHasError(true)}
+    />
+  );
+};
 
 /**
  * InstitutionalHeader - Cabecera institucional DGTIC UNAM
@@ -12,16 +37,18 @@ const InstitutionalHeader = () => {
       <div className="institutional-bar">
         <div className="institutional-bar-content">
           <div className="institutional-logos">
-            <img
-              src={`${process.env.PUBLIC_URL}/assets/images/ENES VECTOR ORO.png`}
+            <LogoImage
+              src={assetPath('/assets/images/ENES VECTOR ORO.png')}
               alt="ENES Logo"
               className="institutional-logo-enes"
+              fallbackText="ENES UNAM"
             />
             <div className="institutional-divider" aria-hidden="true"></div>
-            <img
-              src={`${process.env.PUBLIC_URL}/assets/images/LOGO CIRCULO.png`}
+            <LogoImage
+              src={assetPath('/assets/images/LOGO CIRCULO.png')}
               alt="Azaria Logo"
               className="institutional-logo-azaria"
+              fallbackText="Azaria 2.0"
             />
           </div>
           <div className="institutional-title-group">

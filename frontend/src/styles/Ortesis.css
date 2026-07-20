@@ -296,6 +296,185 @@
   color: var(--text-secondary, #6B6B6B);
 }
 
+.manual-info-card,
+.calzado-autorizado-card,
+.videotutoriales-card,
+.molestias-directas-card {
+  background: var(--bg-secondary, #FFFFFF);
+  border: 1px solid var(--border-color, #E8E8E8);
+  border-radius: 12px;
+  padding: 1.25rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+}
+
+.manual-info-heading {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  color: #0D5790;
+}
+
+.manual-info-heading h3 {
+  margin: 0;
+  color: #0D5790;
+  font-size: 1.15rem;
+}
+
+.manual-accordion-list {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.manual-accordion-item {
+  border: 1px solid var(--border-color, #E0E0E0);
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--bg-secondary, #FFFFFF);
+}
+
+.manual-accordion-item summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.9rem 1rem;
+  cursor: pointer;
+  color: var(--text-primary, #1A1A1A);
+  font-weight: 700;
+  list-style: none;
+  background: var(--bg-tertiary, #F7F8F5);
+}
+
+.manual-accordion-item summary::-webkit-details-marker {
+  display: none;
+}
+
+.manual-accordion-item[open] summary .lucide-icon {
+  transform: rotate(180deg);
+}
+
+.manual-accordion-content {
+  padding: 1rem;
+  color: var(--text-secondary, #6B6B6B);
+  line-height: 1.55;
+}
+
+.manual-accordion-content h4 {
+  margin: 0 0 0.75rem;
+  color: var(--text-primary, #1A1A1A);
+}
+
+.manual-accordion-content p {
+  margin: 0 0 1rem;
+}
+
+.manual-accordion-content strong {
+  display: block;
+  margin: 0.75rem 0 0.35rem;
+  color: var(--text-primary, #1A1A1A);
+}
+
+.manual-accordion-content ul {
+  margin: 0;
+  padding-left: 1.25rem;
+}
+
+.calzado-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.875rem;
+}
+
+.calzado-item {
+  background: var(--bg-tertiary, #F7FAFC);
+  border: 1px solid var(--border-color, #E0E0E0);
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+.calzado-item h4 {
+  margin: 0 0 0.35rem;
+  color: var(--text-primary, #1A1A1A);
+}
+
+.calzado-item p,
+.calzado-item span {
+  display: block;
+  margin: 0;
+  color: var(--text-secondary, #6B6B6B);
+  line-height: 1.45;
+}
+
+.calzado-item span {
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+}
+
+.video-link-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #0D5790;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.video-link-btn:hover {
+  text-decoration: underline;
+}
+
+.molestias-directas-card {
+  border-color: rgba(198, 40, 40, 0.22);
+}
+
+.molestias-intro {
+  color: var(--text-secondary, #6B6B6B);
+  margin: 0 0 1rem;
+  line-height: 1.5;
+}
+
+.molestias-textarea {
+  min-height: 130px;
+  resize: vertical;
+  margin-bottom: 1rem;
+}
+
+.molestias-actions-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.molestias-upload-box {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: var(--bg-tertiary, #F7FAFC);
+  border: 1px solid var(--border-color, #E0E0E0);
+  border-radius: 8px;
+  color: var(--text-primary, #1A1A1A);
+}
+
+.molestias-upload-box strong {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.molestias-upload-box span {
+  color: var(--text-secondary, #6B6B6B);
+  font-size: 0.85rem;
+  overflow-wrap: anywhere;
+}
+
+.molestias-submit {
+  margin-bottom: 0;
+}
+
 /* =====================================================
    NIVELES K
    ===================================================== */
@@ -532,12 +711,19 @@
 .categoria-card {
   background: var(--bg-secondary, #FFFFFF);
   border-radius: 16px;
-  padding: 1.5rem;
+  padding: 1.75rem 1.25rem 1.35rem;
   text-align: center;
   cursor: pointer;
   transition: all 0.2s;
   border: 2px solid transparent;
   width: 100%;
+  min-height: 132px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  overflow: hidden;
 }
 
 .categoria-card:hover {
@@ -552,9 +738,21 @@
 }
 
 .categoria-icon {
-  font-size: 2.5rem;
+  width: 42px;
+  height: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 0 0.6rem;
+  line-height: 1;
+  overflow: visible;
+  flex: 0 0 auto;
+}
+
+.categoria-icon .lucide-icon,
+.categoria-icon svg {
   display: block;
-  margin-bottom: 0.75rem;
+  flex-shrink: 0;
 }
 
 .categoria-card h3 {
@@ -1149,6 +1347,15 @@
   background: #0D47A1;
 }
 
+.ortesis-page .btn-danger {
+  background: #C62828;
+  color: white;
+}
+
+.ortesis-page .btn-danger:hover {
+  background: #A61F1F;
+}
+
 .ortesis-page .btn-secondary {
   background: var(--bg-tertiary, #E8E8E8);
   color: var(--text-primary, #1A1A1A);
@@ -1602,6 +1809,44 @@
   color: #58A6FF;
 }
 
+[data-theme="dark"] .manual-info-card,
+[data-theme="dark"] .calzado-autorizado-card,
+[data-theme="dark"] .videotutoriales-card,
+[data-theme="dark"] .molestias-directas-card,
+[data-theme="dark"] .manual-accordion-item,
+[data-theme="dark"] .calzado-item,
+[data-theme="dark"] .molestias-upload-box {
+  background: var(--surface-primary);
+  border-color: var(--border-color);
+}
+
+[data-theme="dark"] .manual-accordion-item summary,
+[data-theme="dark"] .molestias-upload-box {
+  background: var(--surface-secondary);
+}
+
+[data-theme="dark"] .manual-info-heading,
+[data-theme="dark"] .manual-info-heading h3,
+[data-theme="dark"] .video-link-btn {
+  color: #64B5F6;
+}
+
+[data-theme="dark"] .manual-accordion-content,
+[data-theme="dark"] .calzado-item p,
+[data-theme="dark"] .calzado-item span,
+[data-theme="dark"] .molestias-intro,
+[data-theme="dark"] .molestias-upload-box span {
+  color: var(--text-secondary);
+}
+
+[data-theme="dark"] .manual-accordion-content h4,
+[data-theme="dark"] .manual-accordion-content strong,
+[data-theme="dark"] .manual-accordion-item summary,
+[data-theme="dark"] .calzado-item h4,
+[data-theme="dark"] .molestias-upload-box {
+  color: var(--text-primary);
+}
+
 [data-theme="dark"] .guia-card h4 {
   color: var(--text-primary);
 }
@@ -1830,7 +2075,9 @@
   }
 
   .categorias-grid,
-  .categorias-guias-grid {
+  .categorias-guias-grid,
+  .calzado-grid,
+  .molestias-actions-grid {
     grid-template-columns: 1fr;
   }
 }

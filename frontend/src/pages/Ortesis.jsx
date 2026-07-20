@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import AccessibilityPanel, { AccessibilityFAB } from '../components/accessibility/AccessibilityPanel';
 import api from '../services/api';
@@ -217,8 +217,70 @@ const CONTENIDO_EDUCATIVO_FALLBACK = {
   ]
 };
 
+const MANUAL_INFORMATIVO_FALLBACK = [
+  {
+    id: 'manual-ortesis',
+    categoria: 'ortesis',
+    titulo: '¿Qué es una órtesis y cuáles son sus objetivos?',
+    subtitulo: 'Manual Informativo de Órtesis',
+    contenido: 'Una órtesis es un dispositivo externo diseñado para apoyar, corregir, proteger o estabilizar una parte del cuerpo.',
+    objetivos: ['Estabilizar articulaciones y reducir dolor', 'Corregir deformidades y facilitar movilidad', 'Proteger tejidos durante la recuperación'],
+    tipos_comunes: ['Miembro superior', 'Miembro inferior', 'Espinales', 'Dinámicas y estáticas']
+  },
+  {
+    id: 'manual-protesis',
+    categoria: 'protesis',
+    titulo: '¿Qué es una prótesis y cuáles son sus objetivos?',
+    subtitulo: 'Manual Informativo de Prótesis',
+    contenido: 'Una prótesis reemplaza parcial o totalmente una parte ausente del cuerpo y busca recuperar función, apoyo y autonomía.',
+    objetivos: ['Restituir apoyo o función perdida', 'Mejorar movilidad segura', 'Favorecer independencia diaria'],
+    tipos_comunes: ['Transtibiales', 'Transfemorales', 'Parciales de pie', 'Miembro superior']
+  }
+];
+
+const CALZADO_AUTORIZADO_FALLBACK = [
+  {
+    id: 'calzado-tenis-ortopedicos',
+    tipo_calzado: 'Tenis Ortopédicos',
+    descripcion: 'Espacio de adaptación amplio y suela corrida de goma blanda.',
+    recomendaciones: 'Usar con calcetín suave y revisar puntos de presión.'
+  },
+  {
+    id: 'calzado-deportivo-ancho',
+    tipo_calzado: 'Zapato Deportivo Ancho',
+    descripcion: 'Estabiliza la marcha y absorbe impacto en el talón.',
+    recomendaciones: 'Evitar calzado estrecho o con costuras internas rígidas.'
+  }
+];
+
+const VIDEOTUTORIALES_FALLBACK = [
+  {
+    id: 'video-liner-socket',
+    categoria: 'protesis',
+    titulo: 'Limpieza del Liner y Socket',
+    descripcion: 'Lavar el liner diariamente con agua limpia y jabón neutro. Enjuagar y dejar secar a la sombra.',
+    url_video: 'https://www.youtube.com/results?search_query=limpieza+liner+socket+protesis'
+  },
+  {
+    id: 'video-cuidado-munon',
+    categoria: 'protesis',
+    titulo: '¿Qué hacer ante bultos de presión?',
+    descripcion: 'Retira la prótesis por 15 minutos, revisa zonas rojas y reporta si la molestia persiste.',
+    url_video: 'https://www.youtube.com/results?search_query=cuidado+munon+protesis'
+  },
+  {
+    id: 'video-uso-ortesis',
+    categoria: 'ortesis',
+    titulo: 'Colocación segura de la órtesis',
+    descripcion: 'Ajuste progresivo, revisión de correas y señales de presión al retirar la órtesis.',
+    url_video: 'https://www.youtube.com/results?search_query=colocacion+segura+ortesis'
+  }
+];
+
 const Ortesis = () => {
   const { user } = useAuth();
+  const mediaRecorderRef = useRef(null);
+  const audioChunksRef = useRef([]);
 
   const [activeTab, setActiveTab] = useState('tipos');
   const [seccionActiva, setSeccionActiva] = useState('protesis');
@@ -229,9 +291,14 @@ const Ortesis = () => {
   const [contenidoEducativo, setContenidoEducativo] = useState(CONTENIDO_EDUCATIVO_FALLBACK);
   const [dispositivo, setDispositivo] = useState(null);
   const [problemas, setProblemas] = useState([]);
+  const [manualInformativo, setManualInformativo] = useState(MANUAL_INFORMATIVO_FALLBACK);
+  const [calzadoAutorizado, setCalzadoAutorizado] = useState(CALZADO_AUTORIZADO_FALLBACK);
+  const [videotutoriales, setVideotutoriales] = useState(VIDEOTUTORIALES_FALLBACK);
   const [selectedItem, setSelectedItem] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [modalType, setModalType] = useState('');
+  const [enviandoMolestia, setEnviandoMolestia] = useState(false);
+  const [grabandoNotaVoz, setGrabandoNotaVoz] = useState(false);
 
   // Formulario de problema. `severidad` mapea a la columna ENUM('leve','moderado','severo')
   // de la tabla reportes_problemas. `tipo` es solo para UI y se prefija a la descripción.
@@ -239,6 +306,12 @@ const Ortesis = () => {
     tipo: '',
     descripcion: '',
     severidad: 'moderado'
+  });
+
+  const [reporteMolestiasForm, setReporteMolestiasForm] = useState({
+    descripcion: '',
+    evidencia: null,
+    notaVoz: null
   });
 
   const tiposProblema = [
@@ -323,6 +396,12 @@ const Ortesis = () => {
     ), 0)
   );
 
+  const manualActivo = manualInformativo.filter((item) => (
+    item.categoria === seccionActiva || item.categoria === 'general'
+  ));
+
+  const videotutorialesActivos = videotutoriales.filter((video) => video.categoria === seccionActiva);
+
   const cambiarSeccion = (seccion) => {
     setSeccionActiva(seccion);
     setActiveSubTab(null);
@@ -353,6 +432,15 @@ const Ortesis = () => {
         niveles_k: data?.niveles_k || CONTENIDO_EDUCATIVO_FALLBACK.niveles_k
       });
 
+      const [manualRes, videosRes] = await Promise.all([
+        api.get('/ortesis/manual-informativo').catch(() => ({ data: MANUAL_INFORMATIVO_FALLBACK })),
+        api.get('/ortesis/videotutoriales-cuidados').catch(() => ({ data: VIDEOTUTORIALES_FALLBACK }))
+      ]);
+      const manualData = manualRes?.data || manualRes || [];
+      const videosData = videosRes?.data || videosRes || [];
+      setManualInformativo(Array.isArray(manualData) && manualData.length ? manualData : MANUAL_INFORMATIVO_FALLBACK);
+      setVideotutoriales(Array.isArray(videosData) && videosData.length ? videosData : VIDEOTUTORIALES_FALLBACK);
+
       // Cargar dispositivo del paciente
       if (user?.paciente_id) {
         const dispResponse = await api.get(`/ortesis/dispositivo/${user.paciente_id}`);
@@ -365,6 +453,10 @@ const Ortesis = () => {
         const probResponse = await api.get(`/ortesis/problemas/${user.paciente_id}`);
         const probData = probResponse?.data || probResponse;
         setProblemas(Array.isArray(probData) ? probData : []);
+
+        const calzadoResponse = await api.get(`/ortesis/calzado-autorizado/${user.paciente_id}`).catch(() => ({ data: CALZADO_AUTORIZADO_FALLBACK }));
+        const calzadoData = calzadoResponse?.data || calzadoResponse || [];
+        setCalzadoAutorizado(Array.isArray(calzadoData) && calzadoData.length ? calzadoData : CALZADO_AUTORIZADO_FALLBACK);
       }
     } catch (err) {
       console.error('Error al cargar datos:', err);
@@ -398,6 +490,206 @@ const Ortesis = () => {
       alert('No se pudo enviar el reporte: ' + msg);
     }
   };
+
+  const toggleGrabacionNotaVoz = async () => {
+    if (grabandoNotaVoz && mediaRecorderRef.current) {
+      mediaRecorderRef.current.stop();
+      setGrabandoNotaVoz(false);
+      return;
+    }
+
+    if (!navigator.mediaDevices?.getUserMedia || !window.MediaRecorder) {
+      alert('Tu navegador no permite grabar audio desde esta pantalla.');
+      return;
+    }
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const recorder = new MediaRecorder(stream);
+      audioChunksRef.current = [];
+
+      recorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
+      };
+
+      recorder.onstop = () => {
+        const blob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        const file = new File([blob], `nota-voz-${Date.now()}.webm`, { type: 'audio/webm' });
+        setReporteMolestiasForm(prev => ({ ...prev, notaVoz: file }));
+        stream.getTracks().forEach(track => track.stop());
+      };
+
+      mediaRecorderRef.current = recorder;
+      recorder.start();
+      setGrabandoNotaVoz(true);
+    } catch (error) {
+      console.error('Error grabando nota de voz:', error);
+      alert('No se pudo iniciar la grabación de audio.');
+    }
+  };
+
+  const handleEnviarMolestiaDirecta = async (e) => {
+    e.preventDefault();
+
+    if (!user?.paciente_id || !reporteMolestiasForm.descripcion.trim()) {
+      alert('Describe la molestia antes de enviar el reporte.');
+      return;
+    }
+
+    setEnviandoMolestia(true);
+    try {
+      const formData = new FormData();
+      formData.append('paciente_id', user.paciente_id);
+      formData.append('descripcion', reporteMolestiasForm.descripcion.trim());
+      if (reporteMolestiasForm.evidencia) {
+        formData.append('evidencia_foto', reporteMolestiasForm.evidencia);
+      }
+      if (reporteMolestiasForm.notaVoz) {
+        formData.append('nota_voz', reporteMolestiasForm.notaVoz);
+      }
+
+      await api.post('/ortesis/reportes-molestias', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+
+      setReporteMolestiasForm({ descripcion: '', evidencia: null, notaVoz: null });
+      alert('Reporte médico urgente enviado a tu especialista.');
+    } catch (error) {
+      console.error('Error enviando reporte de molestias:', error);
+      alert(error?.message || 'No se pudo enviar el reporte médico urgente.');
+    } finally {
+      setEnviandoMolestia(false);
+    }
+  };
+
+  const renderManualInformativo = () => (
+    <section className="manual-info-card">
+      <div className="manual-info-heading">
+        <LucideIcon name="book-open" size={22} />
+        <h3>Manual Informativo de {seccionActual.titulo}</h3>
+      </div>
+      <div className="manual-accordion-list">
+        {manualActivo.map((item, index) => (
+          <details key={item.id || `${item.categoria}-${index}`} className="manual-accordion-item" open={index === 0}>
+            <summary>
+              <span>{item.titulo}</span>
+              <LucideIcon name="chevron-down" size={18} />
+            </summary>
+            <div className="manual-accordion-content">
+              {item.subtitulo && <h4>{item.subtitulo}</h4>}
+              <p>{item.contenido}</p>
+              {item.objetivos?.length > 0 && (
+                <>
+                  <strong>Objetivos principales</strong>
+                  <ul>
+                    {item.objetivos.map((objetivo, idx) => <li key={idx}>{objetivo}</li>)}
+                  </ul>
+                </>
+              )}
+              {item.tipos_comunes?.length > 0 && (
+                <>
+                  <strong>Tipos comunes</strong>
+                  <ul>
+                    {item.tipos_comunes.map((tipo, idx) => <li key={idx}>{tipo}</li>)}
+                  </ul>
+                </>
+              )}
+            </div>
+          </details>
+        ))}
+      </div>
+    </section>
+  );
+
+  const renderCalzadoAutorizado = () => (
+    <section className="calzado-autorizado-card">
+      <div className="manual-info-heading">
+        <LucideIcon name="footprints" size={22} />
+        <h3>Modelos de Calzado Autorizados para tu Plan</h3>
+      </div>
+      <div className="calzado-grid">
+        {calzadoAutorizado.map((item) => (
+          <article key={item.id} className="calzado-item">
+            <h4>{item.tipo_calzado}</h4>
+            {item.descripcion && <p>{item.descripcion}</p>}
+            {item.recomendaciones && <span>{item.recomendaciones}</span>}
+          </article>
+        ))}
+      </div>
+    </section>
+  );
+
+  const renderVideotutorialesCuidados = () => (
+    <section className="videotutoriales-card">
+      <div className="manual-info-heading">
+        <LucideIcon name="clapperboard" size={22} />
+        <h3>Manual de Cuidados y Videotutoriales</h3>
+      </div>
+      <div className="manual-accordion-list">
+        {videotutorialesActivos.map((video, index) => (
+          <details key={video.id || `${video.titulo}-${index}`} className="manual-accordion-item" open={index === 0}>
+            <summary>
+              <span>{video.titulo}</span>
+              <LucideIcon name="chevron-down" size={18} />
+            </summary>
+            <div className="manual-accordion-content">
+              <p>{video.descripcion}</p>
+              <a className="video-link-btn" href={video.url_video} target="_blank" rel="noreferrer">
+                <LucideIcon name="play" size={18} /> Ver Video Tutorial
+              </a>
+            </div>
+          </details>
+        ))}
+      </div>
+    </section>
+  );
+
+  const renderReporteMolestiasDirectas = () => (
+    <form className="molestias-directas-card" onSubmit={handleEnviarMolestiaDirecta}>
+      <div className="manual-info-heading">
+        <LucideIcon name="alert-triangle" size={22} />
+        <h3>Reporte de Molestias Directas</h3>
+      </div>
+      <p className="molestias-intro">
+        Usa este canal prioritario si tienes dolor, inflamación, enrojecimiento, fatiga o si tu dispositivo se dañó.
+      </p>
+      <textarea
+        value={reporteMolestiasForm.descripcion}
+        onChange={(e) => setReporteMolestiasForm(prev => ({ ...prev, descripcion: e.target.value }))}
+        className="form-control molestias-textarea"
+        rows="5"
+        placeholder="Describe detalladamente qué molestia sientes, en qué zona te lastima o qué falla presenta el dispositivo..."
+        required
+      />
+      <div className="molestias-actions-grid">
+        <div className="molestias-upload-box">
+          <strong><LucideIcon name="volume" size={18} /> Nota de voz</strong>
+          <button type="button" className="btn btn-outline" onClick={toggleGrabacionNotaVoz}>
+            {grabandoNotaVoz ? 'Detener grabación' : 'Grabar audio'}
+          </button>
+          {reporteMolestiasForm.notaVoz && <span>{reporteMolestiasForm.notaVoz.name}</span>}
+        </div>
+        <label className="molestias-upload-box">
+          <strong><LucideIcon name="camera" size={18} /> Adjuntar evidencia fotográfica</strong>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={(e) => setReporteMolestiasForm(prev => ({ ...prev, evidencia: e.target.files?.[0] || null }))}
+          />
+          {reporteMolestiasForm.evidencia && <span>{reporteMolestiasForm.evidencia.name}</span>}
+        </label>
+      </div>
+      <button
+        type="submit"
+        className="btn btn-danger btn-lg molestias-submit"
+        disabled={enviandoMolestia || !reporteMolestiasForm.descripcion.trim()}
+      >
+        {enviandoMolestia ? 'Enviando...' : 'Enviar Reporte Médico Urgente'}
+      </button>
+    </form>
+  );
 
   // Renderizar contenido según tab activo
   const renderContent = () => {
@@ -441,6 +733,8 @@ const Ortesis = () => {
           <p>{seccionActual.descripcion}</p>
         </div>
       </div>
+
+      {renderManualInformativo()}
 
       <div className="quick-actions">
         {seccionActiva === 'protesis' && (
@@ -515,6 +809,8 @@ const Ortesis = () => {
           </div>
         </div>
       </div>
+
+      {seccionActiva === 'protesis' && renderCalzadoAutorizado()}
     </div>
   );
 
@@ -758,22 +1054,25 @@ const Ortesis = () => {
       </div>
 
       {!activeSubTab ? (
-        <div className="categorias-guias-grid">
-          {Object.entries(categoriasGuias).map(([key, cat]) => (
-            <div
-              key={key}
-              className="categoria-guia-card"
-              style={{ '--cat-color': cat.color }}
-              onClick={() => setActiveSubTab(key)}
-            >
-              <span className="categoria-icon"><LucideIcon name={cat.icon} size={24} /></span>
-              <h3>{cat.nombre}</h3>
-              <span className="guias-count">
-                {contenidoEducativo?.guias_cuidado?.[key]?.length || 0} guías
-              </span>
-            </div>
-          ))}
-        </div>
+        <>
+          <div className="categorias-guias-grid">
+            {Object.entries(categoriasGuias).map(([key, cat]) => (
+              <div
+                key={key}
+                className="categoria-guia-card"
+                style={{ '--cat-color': cat.color }}
+                onClick={() => setActiveSubTab(key)}
+              >
+                <span className="categoria-icon"><LucideIcon name={cat.icon} size={24} /></span>
+                <h3>{cat.nombre}</h3>
+                <span className="guias-count">
+                  {contenidoEducativo?.guias_cuidado?.[key]?.length || 0} guías
+                </span>
+              </div>
+            ))}
+          </div>
+          {renderVideotutorialesCuidados()}
+        </>
       ) : selectedItem ? (
         <div className="guia-detail">
           <button className="btn-back" onClick={() => setSelectedItem(null)}>
@@ -949,6 +1248,8 @@ const Ortesis = () => {
         <h2>Problemas Reportados</h2>
         <p>Historial de problemas de {seccionActual.titulo.toLowerCase()} y su estado</p>
       </div>
+
+      {renderReporteMolestiasDirectas()}
 
       <button
         className="btn btn-primary btn-lg"

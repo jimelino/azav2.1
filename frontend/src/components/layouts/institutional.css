@@ -47,6 +47,29 @@
   object-fit: contain;
 }
 
+.institutional-logo-fallback {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 96px;
+  padding: 0 10px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.14);
+  color: #FFFFFF;
+  font-family: 'Roboto', sans-serif;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.institutional-logo-enes.institutional-logo-fallback {
+  height: 40px;
+}
+
+.institutional-logo-azaria.institutional-logo-fallback {
+  height: 36px;
+}
+
 .institutional-divider {
   width: 1px;
   height: 30px;

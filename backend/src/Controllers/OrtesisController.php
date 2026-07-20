@@ -566,6 +566,241 @@ class OrtesisController
         }
     }
 
+    // =====================================================
+    // MANUAL, CALZADO, MOLESTIAS Y VIDEOTUTORIALES
+    // =====================================================
+
+    public function getManualInformativo($categoria = null)
+    {
+        try {
+            $sql = "SELECT id, categoria, titulo, subtitulo, contenido, objetivos, tipos_comunes, orden
+                    FROM manual_informativo_ortesis
+                    WHERE activo = 1";
+            $params = [];
+
+            if ($categoria) {
+                $sql .= " AND categoria IN (?, 'general')";
+                $params[] = $categoria;
+            }
+
+            $sql .= " ORDER BY orden, titulo";
+            $items = $this->db->query($sql, $params)->fetchAll();
+
+            foreach ($items as &$item) {
+                $item['objetivos'] = !empty($item['objetivos']) ? json_decode($item['objetivos'], true) : [];
+                $item['tipos_comunes'] = !empty($item['tipos_comunes']) ? json_decode($item['tipos_comunes'], true) : [];
+            }
+
+            return Response::success($items);
+        } catch (\Exception $e) {
+            error_log('Error getting manual informativo: ' . $e->getMessage());
+            return Response::error('Error al obtener manual informativo', 500);
+        }
+    }
+
+    public function getCalzadoAutorizado($pacienteId)
+    {
+        try {
+            $items = $this->db->query(
+                "SELECT ca.*, u.nombre_completo AS especialista_nombre
+                 FROM calzado_autorizado ca
+                 LEFT JOIN usuarios u ON ca.especialista_id = u.id
+                 WHERE ca.paciente_id = ?
+                 ORDER BY ca.estado = 'activo' DESC, ca.fecha_autorizacion DESC, ca.created_at DESC",
+                [$pacienteId]
+            )->fetchAll();
+
+            return Response::success($items);
+        } catch (\Exception $e) {
+            error_log('Error getting calzado autorizado: ' . $e->getMessage());
+            return Response::error('Error al obtener calzado autorizado', 500);
+        }
+    }
+
+    public function crearCalzadoAutorizado($pacienteId, $data)
+    {
+        try {
+            $validator = new Validator($data);
+            $validator->required(['tipo_calzado']);
+
+            if (!$validator->passes()) {
+                return Response::error($validator->errors(), 422);
+            }
+
+            $user = \App\Middleware\AuthMiddleware::getCurrentUser();
+
+            $this->db->query(
+                "INSERT INTO calzado_autorizado
+                    (paciente_id, especialista_id, tipo_calzado, descripcion, recomendaciones, restricciones, fecha_autorizacion, vigencia_hasta, estado)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'activo')",
+                [
+                    $pacienteId,
+                    $user['id'],
+                    trim($data['tipo_calzado']),
+                    $data['descripcion'] ?? null,
+                    $data['recomendaciones'] ?? null,
+                    $data['restricciones'] ?? null,
+                    $data['fecha_autorizacion'] ?? date('Y-m-d'),
+                    $data['vigencia_hasta'] ?? null
+                ]
+            );
+
+            return Response::success(['id' => $this->db->lastInsertId()], 'Calzado autorizado registrado', 201);
+        } catch (\Exception $e) {
+            error_log('Error creating calzado autorizado: ' . $e->getMessage());
+            return Response::error('Error al registrar calzado autorizado', 500);
+        }
+    }
+
+    public function getVideotutorialesCuidados($categoria = null)
+    {
+        try {
+            $sql = "SELECT id, titulo, descripcion, url_video, categoria, subcategoria, orden
+                    FROM videotutoriales_cuidados
+                    WHERE activo = 1";
+            $params = [];
+
+            if ($categoria) {
+                $sql .= " AND categoria = ?";
+                $params[] = $categoria;
+            }
+
+            $sql .= " ORDER BY orden, titulo";
+            $videos = $this->db->query($sql, $params)->fetchAll();
+
+            return Response::success($videos);
+        } catch (\Exception $e) {
+            error_log('Error getting videotutoriales: ' . $e->getMessage());
+            return Response::error('Error al obtener videotutoriales', 500);
+        }
+    }
+
+    public function reportarMolestiaDirecta($data, $files = [])
+    {
+        try {
+            $pacienteId = $data['paciente_id'] ?? null;
+            $descripcion = trim($data['descripcion'] ?? '');
+
+            if (!$pacienteId || $descripcion === '') {
+                return Response::error('Paciente y descripcion son requeridos', 422);
+            }
+
+            $dispositivo = $this->db->query(
+                "SELECT id FROM dispositivos_paciente WHERE paciente_id = ? AND activo = 1 LIMIT 1",
+                [$pacienteId]
+            )->fetch();
+
+            $especialistaId = $this->getEspecialistaOrtesisAsignado($pacienteId);
+            $evidenciaUrl = !empty($files['evidencia_foto']['name'])
+                ? $this->guardarArchivoReporte($files['evidencia_foto'], 'reportes_molestias/evidencias', ['jpg', 'jpeg', 'png', 'webp'])
+                : null;
+            $notaVozUrl = !empty($files['nota_voz']['name'])
+                ? $this->guardarArchivoReporte($files['nota_voz'], 'reportes_molestias/audio', ['mp3', 'm4a', 'wav', 'webm', 'ogg'])
+                : null;
+
+            $this->db->query(
+                "INSERT INTO reportes_molestias
+                    (paciente_id, especialista_id, dispositivo_id, descripcion, nota_voz_url, evidencia_foto_url, estado, prioridad)
+                 VALUES (?, ?, ?, ?, ?, ?, 'pendiente', 'urgente')",
+                [
+                    $pacienteId,
+                    $especialistaId,
+                    $dispositivo['id'] ?? null,
+                    $descripcion,
+                    $notaVozUrl,
+                    $evidenciaUrl
+                ]
+            );
+
+            $reporteId = $this->db->lastInsertId();
+
+            if ($especialistaId) {
+                $this->notificarMolestiaUrgente($especialistaId, $pacienteId, $reporteId);
+                $this->db->query("UPDATE reportes_molestias SET estado = 'notificado' WHERE id = ?", [$reporteId]);
+            }
+
+            return Response::success(['id' => $reporteId], 'Reporte medico urgente enviado', 201);
+        } catch (\Exception $e) {
+            error_log('Error reporting molestia directa: ' . $e->getMessage());
+            return Response::error('Error al enviar reporte medico urgente', 500);
+        }
+    }
+
+    private function getEspecialistaOrtesisAsignado($pacienteId)
+    {
+        $especialista = $this->db->query(
+            "SELECT ae.especialista_id
+             FROM asignaciones_especialista ae
+             INNER JOIN areas_medicas am ON ae.area_medica_id = am.id
+             WHERE ae.paciente_id = ?
+               AND ae.activo = 1
+               AND (LOWER(am.nombre) LIKE '%ortesis%' OR LOWER(am.nombre) LIKE '%prótesis%' OR LOWER(am.nombre) LIKE '%protesis%')
+             ORDER BY ae.fecha_asignacion DESC
+             LIMIT 1",
+            [$pacienteId]
+        )->fetch();
+
+        return $especialista['especialista_id'] ?? null;
+    }
+
+    private function guardarArchivoReporte($file, $folder, $allowedExtensions)
+    {
+        if (($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
+            throw new \Exception('Archivo invalido');
+        }
+
+        $maxFileSize = 10 * 1024 * 1024;
+        if (($file['size'] ?? 0) > $maxFileSize) {
+            throw new \Exception('Archivo demasiado grande');
+        }
+
+        $extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+        if (!in_array($extension, $allowedExtensions, true)) {
+            throw new \Exception('Tipo de archivo no permitido');
+        }
+
+        $config = require __DIR__ . '/../../config/app.php';
+        $uploadBase = rtrim($config['upload']['upload_path'], '/\\') . DIRECTORY_SEPARATOR;
+        $targetDir = $uploadBase . trim($folder, '/\\');
+
+        if (!is_dir($targetDir)) {
+            mkdir($targetDir, 0755, true);
+        }
+
+        $fileName = uniqid('molestia_', true) . '_' . time() . '.' . $extension;
+        $targetFile = $targetDir . DIRECTORY_SEPARATOR . $fileName;
+
+        if (!move_uploaded_file($file['tmp_name'], $targetFile)) {
+            throw new \Exception('No se pudo guardar el archivo');
+        }
+
+        return '/uploads/' . trim($folder, '/\\') . '/' . $fileName;
+    }
+
+    private function notificarMolestiaUrgente($especialistaId, $pacienteId, $reporteId)
+    {
+        $paciente = $this->db->query(
+            "SELECT u.nombre_completo
+             FROM pacientes p
+             INNER JOIN usuarios u ON p.usuario_id = u.id
+             WHERE p.id = ?",
+            [$pacienteId]
+        )->fetch();
+
+        $this->db->query(
+            "INSERT INTO notificaciones
+                (usuario_id, tipo, titulo, mensaje, datos, leida, referencia_tipo, referencia_id, created_at)
+             VALUES (?, 'molestia_urgente', ?, ?, ?, 0, 'reportes_molestias', ?, NOW())",
+            [
+                $especialistaId,
+                'Reporte medico urgente',
+                'Nuevo reporte de molestias directas de ' . ($paciente['nombre_completo'] ?? 'un paciente'),
+                json_encode(['paciente_id' => $pacienteId, 'reporte_id' => $reporteId]),
+                $reporteId
+            ]
+        );
+    }
+
     /**
      * Obtener historial de checklist de un paciente
      */

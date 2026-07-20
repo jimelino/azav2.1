@@ -551,6 +551,34 @@ route('GET', '/api/protesis/videos', function() {
     $controller->getVideos($categoria);
 }, ['auth']);
 
+// Manual informativo, calzado autorizado, reportes directos y videotutoriales
+route('GET', '/api/ortesis/manual-informativo', function() {
+    $categoria = $_GET['categoria'] ?? null;
+    $controller = new OrtesisController();
+    $controller->getManualInformativo($categoria);
+}, ['auth']);
+
+route('GET', '/api/ortesis/calzado-autorizado/(\d+)', function($pacienteId) {
+    $controller = new OrtesisController();
+    $controller->getCalzadoAutorizado($pacienteId);
+}, ['auth']);
+
+route('POST', '/api/ortesis/calzado-autorizado/(\d+)', function($pacienteId) {
+    $controller = new OrtesisController();
+    $controller->crearCalzadoAutorizado($pacienteId, json_decode(file_get_contents('php://input'), true));
+}, ['auth']);
+
+route('POST', '/api/ortesis/reportes-molestias', function() {
+    $controller = new OrtesisController();
+    $controller->reportarMolestiaDirecta($_POST, $_FILES);
+}, ['auth']);
+
+route('GET', '/api/ortesis/videotutoriales-cuidados', function() {
+    $categoria = $_GET['categoria'] ?? null;
+    $controller = new OrtesisController();
+    $controller->getVideotutorialesCuidados($categoria);
+}, ['auth']);
+
 // Dispositivo del paciente
 route('GET', '/api/ortesis/dispositivo/(\d+)', function($pacienteId) {
     $controller = new OrtesisController();
