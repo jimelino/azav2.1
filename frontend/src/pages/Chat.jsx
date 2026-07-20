@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { useAccessibility } from '../context/AccessibilityContext';
 import AccessibilityPanel, { AccessibilityFAB } from '../components/accessibility/AccessibilityPanel';
 import api from '../services/api';
 import LucideIcon from '../components/LucideIcon';
@@ -10,7 +9,6 @@ import '../styles/Chat.css';
 const Chat = () => {
   const { conversacionId } = useParams();
   const { user } = useAuth();
-  const { settings } = useAccessibility();
   const [conversaciones, setConversaciones] = useState([]);
   const [conversacionActiva, setConversacionActiva] = useState(null);
   const [mensajes, setMensajes] = useState([]);
@@ -20,17 +18,27 @@ const Chat = () => {
   const [otroUsuario, setOtroUsuario] = useState(null);
   const [especialistas, setEspecialistas] = useState([]);
   const [showNuevaConversacion, setShowNuevaConversacion] = useState(false);
+  const [contactosSearchEmail, setContactosSearchEmail] = useState('');
+  const [loadingContactos, setLoadingContactos] = useState(false);
   const mensajesRef = useRef(null);
   const puedeIniciarConversacion = user?.rol_id === 3 || user?.rol === 'paciente' || user?.rol_id === 2 || user?.rol === 'especialista';
 
   useEffect(() => {
     if (!user?.id) return;
     cargarConversaciones();
-    if (puedeIniciarConversacion) {
-      cargarContactos();
-    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.id, puedeIniciarConversacion]);
+  }, [user?.id]);
+
+  useEffect(() => {
+    if (!showNuevaConversacion || !puedeIniciarConversacion) return;
+
+    const timeoutId = setTimeout(() => {
+      cargarContactos(contactosSearchEmail);
+    }, 250);
+
+    return () => clearTimeout(timeoutId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showNuevaConversacion, contactosSearchEmail, puedeIniciarConversacion]);
 
   useEffect(() => {
     if (conversacionActiva) {
@@ -80,9 +88,11 @@ const Chat = () => {
     }
   };
 
-  const cargarContactos = async () => {
+  const cargarContactos = async (email = '') => {
+    setLoadingContactos(true);
     try {
-      const response = await api.get(`/mensajes/contactos/${user?.id}`);
+      const query = email.trim() ? `?email=${encodeURIComponent(email.trim())}` : '';
+      const response = await api.get(`/mensajes/contactos/${user?.id}${query}`);
       const especialistasData = response?.data?.contactos || response?.contactos || [];
       setEspecialistas(Array.isArray(especialistasData) ? especialistasData : []);
     } catch (err) {
@@ -91,11 +101,17 @@ const Chat = () => {
           ? await api.get(`/pacientes/${user?.paciente_id || user?.id}/especialistas`)
           : await api.get('/especialistas');
         const fallbackData = fallback?.data || fallback || [];
-        setEspecialistas(Array.isArray(fallbackData) ? fallbackData : []);
+        const contactos = Array.isArray(fallbackData) ? fallbackData : [];
+        const emailNormalizado = email.trim().toLowerCase();
+        setEspecialistas(emailNormalizado
+          ? contactos.filter(contacto => (contacto.email || '').toLowerCase().includes(emailNormalizado))
+          : contactos);
       } catch (fallbackErr) {
         console.error('Error al cargar contactos:', fallbackErr);
         setEspecialistas([]);
       }
+    } finally {
+      setLoadingContactos(false);
     }
   };
 
@@ -274,8 +290,23 @@ const Chat = () => {
 
           {showNuevaConversacion && (
             <div className="nueva-conversacion-panel">
-              <h4>{user?.rol_id === 2 || user?.rol === 'especialista' ? 'Contactar especialista' : 'Contactar a mi equipo'}</h4>
-              {especialistas.length > 0 ? (
+              <h4>{user?.rol_id === 2 || user?.rol === 'especialista' ? 'Nueva conversación' : 'Contactar a mi equipo'}</h4>
+              <div className="contact-search-group chat-contact-search">
+                <label htmlFor="chat-contact-email-search">Buscar por correo electrónico</label>
+                <input
+                  id="chat-contact-email-search"
+                  type="email"
+                  value={contactosSearchEmail}
+                  onChange={(e) => setContactosSearchEmail(e.target.value)}
+                  placeholder="correo@ejemplo.com"
+                  autoComplete="off"
+                />
+              </div>
+              {loadingContactos ? (
+                <div className="loading-small">
+                  <div className="spinner-small"></div>
+                </div>
+              ) : especialistas.length > 0 ? (
                 <div className="especialistas-lista">
                   {especialistas.map(esp => (
                     <button
@@ -284,13 +315,15 @@ const Chat = () => {
                       onClick={() => iniciarConversacion(esp.id)}
                     >
                       <span className="esp-avatar">{(esp.nombre_completo || esp.nombre)?.charAt(0) || '?'}</span>
-                      <span className="esp-nombre">{esp.nombre_completo || esp.nombre}</span>
-                      <span className="esp-area">{esp.area_medica}</span>
+                      <span className="esp-info">
+                        <span className="esp-nombre">{esp.nombre_completo || esp.nombre || 'Usuario'}</span>
+                        <span className="esp-area">{esp.email || ''}</span>
+                      </span>
                     </button>
                   ))}
                 </div>
               ) : (
-                <p className="no-especialistas">No hay contactos disponibles</p>
+                <p className="no-especialistas">No se encontraron contactos con ese correo</p>
               )}
             </div>
           )}

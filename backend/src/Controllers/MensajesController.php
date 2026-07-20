@@ -254,16 +254,21 @@ class MensajesController
             return Response::error('Usuario no encontrado', 404);
         }
 
+        $email = trim($_GET['email'] ?? '');
+        $emailLike = '%' . $email . '%';
+
         if ((int)$usuario['rol_id'] === 3) {
             $pacienteId = $this->getPacienteIdPorUsuario($usuarioId);
             $contactos = $pacienteId ? $this->db->query(
-                "SELECT u.id, u.nombre_completo, u.email, u.rol_id, am.nombre AS area_medica
+                "SELECT u.id, u.nombre_completo AS nombre, u.email
                  FROM asignaciones_especialista ae
                  INNER JOIN usuarios u ON ae.especialista_id = u.id
                  LEFT JOIN areas_medicas am ON ae.area_medica_id = am.id
                  WHERE ae.paciente_id = ? AND ae.activo = 1 AND u.activo = 1
-                 ORDER BY am.nombre, u.nombre_completo",
-                [$pacienteId]
+                   AND (? = '' OR u.email LIKE ?)
+                 ORDER BY am.nombre, u.nombre_completo
+                 LIMIT 30",
+                [$pacienteId, $email, $emailLike]
             )->fetchAll() : [];
 
             return Response::success(['contactos' => $contactos]);
@@ -271,12 +276,17 @@ class MensajesController
 
         if ((int)$usuario['rol_id'] === 2) {
             $contactos = $this->db->query(
-                "SELECT u.id, u.nombre_completo, u.email, u.rol_id, COALESCE(am.nombre, 'Sin area') AS area_medica
+                "SELECT DISTINCT u.id, u.nombre_completo AS nombre, u.email
                  FROM usuarios u
-                 LEFT JOIN areas_medicas am ON u.area_medica_id = am.id
-                 WHERE u.rol_id = 2 AND u.activo = 1 AND u.id != ?
-                 ORDER BY am.nombre, u.nombre_completo",
-                [$usuarioId]
+                 WHERE u.activo = 1
+                   AND u.id != ?
+                   AND u.rol_id IN (2, 3)
+                   AND (? = '' OR u.email LIKE ?)
+                 ORDER BY
+                   CASE WHEN u.rol_id = 2 THEN 0 ELSE 1 END,
+                   u.nombre_completo
+                 LIMIT 30",
+                [$usuarioId, $email, $emailLike]
             )->fetchAll();
 
             return Response::success(['contactos' => $contactos]);

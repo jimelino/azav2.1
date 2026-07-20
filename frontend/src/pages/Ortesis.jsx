@@ -111,37 +111,108 @@ const CONTENIDO_EDUCATIVO_FALLBACK = {
   tipos_ortesis: TIPOS_ORTESIS_SIMULADOS,
   tipos_protesis: TIPOS_PROTESIS_SIMULADOS,
   guias_cuidado: {
+    cuidado_munon: [
+      {
+        id: 'guia-cuidado-munon',
+        grupo_dispositivo: 'protesis',
+        titulo: 'Cuidado del muñón',
+        contenido: 'El cuidado diario del muñón ayuda a prevenir irritaciones y mantiene una buena tolerancia al socket.',
+        pasos: ['Lava la piel con jabón neutro', 'Seca completamente antes de colocar el liner', 'Revisa enrojecimiento o heridas cada día'],
+        tips: ['Usa un espejo para revisar zonas difíciles', 'Reporta dolor persistente'],
+        advertencias: ['No uses la prótesis si hay heridas abiertas']
+      }
+    ],
     limpieza_protesis: [
       {
         id: 'guia-limpieza-dispositivo',
-        titulo: 'Limpieza del dispositivo',
-        contenido: 'La limpieza diaria ayuda a prevenir irritaciones y conserva el funcionamiento de órtesis y prótesis.',
+        grupo_dispositivo: 'protesis',
+        titulo: 'Limpieza de la prótesis',
+        contenido: 'La limpieza diaria ayuda a prevenir irritaciones y conserva el funcionamiento de la prótesis.',
         pasos: ['Retira el dispositivo si aplica', 'Limpia con paño húmedo y jabón neutro', 'Seca completamente antes de guardar o usar'],
         tips: ['Evita productos perfumados', 'Revisa desgaste mientras limpias'],
         advertencias: ['No uses calor directo', 'No sumerjas componentes no lavables']
       }
     ],
+    colocacion: [
+      {
+        id: 'guia-colocacion-protesis',
+        grupo_dispositivo: 'protesis',
+        titulo: 'Colocación segura de la prótesis',
+        contenido: 'Una colocación correcta mejora la estabilidad y reduce puntos de presión durante la marcha.',
+        pasos: ['Verifica que el liner esté limpio y seco', 'Alinea el socket sin pliegues', 'Comprueba suspensión y apoyo antes de caminar'],
+        tips: ['Haz la primera caminata del día con apoyo cercano'],
+        advertencias: ['Detente si sientes presión intensa o inestabilidad']
+      }
+    ],
     mantenimiento: [
       {
         id: 'guia-revision',
+        grupo_dispositivo: 'protesis',
         titulo: 'Revisión periódica',
-        contenido: 'Una revisión breve permite detectar desgaste, cambios de ajuste o piezas flojas.',
+        contenido: 'Una revisión breve permite detectar desgaste, cambios de ajuste o piezas flojas en la prótesis.',
         pasos: ['Observa correas, velcros y uniones', 'Verifica comodidad y estabilidad', 'Reporta cambios a tu especialista'],
         tips: ['Toma fotos si notas cambios', 'Lleva registro de molestias'],
         advertencias: ['No ajustes piezas técnicas sin indicación']
+      }
+    ],
+    limpieza_ortesis: [
+      {
+        id: 'guia-limpieza-ortesis',
+        grupo_dispositivo: 'ortesis',
+        titulo: 'Limpieza de la órtesis',
+        contenido: 'La órtesis debe mantenerse limpia y seca para evitar irritación y conservar su soporte.',
+        pasos: ['Retírala según la indicación del especialista', 'Limpia superficies con paño húmedo y jabón neutro', 'Deja secar completamente antes de usarla'],
+        tips: ['Revisa correas y velcros al limpiarla'],
+        advertencias: ['No uses calor directo para secarla']
+      }
+    ],
+    uso_ortesis: [
+      {
+        id: 'guia-uso-ortesis',
+        grupo_dispositivo: 'ortesis',
+        titulo: 'Uso gradual de la órtesis',
+        contenido: 'El tiempo de uso debe aumentar de forma progresiva para que la piel y la postura se adapten.',
+        pasos: ['Sigue el horario indicado', 'Revisa la piel después de cada uso', 'Ajusta correas sin bloquear la circulación'],
+        tips: ['Marca molestias por zona para explicarlas en consulta'],
+        advertencias: ['Suspende el uso si aparece dolor fuerte o adormecimiento']
+      }
+    ],
+    mantenimiento_ortesis: [
+      {
+        id: 'guia-mantenimiento-ortesis',
+        grupo_dispositivo: 'ortesis',
+        titulo: 'Revisión de soporte y ajuste',
+        contenido: 'Las órtesis requieren revisión de puntos de apoyo, correas y piezas de soporte.',
+        pasos: ['Observa deformaciones', 'Verifica que no haya bordes filosos', 'Consulta si cambia el ajuste'],
+        tips: ['Guarda la órtesis en posición estable'],
+        advertencias: ['No modifiques piezas rígidas sin indicación']
       }
     ]
   },
   faqs: [
     {
       id: 'faq-diferencia',
+      grupo_dispositivo: 'ortesis',
       pregunta: '¿Cuál es la diferencia entre órtesis y prótesis?',
       respuesta: 'Una órtesis apoya, corrige o protege una parte del cuerpo. Una prótesis reemplaza parcial o totalmente una parte ausente.'
     },
     {
       id: 'faq-ajuste',
+      grupo_dispositivo: 'protesis',
       pregunta: '¿Qué hago si mi dispositivo molesta?',
       respuesta: 'Suspende el uso si hay dolor importante, revisa la piel y contacta a tu especialista para valorar ajustes.'
+    },
+    {
+      id: 'faq-nivel-k',
+      grupo_dispositivo: 'protesis',
+      pregunta: '¿Cómo se relaciona el Nivel K con mi prótesis?',
+      respuesta: 'El Nivel K orienta la selección de componentes protésicos según tu movilidad, seguridad y objetivos funcionales.'
+    },
+    {
+      id: 'faq-tiempo-ortesis',
+      grupo_dispositivo: 'ortesis',
+      pregunta: '¿Cuánto tiempo debo usar mi órtesis?',
+      respuesta: 'El tiempo de uso depende del objetivo clínico y debe seguir la indicación de tu especialista.'
     }
   ]
 };
@@ -150,6 +221,7 @@ const Ortesis = () => {
   const { user } = useAuth();
 
   const [activeTab, setActiveTab] = useState('tipos');
+  const [seccionActiva, setSeccionActiva] = useState('protesis');
   const [activeSubTab, setActiveSubTab] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -178,13 +250,32 @@ const Ortesis = () => {
     { id: 'otro', nombre: 'Otro problema', icon: 'circle-help' }
   ];
 
-  const categoriasGuias = {
+  const seccionesDispositivo = {
+    protesis: {
+      titulo: 'Prótesis',
+      bannerTitulo: 'Centro de Información de Prótesis',
+      descripcion: 'Contenido exclusivo sobre niveles funcionales, tipos de prótesis, cuidados y problemas frecuentes.'
+    },
+    ortesis: {
+      titulo: 'Órtesis',
+      bannerTitulo: 'Centro de Información de Órtesis',
+      descripcion: 'Contenido exclusivo sobre tipos de órtesis, uso seguro, cuidado y seguimiento del ajuste.'
+    }
+  };
+
+  const categoriasGuiasProtesis = {
     'cuidado_munon': { nombre: 'Cuidado del Muñón', icon: 'footprints', color: '#10b981' },
     'limpieza_protesis': { nombre: 'Limpieza', icon: 'droplet', color: '#3b82f6' },
     'colocacion': { nombre: 'Colocación', icon: 'wrench', color: '#8b5cf6' },
     'mantenimiento': { nombre: 'Mantenimiento', icon: 'wrench', color: '#f59e0b' },
     'emergencias': { nombre: 'Alertas', icon: 'alert-triangle', color: '#ef4444' },
     'ejercicios': { nombre: 'Ejercicios', icon: 'zap', color: '#06b6d4' }
+  };
+
+  const categoriasGuiasOrtesis = {
+    'limpieza_ortesis': { nombre: 'Limpieza de órtesis', icon: 'droplet', color: '#3b82f6' },
+    'uso_ortesis': { nombre: 'Uso y ajuste', icon: 'settings', color: '#8b5cf6' },
+    'mantenimiento_ortesis': { nombre: 'Mantenimiento', icon: 'wrench', color: '#f59e0b' }
   };
 
   const categoriasProtesis = {
@@ -202,6 +293,43 @@ const Ortesis = () => {
   const categoriasDispositivos = {
     ...categoriasOrtesis,
     ...categoriasProtesis
+  };
+
+  const seccionActual = seccionesDispositivo[seccionActiva];
+  const categoriasGuias = seccionActiva === 'protesis' ? categoriasGuiasProtesis : categoriasGuiasOrtesis;
+  const categoriasDispositivosActivas = seccionActiva === 'protesis' ? categoriasProtesis : categoriasOrtesis;
+  const tiposDispositivosActivos = seccionActiva === 'protesis'
+    ? contenidoEducativo?.tipos_protesis || {}
+    : contenidoEducativo?.tipos_ortesis || {};
+  const faqsActivas = (contenidoEducativo?.faqs || []).filter((faq) => {
+    if (faq.grupo_dispositivo) {
+      return faq.grupo_dispositivo === seccionActiva;
+    }
+
+    const texto = `${faq.pregunta || ''} ${faq.respuesta || ''}`.toLowerCase();
+    const mencionaOrtesis = texto.includes('órtesis') || texto.includes('ortesis');
+    const mencionaProtesis = texto.includes('prótesis') || texto.includes('protesis');
+
+    if (seccionActiva === 'ortesis') {
+      return mencionaOrtesis && !mencionaProtesis;
+    }
+
+    return mencionaProtesis || !mencionaOrtesis;
+  });
+
+  const contarGuiasActivas = () => (
+    Object.keys(categoriasGuias).reduce((total, key) => (
+      total + (contenidoEducativo?.guias_cuidado?.[key]?.length || 0)
+    ), 0)
+  );
+
+  const cambiarSeccion = (seccion) => {
+    setSeccionActiva(seccion);
+    setActiveSubTab(null);
+    setSelectedItem(null);
+    if (seccion === 'ortesis' && activeTab === 'niveles-k') {
+      setActiveTab('inicio');
+    }
   };
 
   useEffect(() => {
@@ -286,7 +414,7 @@ const Ortesis = () => {
       case 'inicio':
         return renderInicio();
       case 'niveles-k':
-        return renderNivelesK();
+        return seccionActiva === 'protesis' ? renderNivelesK() : renderInicio();
       case 'tipos':
         return renderTiposProtesis();
       case 'cuidados':
@@ -309,36 +437,38 @@ const Ortesis = () => {
     <div className="inicio-section">
       <div className="welcome-banner">
         <div className="welcome-content">
-          <h2>Centro de Información de Órtesis y prótesis</h2>
-          <p>Todo lo que necesitas saber sobre dispositivos ortopédicos, cuidados y rehabilitación</p>
+          <h2>{seccionActual.bannerTitulo}</h2>
+          <p>{seccionActual.descripcion}</p>
         </div>
       </div>
 
       <div className="quick-actions">
-        <div className="action-card" onClick={() => setActiveTab('niveles-k')}>
-          <span className="action-icon"><LucideIcon name="bar-chart" size={24} /></span>
-          <h3>Niveles K</h3>
-          <p>Conoce tu clasificación funcional</p>
-        </div>
+        {seccionActiva === 'protesis' && (
+          <div className="action-card" onClick={() => setActiveTab('niveles-k')}>
+            <span className="action-icon"><LucideIcon name="bar-chart" size={24} /></span>
+            <h3>Niveles K</h3>
+            <p>Conoce tu clasificación funcional</p>
+          </div>
+        )}
         <div className="action-card" onClick={() => setActiveTab('tipos')}>
           <span className="action-icon"><LucideIcon name="accessibility" size={24} /></span>
-          <h3>Tipos de órtesis y prótesis</h3>
-          <p>Explora las opciones disponibles</p>
+          <h3>Tipos de {seccionActual.titulo}</h3>
+          <p>Explora opciones de {seccionActual.titulo.toLowerCase()}</p>
         </div>
         <div className="action-card" onClick={() => setActiveTab('cuidados')}>
           <span className="action-icon"><LucideIcon name="book-open" size={24} /></span>
           <h3>Guías de Cuidado</h3>
-          <p>Aprende a cuidar tu dispositivo</p>
+          <p>Aprende a cuidar tu {seccionActual.titulo.toLowerCase()}</p>
         </div>
         <div className="action-card" onClick={() => setActiveTab('mi-protesis')}>
           <span className="action-icon"><LucideIcon name="settings" size={24} /></span>
           <h3>Mi dispositivo</h3>
-          <p>Información de tu órtesis o prótesis</p>
+          <p>Información de tu dispositivo activo</p>
         </div>
       </div>
 
       {/* Nivel K del usuario si existe */}
-      {dispositivo?.nivel_k && (
+      {seccionActiva === 'protesis' && dispositivo?.nivel_k && (
         <div className="user-nivel-k-card">
           <div className="nivel-badge">
             <span className="nivel-letra">{dispositivo.nivel_k}</span>
@@ -361,27 +491,26 @@ const Ortesis = () => {
       <div className="content-summary">
         <h3>Contenido Disponible</h3>
         <div className="summary-grid">
-          <div className="summary-item">
-            <span className="summary-number">{contenidoEducativo?.niveles_k?.length || 5}</span>
-            <span className="summary-label">Niveles K</span>
-          </div>
+          {seccionActiva === 'protesis' && (
+            <div className="summary-item">
+              <span className="summary-number">{contenidoEducativo?.niveles_k?.length || 5}</span>
+              <span className="summary-label">Niveles K</span>
+            </div>
+          )}
           <div className="summary-item">
             <span className="summary-number">
-              {(
-                Object.values(contenidoEducativo?.tipos_ortesis || {}).flat().length +
-                Object.values(contenidoEducativo?.tipos_protesis || {}).flat().length
-              ) || 0}
+              {Object.values(tiposDispositivosActivos).flat().length || 0}
             </span>
-            <span className="summary-label">Tipos de dispositivos</span>
+            <span className="summary-label">Tipos de {seccionActual.titulo}</span>
           </div>
           <div className="summary-item">
             <span className="summary-number">
-              {Object.values(contenidoEducativo?.guias_cuidado || {}).flat().length || 0}
+              {contarGuiasActivas()}
             </span>
             <span className="summary-label">Guías de Cuidado</span>
           </div>
           <div className="summary-item">
-            <span className="summary-number">{contenidoEducativo?.faqs?.length || 0}</span>
+            <span className="summary-number">{faqsActivas.length}</span>
             <span className="summary-label">Preguntas Frecuentes</span>
           </div>
         </div>
@@ -483,23 +612,27 @@ const Ortesis = () => {
   const renderTiposProtesis = () => (
     <div className="tipos-section">
       <div className="section-header">
-        <h2>Tipos de órtesis y prótesis</h2>
-        <p>Conoce los dispositivos que apoyan, corrigen o reemplazan funciones corporales.</p>
+        <h2>Tipos de {seccionActual.titulo}</h2>
+        <p>
+          {seccionActiva === 'protesis'
+            ? 'Dispositivos que reemplazan parcial o totalmente una extremidad o segmento corporal.'
+            : 'Dispositivos que apoyan, corrigen, protegen o estabilizan una parte del cuerpo.'}
+        </p>
       </div>
 
       {!activeSubTab ? (
         <div className="dispositivos-info-sections">
-          <section className="dispositivo-info-section ortesis-info-section">
+          <section className={`dispositivo-info-section ${seccionActiva}-info-section`}>
             <div className="device-section-heading">
               <span className="device-section-icon"><LucideIcon name="accessibility" size={22} /></span>
               <div>
-                <h3>Información sobre Órtesis</h3>
-                <p>Dispositivos que apoyan, corrigen, protegen o estabilizan una parte del cuerpo.</p>
+                <h3>Información sobre {seccionActual.titulo}</h3>
+                <p>{seccionActual.descripcion}</p>
               </div>
             </div>
-            <h4>Tipos de Órtesis</h4>
+            <h4>Tipos de {seccionActual.titulo}</h4>
             <div className="categorias-grid">
-              {Object.entries(categoriasOrtesis).map(([key, cat]) => (
+              {Object.entries(categoriasDispositivosActivas).map(([key, cat]) => (
                 <button
                   key={key}
                   type="button"
@@ -510,35 +643,7 @@ const Ortesis = () => {
                   <h3>{cat.nombre}</h3>
                   <p>{cat.desc}</p>
                   <span className="tipos-count">
-                    {contenidoEducativo?.tipos_ortesis?.[key]?.length || 0} tipos
-                  </span>
-                </button>
-              ))}
-            </div>
-          </section>
-
-          <section className="dispositivo-info-section protesis-info-section">
-            <div className="device-section-heading">
-              <span className="device-section-icon"><LucideIcon name="accessibility" size={22} /></span>
-              <div>
-                <h3>Información sobre Prótesis</h3>
-                <p>Dispositivos que reemplazan parcial o totalmente una extremidad o segmento corporal.</p>
-              </div>
-            </div>
-            <h4>Tipos de Prótesis</h4>
-            <div className="categorias-grid">
-              {Object.entries(categoriasProtesis).map(([key, cat]) => (
-                <button
-                  key={key}
-                  type="button"
-                  className="categoria-card"
-                  onClick={() => setActiveSubTab(key)}
-                >
-                  <span className="categoria-icon"><LucideIcon name={cat.icon} size={24} /></span>
-                  <h3>{cat.nombre}</h3>
-                  <p>{cat.desc}</p>
-                  <span className="tipos-count">
-                    {contenidoEducativo?.tipos_protesis?.[key]?.length || 0} tipos
+                    {tiposDispositivosActivos?.[key]?.length || 0} tipos
                   </span>
                 </button>
               ))}
@@ -622,7 +727,7 @@ const Ortesis = () => {
           <h3><LucideIcon name={categoriasDispositivos[activeSubTab]?.icon} size={20} /> {categoriasDispositivos[activeSubTab]?.nombre}</h3>
 
           <div className="tipos-grid">
-            {(contenidoEducativo?.tipos_ortesis?.[activeSubTab] || contenidoEducativo?.tipos_protesis?.[activeSubTab] || []).map((tipo) => (
+            {(tiposDispositivosActivos?.[activeSubTab] || []).map((tipo) => (
               <div
                 key={tipo.id}
                 className="tipo-card"
@@ -648,8 +753,8 @@ const Ortesis = () => {
   const renderGuiasCuidado = () => (
     <div className="guias-section">
       <div className="section-header">
-        <h2>Guías de Cuidado</h2>
-        <p>Instrucciones detalladas para el cuidado de tu órtesis, prótesis o muñón</p>
+        <h2>Guías de Cuidado de {seccionActual.titulo}</h2>
+        <p>Instrucciones detalladas para el cuidado de tu {seccionActual.titulo.toLowerCase()}</p>
       </div>
 
       {!activeSubTab ? (
@@ -753,7 +858,7 @@ const Ortesis = () => {
     <div className="mi-protesis-section">
       <div className="section-header">
         <h2>Mi dispositivo</h2>
-        <p>Información sobre tu órtesis o prótesis actual</p>
+        <p>Información sobre tu {seccionActual.titulo.toLowerCase()} actual</p>
       </div>
 
       {dispositivo?.tiene_dispositivo ? (
@@ -826,9 +931,9 @@ const Ortesis = () => {
         <div className="no-dispositivo">
           <div className="empty-icon"><LucideIcon name="accessibility" size={32} /></div>
           <h3>Sin dispositivo registrado</h3>
-          <p>Tu especialista registrará la información de tu órtesis o prótesis cuando sea asignada.</p>
+          <p>Tu especialista registrará la información de tu {seccionActual.titulo.toLowerCase()} cuando sea asignada.</p>
           <button className="btn btn-outline" onClick={() => setActiveTab('tipos')}>
-            Explorar tipos de dispositivos
+            Explorar tipos de {seccionActual.titulo.toLowerCase()}
           </button>
         </div>
       )}
@@ -842,7 +947,7 @@ const Ortesis = () => {
     <div className="problemas-section">
       <div className="section-header">
         <h2>Problemas Reportados</h2>
-        <p>Historial de problemas y su estado</p>
+        <p>Historial de problemas de {seccionActual.titulo.toLowerCase()} y su estado</p>
       </div>
 
       <button
@@ -896,11 +1001,11 @@ const Ortesis = () => {
     <div className="faqs-section">
       <div className="section-header">
         <h2>Preguntas Frecuentes</h2>
-        <p>Respuestas a las dudas más comunes sobre órtesis y prótesis</p>
+        <p>Respuestas a las dudas más comunes sobre {seccionActual.titulo.toLowerCase()}</p>
       </div>
 
       <div className="faqs-list">
-        {contenidoEducativo?.faqs?.map((faq, idx) => (
+        {faqsActivas.map((faq, idx) => (
           <details key={faq.id || idx} className="faq-item">
             <summary>
               <span className="faq-icon"><LucideIcon name="circle-help" size={18} /></span>
@@ -924,6 +1029,29 @@ const Ortesis = () => {
         </div>
       </header>
 
+      <section className="device-switch-shell" aria-label="Selector de sección">
+        <div className="device-switch" role="tablist" aria-label="Tipo de dispositivo">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={seccionActiva === 'protesis'}
+            className={`device-switch-btn ${seccionActiva === 'protesis' ? 'active' : ''}`}
+            onClick={() => cambiarSeccion('protesis')}
+          >
+            Prótesis
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={seccionActiva === 'ortesis'}
+            className={`device-switch-btn ${seccionActiva === 'ortesis' ? 'active' : ''}`}
+            onClick={() => cambiarSeccion('ortesis')}
+          >
+            Órtesis
+          </button>
+        </div>
+      </section>
+
       <nav className="tabs-nav">
         <button
           className={`tab ${activeTab === 'inicio' ? 'active' : ''}`}
@@ -931,12 +1059,14 @@ const Ortesis = () => {
         >
           Inicio
         </button>
-        <button
-          className={`tab ${activeTab === 'niveles-k' ? 'active' : ''}`}
-          onClick={() => { setActiveTab('niveles-k'); setActiveSubTab(null); setSelectedItem(null); }}
-        >
-          Niveles K
-        </button>
+        {seccionActiva === 'protesis' && (
+          <button
+            className={`tab ${activeTab === 'niveles-k' ? 'active' : ''}`}
+            onClick={() => { setActiveTab('niveles-k'); setActiveSubTab(null); setSelectedItem(null); }}
+          >
+            Niveles K
+          </button>
+        )}
         <button
           className={`tab ${activeTab === 'tipos' ? 'active' : ''}`}
           onClick={() => { setActiveTab('tipos'); setActiveSubTab(null); setSelectedItem(null); }}

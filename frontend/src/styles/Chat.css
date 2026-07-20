@@ -415,6 +415,25 @@
   color: #6B6B6B;
 }
 
+.chat-contact-search {
+  margin-bottom: var(--spacing-sm, 8px);
+}
+
+.chat-contact-search label {
+  color: #6B6B6B;
+  font-size: var(--font-size-xs, 12px);
+  font-weight: 600;
+}
+
+.chat-contact-search input {
+  width: 100%;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid #D8DAD6;
+  border-radius: 8px;
+  color: #1A1A1A;
+  background: #FFFFFF;
+}
+
 .especialistas-lista {
   display: flex;
   flex-direction: column;
@@ -455,15 +474,25 @@
 }
 
 .esp-nombre {
-  flex: 1;
   font-weight: 500;
   font-size: var(--font-size-sm, 14px);
   color: #1A1A1A;
 }
 
+.esp-info {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
 .esp-area {
   font-size: var(--font-size-xs, 12px);
   color: #6B6B6B;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .no-especialistas {
@@ -690,6 +719,20 @@
 
 [data-theme="dark"] .nueva-conversacion-panel h4 {
   color: var(--text-secondary);
+}
+
+[data-theme="dark"] .chat-contact-search label {
+  color: var(--text-secondary);
+}
+
+[data-theme="dark"] .chat-contact-search input {
+  background: var(--surface-primary);
+  border-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .chat-contact-search input::placeholder {
+  color: var(--text-muted);
 }
 
 [data-theme="dark"] .especialista-item {

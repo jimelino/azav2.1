@@ -133,27 +133,6 @@ const AREAS_CONFIG = {
   },
 };
 
-const CHAT_ESPECIALISTAS_SIMULADOS = [
-  {
-    id: 'especialista-a',
-    usuario_id: 'especialista-a',
-    tipo: 'especialista',
-    inicial: 'D',
-    nombre: 'Dr. Especialista A',
-    subtitulo: 'Especialista en Nutricion',
-    avatarColor: '#607D8B'
-  },
-  {
-    id: 'especialista-b',
-    usuario_id: 'especialista-b',
-    tipo: 'especialista',
-    inicial: 'B',
-    nombre: 'Dra. Especialista B',
-    subtitulo: 'Fisioterapeuta',
-    avatarColor: '#2E7D32'
-  }
-];
-
 // ============================================================
 // Componente interno: Recetas Médicas (CRUD de medicamentos)
 // ============================================================
@@ -558,6 +537,9 @@ const EspecialistaDashboard = () => {
   const [nuevoMensaje, setNuevoMensaje] = useState('');
   const [loadingChat, setLoadingChat] = useState(false);
   const [otroUsuarioChat, setOtroUsuarioChat] = useState(null);
+  const [contactosChat, setContactosChat] = useState([]);
+  const [contactosSearchEmail, setContactosSearchEmail] = useState('');
+  const [loadingContactos, setLoadingContactos] = useState(false);
 
   // Estados para modal de nueva cita
   const [citaForm, setCitaForm] = useState({
@@ -581,25 +563,14 @@ const EspecialistaDashboard = () => {
   // Obtener área médica del especialista
   const areaCodigo = user?.area_medica || 'medicina';
   const areaConfig = AREAS_CONFIG[areaCodigo] || AREAS_CONFIG.medicina;
-  const esSesionEspecialista = user?.rol === 'especialista' || location.pathname.includes('/especialista');
-  const usuariosNuevaConversacion = esSesionEspecialista
-    ? [
-        ...CHAT_ESPECIALISTAS_SIMULADOS,
-        ...dashboardData.pacientes.map((paciente) => ({
-          ...paciente,
-          tipo: 'paciente',
-          inicial: paciente.nombre?.charAt(0) || 'P',
-          subtitulo: paciente.email,
-          avatarColor: areaConfig.color
-        }))
-      ]
-    : dashboardData.pacientes.map((paciente) => ({
-        ...paciente,
-        tipo: 'paciente',
-        inicial: paciente.nombre?.charAt(0) || 'P',
-        subtitulo: paciente.email,
-        avatarColor: areaConfig.color
-      }));
+  const usuariosNuevaConversacion = contactosChat.map((contacto) => ({
+    id: contacto.id,
+    usuario_id: contacto.id,
+    nombre: contacto.nombre || contacto.nombre_completo || 'Usuario',
+    email: contacto.email || '',
+    inicial: (contacto.nombre || contacto.nombre_completo || contacto.email || 'U').charAt(0),
+    avatarColor: areaConfig.color
+  }));
 
   useEffect(() => {
     // Determinar vista activa basada en la URL
@@ -629,6 +600,17 @@ const EspecialistaDashboard = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeView]);
+
+  useEffect(() => {
+    if (showModal !== 'nueva-conversacion') return;
+
+    const timeoutId = setTimeout(() => {
+      loadContactosChat(contactosSearchEmail);
+    }, 250);
+
+    return () => clearTimeout(timeoutId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showModal, contactosSearchEmail]);
 
   const loadData = async () => {
     setIsLoading(true);
@@ -807,6 +789,23 @@ const EspecialistaDashboard = () => {
   };
 
   // ===== FUNCIONES DE CHAT =====
+
+  const loadContactosChat = async (email = '') => {
+    if (!user?.id) return;
+
+    setLoadingContactos(true);
+    try {
+      const query = email.trim() ? `?email=${encodeURIComponent(email.trim())}` : '';
+      const response = await api.get(`/mensajes/contactos/${user.id}${query}`);
+      const contactos = response?.data?.contactos || response?.contactos || [];
+      setContactosChat(Array.isArray(contactos) ? contactos : []);
+    } catch (error) {
+      console.error('Error cargando contactos:', error);
+      setContactosChat([]);
+    } finally {
+      setLoadingContactos(false);
+    }
+  };
 
   // Cargar conversaciones del especialista
   const loadConversaciones = async () => {
@@ -2652,10 +2651,28 @@ const renderPorcionesNutricionales = () => {
                 Selecciona un usuario para iniciar una conversación:
               </p>
 
-              {usuariosNuevaConversacion.length === 0 ? (
+              <div className="contact-search-group">
+                <label htmlFor="contact-email-search">Buscar por correo electrónico</label>
+                <input
+                  id="contact-email-search"
+                  type="email"
+                  value={contactosSearchEmail}
+                  onChange={(e) => setContactosSearchEmail(e.target.value)}
+                  placeholder="correo@ejemplo.com"
+                  className="form-input"
+                  autoComplete="off"
+                />
+              </div>
+
+              {loadingContactos ? (
+                <div className="chat-loading">
+                  <div className="loading-spinner"></div>
+                  <p>Buscando usuarios...</p>
+                </div>
+              ) : usuariosNuevaConversacion.length === 0 ? (
                 <div className="empty-state">
                   <span className="empty-icon"><LucideIcon name="users" size={32} /></span>
-                  <p>No tienes usuarios asignados</p>
+                  <p>No se encontraron usuarios con ese correo</p>
                 </div>
               ) : (
                 <div className="pacientes-chat-list">
@@ -2678,8 +2695,8 @@ const renderPorcionesNutricionales = () => {
                       </div>
                       <div className="paciente-chat-info">
                         <span className="nombre">{contacto.nombre}</span>
-                        {contacto.subtitulo && (
-                          <span className="email">{contacto.subtitulo}</span>
+                        {contacto.email && (
+                          <span className="email">{contacto.email}</span>
                         )}
                       </div>
                     </button>
