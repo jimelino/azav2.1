@@ -1207,6 +1207,7 @@ route('PUT', '/api/nutricion/planes/generado/(\d+)', function($planId) {
     $controller->actualizarPlanGenerado($planId);
 }, ['auth']);
 
+
 // ===== RUTAS DE ESTUDIOS CLÍNICOS =====
 route('POST', '/api/estudios', function() {
     $controller = new EspecialistaController();

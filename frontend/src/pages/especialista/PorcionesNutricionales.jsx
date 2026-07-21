@@ -1,19 +1,34 @@
 import React, { useState } from 'react';
-import { ArrowLeft, Plus, Trash2, Scale } from 'lucide-react'; // Ajusta los iconos según uses en tu app
+import { ArrowLeft, Plus, Trash2, Scale } from 'lucide-react';
+import './EspecialistaDashboard.css';
 
-export default function PorcionesNutricionales({ especialistaId, pacientes, onBack }) {
+export default function PorcionesNutricionales({ especialistaId = 1, pacientes = [], onBack }) {
   const [pacienteSeleccionado, setPacienteSeleccionado] = useState('');
+  const [observaciones, setObservaciones] = useState('');
   const [porciones, setPorciones] = useState([]);
+  const [guardando, setGuardando] = useState(false);
 
-  // Lista base de grupos de alimentos (Sistema de Equivalentes)
+  // Lista base de grupos de alimentos
   const gruposAlimentos = [
     "Verduras", "Frutas", "Cereales sin grasa", "Cereales con grasa",
-    "Leguminosas", "AOA Muy Bajo en Grasa", "AOA Bajo en Grasa", 
-    "AOA Moderado en Grasa", "Leche Descremada", "Aceites sin Proteína"
+    "Leguminosas", "AOA Muy Bajo en Grasa", "AOA Bajo en Grasa",
+    "AOA Moderado en Grasa", "Leche Descremada", "Aceites sin Proteina"
   ];
 
+  // Obtener ID numérico según la lista (1 al 10)
+  const obtenerGrupoId = (nombre) => {
+    const idx = gruposAlimentos.indexOf(nombre);
+    return idx !== -1 ? idx + 1 : 1;
+  };
+
+  // Garantizar que la cuenta de pruebas paciente1@test.com esté presente si la lista viene vacía
+  const listaPacientes = [...pacientes];
+  if (!listaPacientes.some(p => p.email === 'paciente1@test.com')) {
+    listaPacientes.unshift({ id: 999, nombre: 'Paciente de Prueba', email: 'paciente1@test.com' });
+  }
+
   const agregarFila = () => {
-    setPorciones([...porciones, { grupo: gruposAlimentos[0], cantidad: 1 }]);
+    setPorciones([...porciones, { grupo: gruposAlimentos[0], cantidad: 1, opciones: '' }]);
   };
 
   const eliminarFila = (index) => {
@@ -26,123 +41,197 @@ export default function PorcionesNutricionales({ especialistaId, pacientes, onBa
     setPorciones(nuevasPorciones);
   };
 
+  const guardarPlan = async (e) => {
+    e.preventDefault();
+    if (!pacienteSeleccionado) {
+      alert("Por favor selecciona un paciente.");
+      return;
+    }
+    if (porciones.length === 0) {
+      alert("Agrega al menos un grupo de alimento.");
+      return;
+    }
+
+    setGuardando(true);
+
+    const payload = {
+      paciente_id: pacienteSeleccionado,
+      especialista_id: especialistaId,
+      observaciones,
+      grupos: porciones.map(p => ({
+        grupo_id: obtenerGrupoId(p.grupo),
+        numero_porciones: p.cantidad,
+        opciones_sugeridas: p.opciones
+      }))
+    };
+
+    try {
+      // Apunta directamente a la ubicación del controlador PHP
+      const res = await fetch('http://localhost/azav2.1/backend/src/Controllers/guardar_porciones.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      const data = await res.json();
+
+      if (data.status === 'success') {
+        alert("¡Plan de porciones guardado con éxito!");
+        setPorciones([]);
+        setObservaciones('');
+        setPacienteSeleccionado('');
+      } else {
+        alert("Error al guardar: " + (data.message || 'Error desconocido'));
+      }
+    } catch (error) {
+      console.error("Error al conectar con el backend PHP:", error);
+      alert("Error de conexión con el servidor PHP.");
+    } finally {
+      setGuardando(false);
+    }
+  };
+
   return (
-    <div className="p-6 max-w-5xl mx-auto space-y-6 animate-in fade-in duration-200">
-      {/* Encabezado */}
-      <div className="flex items-center gap-4 border-b border-gray-100 pb-4">
-        <button 
-          onClick={onBack}
-          className="p-2 hover:bg-gray-100 rounded-lg text-gray-500 transition-colors"
-        >
-          <ArrowLeft className="w-5 h-5" />
-        </button>
-        <div>
-          <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
-            <Scale className="w-6 h-6 text-green-600" />
-            Cálculo de Porciones y Equivalentes
-          </h1>
-          <p className="text-sm text-gray-500">Asigna los grupos de alimentos correspondientes para el día</p>
-        </div>
-      </div>
+    <div style={{ padding: '20px', maxWidth: '1000px', margin: '0 auto' }}>
+      {/* Botón Volver */}
+      <button 
+        onClick={onBack} 
+        style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'none', border: 'none', color: '#0066cc', cursor: 'pointer', fontWeight: 'bold', marginBottom: '15px' }}
+      >
+        <ArrowLeft size={20} /> Volver
+      </button>
 
-      {/* Selector de Paciente */}
-      <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm max-w-md">
-        <label className="block text-sm font-semibold text-gray-700 mb-1">Seleccionar Paciente</label>
-        <select 
-          value={pacienteSeleccionado}
-          onChange={(e) => setPacienteSeleccionado(e.target.value)}
-          className="w-full border border-gray-200 rounded-lg p-2.5 focus:ring-2 focus:ring-green-500 outline-none transition-all text-sm"
-        >
-          <option value="">-- Selecciona un paciente --</option>
-          {pacientes?.map((p) => (
-            <option key={p.id} value={p.id}>{p.nombre || p.nombre_completo}</option>
-          ))}
-        </select>
-      </div>
+      <div style={{ background: '#fff', padding: '24px', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}>
+        <h2 style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#005691', marginTop: 0 }}>
+          <Scale size={28} /> Cálculo de Porciones y Equivalentes
+        </h2>
+        <p style={{ color: '#666' }}>Asigna los grupos de alimentos y redacta las opciones recomendadas para el paciente.</p>
 
-      {/* Tabla de Porciones */}
-      <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-        <div className="p-4 bg-gray-50 border-b border-gray-100 flex justify-between items-center">
-          <span className="font-semibold text-gray-700 text-sm">Distribución de Equivalentes</span>
-          <button
-            onClick={agregarFila}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors shadow-sm"
-          >
-            <Plus className="w-4 h-4" /> Agregar Grupo
-          </button>
-        </div>
+        <form onSubmit={guardarPlan}>
+          {/* Selector de Paciente */}
+          <div style={{ marginBottom: '20px' }}>
+            <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '8px' }}>Seleccionar Paciente:</label>
+            <select
+              value={pacienteSeleccionado}
+              onChange={(e) => setPacienteSeleccionado(e.target.value)}
+              required
+              style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #ccc' }}
+            >
+              <option value="">-- Selecciona un paciente --</option>
+              {listaPacientes.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.nombre} ({p.email})
+                </option>
+              ))}
+            </select>
+          </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-gray-50 text-xs font-semibold text-gray-500 border-b border-gray-100">
-                <th className="p-4">Grupo de Alimento</th>
-                <th className="p-4 w-40">Número de Porciones</th>
-                <th className="p-4 w-20 text-center">Acciones</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-50">
-              {porciones.length === 0 ? (
-                <tr>
-                  <td colSpan="3" className="p-8 text-center text-sm text-gray-400">
-                    No has agregado grupos de alimentos todavía. Haz clic en "Agregar Grupo".
-                  </td>
-                </tr>
-              ) : (
-                porciones.map((fila, index) => (
-                  <tr key={index} className="hover:bg-gray-50/50 transition-colors">
-                    <td className="p-3">
-                      <select
-                        value={fila.grupo}
-                        onChange={(e) => manejarCambio(index, 'grupo', e.target.value)}
-                        className="w-full border border-gray-200 rounded-lg p-2 text-sm focus:ring-2 focus:ring-green-500 outline-none"
-                      >
-                        {gruposAlimentos.map((g) => (
-                          <option key={g} value={g}>{g}</option>
-                        ))}
-                      </select>
-                    </td>
-                    <td className="p-3">
-                      <input
-                        type="number"
-                        min="0"
-                        step="0.5"
-                        value={fila.cantidad}
-                        onChange={(e) => manejarCambio(index, 'cantidad', parseFloat(e.target.value) || 0)}
-                        className="w-full border border-gray-200 rounded-lg p-2 text-sm focus:ring-2 focus:ring-green-500 outline-none"
-                      />
-                    </td>
-                    <td className="p-3 text-center">
-                      <button
-                        onClick={() => eliminarFila(index)}
-                        className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </td>
+          {/* Distribución */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '20px 0 10px 0' }}>
+            <h3 style={{ margin: 0 }}>Distribución de Equivalentes</h3>
+            <button
+              type="button"
+              onClick={agregarFila}
+              style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#e6f0fa', color: '#0066cc', border: 'none', padding: '8px 16px', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}
+            >
+              <Plus size={18} /> Agregar Grupo
+            </button>
+          </div>
+
+          {porciones.length === 0 ? (
+            <div style={{ background: '#f8f9fa', padding: '20px', borderRadius: '8px', textAlign: 'center', color: '#666', border: '1px dashed #ccc' }}>
+              No has agregado grupos todavía. Haz clic en <strong>"+ Agregar Grupo"</strong>.
+            </div>
+          ) : (
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '10px' }}>
+                <thead>
+                  <tr style={{ background: '#f1f5f9', textAlign: 'left' }}>
+                    <th style={{ padding: '10px' }}>Grupo de Alimento</th>
+                    <th style={{ padding: '10px', width: '100px' }}>Porciones</th>
+                    <th style={{ padding: '10px' }}>Opciones / Ejemplos Sugeridos (Escribir)</th>
+                    <th style={{ padding: '10px', width: '60px' }}>Acciones</th>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+                </thead>
+                <tbody>
+                  {porciones.map((item, index) => (
+                    <tr key={index} style={{ borderBottom: '1px solid #eee' }}>
+                      <td style={{ padding: '8px' }}>
+                        <select
+                          value={item.grupo}
+                          onChange={(e) => manejarCambio(index, 'grupo', e.target.value)}
+                          style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #ccc' }}
+                        >
+                          {gruposAlimentos.map((g, i) => (
+                            <option key={i} value={g}>{g}</option>
+                          ))}
+                        </select>
+                      </td>
+                      <td style={{ padding: '8px' }}>
+                        <input
+                          type="number"
+                          step="0.5"
+                          min="0.5"
+                          value={item.cantidad}
+                          onChange={(e) => manejarCambio(index, 'cantidad', parseFloat(e.target.value) || 0)}
+                          style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #ccc' }}
+                        />
+                      </td>
+                      <td style={{ padding: '8px' }}>
+                        <textarea
+                          rows="2"
+                          placeholder="Ej: 1 manzana, 1/2 taza de fresas o espinacas..."
+                          value={item.opciones}
+                          onChange={(e) => manejarCambio(index, 'opciones', e.target.value)}
+                          style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #ccc', resize: 'vertical' }}
+                        />
+                      </td>
+                      <td style={{ padding: '8px', textAlign: 'center' }}>
+                        <button
+                          type="button"
+                          onClick={() => eliminarFila(index)}
+                          style={{ background: '#fee2e2', color: '#dc2626', border: 'none', padding: '8px', borderRadius: '6px', cursor: 'pointer' }}
+                        >
+                          <Trash2 size={18} />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
 
-        {/* Botones de acción inferiores */}
-        <div className="p-4 bg-gray-50 border-t border-gray-100 flex justify-end gap-3">
-          <button
-            onClick={onBack}
-            className="px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-          >
-            Cancelar
-          </button>
-          <button
-            disabled={!pacienteSeleccionado || porciones.length === 0}
-            onClick={() => alert('¡Porciones guardadas correctamente!')}
-            className="px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed rounded-lg transition-colors shadow-sm"
-          >
-            Guardar Porciones
-          </button>
-        </div>
+          {/* Observaciones */}
+          <div style={{ marginTop: '20px' }}>
+            <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '8px' }}>Observaciones Generales:</label>
+            <textarea
+              rows="3"
+              placeholder="Ej: Consumir las porciones de fruta antes de las 6:00 PM."
+              value={observaciones}
+              onChange={(e) => setObservaciones(e.target.value)}
+              style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #ccc' }}
+            />
+          </div>
+
+          {/* Botones */}
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '20px' }}>
+            <button
+              type="button"
+              onClick={onBack}
+              style={{ background: '#e2e8f0', border: 'none', padding: '10px 20px', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              disabled={guardando}
+              style={{ background: '#0066cc', color: '#fff', border: 'none', padding: '10px 24px', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}
+            >
+              {guardando ? 'Guardando...' : 'Guardar Porciones'}
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );

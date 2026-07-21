@@ -36,6 +36,7 @@ import api from '../../services/api';
 import '../../components/layouts/institutional.css';
 import './EspecialistaDashboard.css';
 import PorcionesNutricionales from './PorcionesNutricionales';
+import PorcionesNutricionales from './PorcionesNutricionales';
 
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Filler, Title, Tooltip, Legend);
@@ -2121,6 +2122,14 @@ const renderPorcionesNutricionales = () => {
     />
   );
 };
+{/* Si la vista seleccionada es porciones */}
+{vistaActual === 'porciones' && (
+  <PorcionesNutricionales
+    especialistaId={usuario?.id || 1}
+    pacientes={listaPacientes || []}
+    onBack={() => setVistaActual('menu')} 
+  />
+)}
 
   // Renderizar contenido según vista activa
   const renderContent = () => {
