@@ -36,7 +36,7 @@ import api from '../../services/api';
 import '../../components/layouts/institutional.css';
 import './EspecialistaDashboard.css';
 import PorcionesNutricionales from './PorcionesNutricionales';
-import PorcionesNutricionales from './PorcionesNutricionales';
+
 
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Filler, Title, Tooltip, Legend);
