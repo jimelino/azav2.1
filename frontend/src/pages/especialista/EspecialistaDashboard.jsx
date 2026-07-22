@@ -2134,7 +2134,6 @@ const EspecialistaDashboard = () => {
       case 'herramientas': return renderHerramientas();
           case 'porciones': return renderPorcionesNutricionales(); // ← Listo
           case 'mod-porciones-nutricionales': return renderPorcionesNutricionales();
-    default: return renderInicio();
     
 
       // Módulos de Medicina
