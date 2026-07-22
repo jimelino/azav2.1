@@ -2111,25 +2111,18 @@ const EspecialistaDashboard = () => {
     );
   };
   // Vista: Módulo de Porciones (Nutrición)
-const renderPorcionesNutricionales = () => {
-  const especialistaId = user?.especialista_id || user?.id;
+  // Vista: Módulo de Porciones (Nutrición)
+  const renderPorcionesNutricionales = () => {
+    const especialistaId = user?.especialista_id || user?.id;
 
-  return (
-    <PorcionesNutricionales
-      especialistaId={especialistaId}
-      pacientes={dashboardData.pacientes}
-      onBack={() => setActiveView('inicio')}
-    />
-  );
-};
-{/* Si la vista seleccionada es porciones */}
-{vistaActual === 'porciones' && (
-  <PorcionesNutricionales
-    especialistaId={usuario?.id || 1}
-    pacientes={listaPacientes || []}
-    onBack={() => setVistaActual('menu')} 
-  />
-)}
+    return (
+      <PorcionesNutricionales
+        especialistaId={especialistaId}
+        pacientes={dashboardData.pacientes}
+        onBack={() => setActiveView('inicio')}
+      />
+    );
+  };
 
   // Renderizar contenido según vista activa
   const renderContent = () => {
@@ -2139,6 +2132,10 @@ const renderPorcionesNutricionales = () => {
       case 'seguimientos': return renderSeguimientos();
       case 'mensajes': return renderMensajes();
       case 'herramientas': return renderHerramientas();
+          case 'porciones': return renderPorcionesNutricionales(); // ← Listo
+          case 'mod-porciones-nutricionales': return renderPorcionesNutricionales();
+    default: return renderInicio();
+    
 
       // Módulos de Medicina
       case 'mod-consultas': return renderModConsultas();
