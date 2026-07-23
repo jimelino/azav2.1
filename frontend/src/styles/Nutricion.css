@@ -2967,3 +2967,75 @@
   color: #94a3b8;
   margin-top: 8px;
 }
+
+/* Correcciones de Color para Azaria */
+.azaria-nutricion-wrapper {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+/* Forzar colores de texto e impedir que CSS global los vuelva azules */
+.azaria-title-white { color: #ffffff !important; font-size: 20px; font-weight: 700; margin: 0; }
+.azaria-subtitle-white { color: rgba(255, 255, 255, 0.85) !important; font-size: 12px; margin: 0; }
+.azaria-text-dark { color: #1e293b !important; }
+.azaria-text-white { color: #ffffff !important; }
+.azaria-text-green { color: #2e6930 !important; }
+.azaria-text-subtle { color: #64748b !important; }
+
+/* Tarjeta Estado Vacío */
+.azaria-empty-card {
+  background: white;
+  border-radius: 20px;
+  padding: 32px 20px;
+  text-align: center;
+  margin-top: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+.azaria-empty-icon {
+  font-size: 48px;
+  margin-bottom: 12px;
+}
+
+.azaria-empty-card h3 {
+  color: #1e293b !important;
+  margin: 0 0 8px 0;
+  font-size: 18px;
+}
+
+.azaria-empty-card p {
+  color: #64748b;
+  font-size: 13px;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Tarjeta Metas y Secciones */
+.azaria-card-white {
+  background: white;
+  border-radius: 20px;
+  padding: 16px;
+  margin-top: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+.azaria-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.azaria-section-header h3 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.no-alimentos-text {
+  color: #64748b;
+  font-size: 12px;
+  margin: 8px 0 0 0;
+  font-style: italic;
+}
