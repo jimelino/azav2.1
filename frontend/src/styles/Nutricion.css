@@ -2605,3 +2605,365 @@
   font-style: italic;
 }
 
+/* Estilos Azaria Nutrición */
+.azaria-nutricion-container {
+  max-width: 500px;
+  margin: 0 auto;
+  padding: 16px;
+  background-color: #f8fafc;
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+/* Header Verde Azaria */
+.azaria-header-card {
+  background-color: #2e6930;
+  color: white;
+  border-radius: 24px;
+  padding: 20px;
+  box-shadow: 0 4px 12px rgba(46, 105, 48, 0.2);
+}
+
+.azaria-header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.azaria-header-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.azaria-header-icon {
+  font-size: 24px;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 8px;
+  border-radius: 50%;
+}
+
+.azaria-header-title h1 {
+  font-size: 20px;
+  margin: 0;
+  font-weight: 700;
+}
+
+.azaria-header-title p {
+  margin: 0;
+  font-size: 12px;
+  opacity: 0.85;
+}
+
+.azaria-icon-btn {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: white;
+  padding: 8px;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+/* Date bar */
+.azaria-date-bar {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 16px;
+  margin-top: 16px;
+}
+
+.azaria-date-bar button {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.azaria-date-text {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+}
+
+.azaria-date-text strong {
+  font-size: 14px;
+}
+
+.azaria-date-text span {
+  font-size: 11px;
+  opacity: 0.9;
+}
+
+/* Metas Diarias */
+.azaria-metas-section {
+  background: white;
+  border-radius: 20px;
+  padding: 16px;
+  margin-top: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+.azaria-metas-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.azaria-metas-header h3 {
+  font-size: 15px;
+  margin: 0;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.azaria-nutriologo-tag {
+  font-size: 11px;
+  color: #64748b;
+}
+
+.azaria-metas-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.azaria-meta-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  border-radius: 12px;
+  background: #f8fafc;
+  border-left: 4px solid #cbd5e1;
+}
+
+.azaria-meta-card.border-red { border-left-color: #ef4444; }
+.azaria-meta-card.border-blue { border-left-color: #3b82f6; }
+.azaria-meta-card.border-orange { border-left-color: #f97316; }
+.azaria-meta-card.border-purple { border-left-color: #8b5cf6; }
+
+.azaria-meta-card h4 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.azaria-meta-card p {
+  margin: 0;
+  font-size: 11px;
+  color: #64748b;
+}
+
+/* Acordiones Oscuros de Equivalentes */
+.azaria-equivalentes-container {
+  background: #181d23;
+  border-radius: 20px;
+  padding: 16px;
+  margin-top: 16px;
+  color: white;
+}
+
+.azaria-eq-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.azaria-eq-title h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.azaria-group-accordion {
+  background: #232a32;
+  border-radius: 14px;
+  margin-bottom: 12px;
+  overflow: hidden;
+}
+
+.azaria-group-header {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: none;
+  border: none;
+  padding: 14px 16px;
+  color: white;
+  cursor: pointer;
+}
+
+.azaria-group-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.group-badge-icon {
+  background: rgba(255, 255, 255, 0.08);
+  padding: 6px;
+  border-radius: 50%;
+  font-size: 14px;
+}
+
+.azaria-group-info strong {
+  display: block;
+  font-size: 14px;
+  text-align: left;
+}
+
+.azaria-group-info p {
+  margin: 0;
+  font-size: 11px;
+  color: #94a3b8;
+  text-align: left;
+}
+
+.accordion-arrow {
+  font-size: 10px;
+  color: #94a3b8;
+  transition: transform 0.2s;
+}
+
+.accordion-arrow.open {
+  transform: rotate(180deg);
+}
+
+.azaria-group-body {
+  padding: 0 16px 12px 16px;
+}
+
+.azaria-alimento-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #181d23;
+  padding: 10px 14px;
+  border-radius: 10px;
+  margin-top: 8px;
+  font-size: 13px;
+}
+
+.alimento-name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dot-green {
+  width: 6px;
+  height: 6px;
+  background-color: #22c55e;
+  border-radius: 50%;
+}
+
+.alimento-porcion {
+  color: #22c55e;
+  font-weight: 600;
+  font-size: 12px;
+}
+
+/* Recomendaciones */
+.azaria-recomendaciones-card {
+  background: white;
+  border-radius: 16px;
+  padding: 16px;
+  margin-top: 16px;
+  border-left: 4px solid #2e6930;
+}
+
+.azaria-rec-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  color: #2e6930;
+}
+
+.azaria-rec-header h3 {
+  margin: 0;
+  font-size: 15px;
+}
+
+.azaria-rec-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.azaria-rec-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 12px;
+  color: #334155;
+  margin-bottom: 8px;
+}
+
+.azaria-rec-list .check-icon {
+  color: #2e6930;
+  font-weight: bold;
+}
+
+/* Recetas Sugeridas */
+.azaria-recetas-section {
+  margin-top: 20px;
+}
+
+.azaria-receta-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #64748b;
+  margin-bottom: 12px;
+}
+
+.azaria-receta-title h3 {
+  margin: 0;
+  font-size: 14px;
+}
+
+.azaria-receta-card {
+  background: #181d23;
+  border-radius: 16px;
+  overflow: hidden;
+  color: white;
+}
+
+.receta-img-wrapper img {
+  width: 100%;
+  height: 140px;
+  object-fit: cover;
+}
+
+.receta-content {
+  padding: 14px;
+}
+
+.receta-content h4 {
+  margin: 0 0 6px 0;
+  font-size: 15px;
+}
+
+.receta-tag {
+  background: #2e6930;
+  color: white;
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 6px;
+}
+
+.receta-macros {
+  display: flex;
+  gap: 12px;
+  font-size: 11px;
+  color: #94a3b8;
+  margin-top: 8px;
+}
