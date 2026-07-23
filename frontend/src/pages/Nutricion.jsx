@@ -18,10 +18,8 @@ const Nutricion = () => {
   const [showCalendar, setShowCalendar] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  // Obtener paciente_id con fallback al user.id
   const pacienteId = user?.paciente_id || user?.id;
 
-  // Datos del día
   const [resumenDia, setResumenDia] = useState({
     calorias: { consumidas: 0, objetivo: 2200 },
     carbohidratos: { consumidas: 0, objetivo: 250 },
@@ -29,14 +27,12 @@ const Nutricion = () => {
     grasas: { consumidas: 0, objetivo: 70 }
   });
 
-  // Agua
   const [agua, setAgua] = useState({
     consumida: 0,
     objetivo: 2.0,
     vasos: Array(8).fill(false)
   });
 
-  // Comidas del día
   const [comidas, setComidas] = useState({
     desayuno: { items: [], calorias: 0, objetivo: 550 },
     almuerzo: { items: [], calorias: 0, objetivo: 750 },
@@ -44,38 +40,12 @@ const Nutricion = () => {
     snacks: { items: [], calorias: 0, objetivo: 300 }
   });
 
-  // Historial
-  const [historialDias, setHistorialDias] = useState({});
-
-  // Plan nutricional asignado
   const [planAsignado, setPlanAsignado] = useState(null);
   const [loadingPlan, setLoadingPlan] = useState(false);
-
-  // Checklist de equivalentes
   const [equivalentesCheck, setEquivalentesCheck] = useState({});
-
-  // Recetas
   const [recetas, setRecetas] = useState([]);
-
-  // Modales
   const [showAddFood, setShowAddFood] = useState(false);
   const [tipoComidaActual, setTipoComidaActual] = useState('desayuno');
-  const [alimentosBusqueda, setAlimentosBusqueda] = useState('');
-  const [registrando, setRegistrando] = useState(false);
-
-  // Alimentos predefinidos
-  const alimentosPredefinidos = [
-    { id: 1, nombre: 'Avena con frutas', calorias: 250, carbohidratos: 45, proteinas: 8, grasas: 5 },
-    { id: 2, nombre: 'Huevos revueltos', calorias: 180, carbohidratos: 2, proteinas: 14, grasas: 12 },
-    { id: 3, nombre: 'Pan integral con aguacate', calorias: 220, carbohidratos: 25, proteinas: 5, grasas: 12 },
-    { id: 4, nombre: 'Yogurt natural con granola', calorias: 200, carbohidratos: 30, proteinas: 10, grasas: 5 },
-    { id: 5, nombre: 'Fruta picada (manzana, plátano)', calorias: 120, carbohidratos: 30, proteinas: 1, grasas: 0 },
-    { id: 6, nombre: 'Pollo a la plancha', calorias: 165, carbohidratos: 0, proteinas: 31, grasas: 4 },
-    { id: 7, nombre: 'Arroz integral', calorias: 130, carbohidratos: 28, proteinas: 3, grasas: 1 },
-    { id: 8, nombre: 'Ensalada verde', calorias: 50, carbohidratos: 10, proteinas: 2, grasas: 0 },
-    { id: 9, nombre: 'Sopa de verduras', calorias: 80, carbohidratos: 15, proteinas: 3, grasas: 1 },
-    { id: 10, nombre: 'Pescado al horno', calorias: 200, carbohidratos: 0, proteinas: 25, grasas: 10 }
-  ];
 
   useEffect(() => {
     cargarPlanNutricional();
@@ -100,16 +70,6 @@ const Nutricion = () => {
     }
   };
 
-  const handleCheckToggle = (key, value) => {
-    setEquivalentesCheck(prev => {
-      const updated = { ...prev, [key]: value };
-      if (value === 0) delete updated[key];
-      localStorage.setItem(getChecklistKey(), JSON.stringify(updated));
-      return updated;
-    });
-  };
-
-  // Sincronización automática de metas con el especialista
   useEffect(() => {
     if (planAsignado?.tiene_plan) {
       sincronizarObjetivosConPlan(planAsignado);
@@ -119,7 +79,6 @@ const Nutricion = () => {
   const cargarDatosDia = async () => {
     setLoading(true);
     const fechaStr = selectedDate.toISOString().split('T')[0];
-
     try {
       const response = await api.get(`/nutricion/resumen/${pacienteId}/${fechaStr}`);
       if (response.data) {
@@ -136,7 +95,6 @@ const Nutricion = () => {
 
   const sincronizarObjetivosConPlan = (plan = planAsignado) => {
     if (!plan?.tiene_plan) return;
-
     const caloriasTotales = Number(plan.calorias_diarias) || Number(plan.contenido?.totales?.calorias) || 2200;
     const proteinasTotales = Number(plan.proteinas_g) || Number(plan.contenido?.totales?.proteinas) || 120;
     const carbosTotales = Number(plan.carbohidratos_g) || Number(plan.contenido?.totales?.carbohidratos) || 250;
@@ -153,12 +111,10 @@ const Nutricion = () => {
 
   const cargarPlanNutricional = async () => {
     if (!pacienteId) return;
-
     setLoadingPlan(true);
     try {
       const response = await api.get(`/nutricion/plan-paciente/${pacienteId}`);
       let data = response?.data?.data || response?.data || response;
-
       if (data && data.tiene_plan) {
         setPlanAsignado(data);
         if (data.contenido?.comidas) {
@@ -176,82 +132,25 @@ const Nutricion = () => {
     }
   };
 
-  const agregarVasoAgua = () => {
-    const nuevosVasos = [...agua.vasos];
-    const indexVacio = nuevosVasos.findIndex(v => !v);
-    if (indexVacio !== -1) {
-      nuevosVasos[indexVacio] = true;
-      const nuevaConsumida = nuevosVasos.filter(v => v).length * 0.25;
-      setAgua({ ...agua, vasos: nuevosVasos, consumida: nuevaConsumida });
-    }
-  };
-
-  const quitarVasoAgua = () => {
-    const nuevosVasos = [...agua.vasos];
-    const indexLleno = nuevosVasos.map((v, i) => v ? i : -1).filter(i => i !== -1).pop();
-    if (indexLleno !== undefined) {
-      nuevosVasos[indexLleno] = false;
-      const nuevaConsumida = nuevosVasos.filter(v => v).length * 0.25;
-      setAgua({ ...agua, vasos: nuevosVasos, consumida: nuevaConsumida });
-    }
-  };
-
-  const abrirAgregarComida = (tipo) => {
-    setTipoComidaActual(tipo);
-    setAlimentosBusqueda('');
-    setShowAddFood(true);
-  };
-
-  const registrarAlimento = async (alimento) => {
-    setRegistrando(true);
-    try {
-      const nuevasComidas = { ...comidas };
-      nuevasComidas[tipoComidaActual].items.push(alimento);
-      nuevasComidas[tipoComidaActual].calorias += alimento.calorias;
-      setComidas(nuevasComidas);
-
-      setResumenDia(prev => ({
-        ...prev,
-        calorias: { ...prev.calorias, consumidas: prev.calorias.consumidas + alimento.calorias },
-        carbohidratos: { ...prev.carbohidratos, consumidas: prev.carbohidratos.consumidas + alimento.carbohidratos },
-        proteinas: { ...prev.proteinas, consumidas: prev.proteinas.consumidas + alimento.proteinas },
-        grasas: { ...prev.grasas, consumidas: prev.grasas.consumidas + alimento.grasas }
-      }));
-
-      setShowAddFood(false);
-    } catch (err) {
-      console.error('Error al registrar alimento:', err);
-    } finally {
-      setRegistrando(false);
-    }
-  };
-
   const formatearFecha = (fecha) => {
     const hoy = new Date();
     const ayer = new Date(hoy);
     ayer.setDate(ayer.getDate() - 1);
-
-    if (fecha.toDateString() === hoy.toDateString()) {
-      return 'Hoy';
-    } else if (fecha.toDateString() === ayer.toDateString()) {
-      return 'Ayer';
-    }
+    if (fecha.toDateString() === hoy.toDateString()) return 'Hoy';
+    if (fecha.toDateString() === ayer.toDateString()) return 'Ayer';
     return fecha.toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long' });
   };
 
   const cambiarDia = (dias) => {
     const nuevaFecha = new Date(selectedDate);
     nuevaFecha.setDate(nuevaFecha.getDate() + dias);
-    if (nuevaFecha <= new Date()) {
-      setSelectedDate(nuevaFecha);
-    }
+    if (nuevaFecha <= new Date()) setSelectedDate(nuevaFecha);
   };
 
   return (
     <div className="nutricion-page-original">
       <VoiceHelper currentModule="nutricion" />
 
-      {/* Header Estilo Imagen Original */}
       <header className="nutricion-top-header">
         <div className="header-title-row">
           <div className="header-icon-box"><LucideIcon name="apple" size={20} /></div>
@@ -265,82 +164,53 @@ const Nutricion = () => {
         </button>
       </header>
 
-      {/* Barra de Navegación de Fecha Estilo Imagen */}
       <div className="nutricion-date-bar">
         <button className="date-nav-arrow" onClick={() => cambiarDia(-1)}>‹</button>
         <div className="date-center-display" onClick={() => setShowCalendar(true)}>
           <span className="date-main-label">{formatearFecha(selectedDate)}</span>
           <span className="date-sub-label">{selectedDate.toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long' })}</span>
         </div>
-        <button 
-          className="date-nav-arrow" 
-          onClick={() => cambiarDia(1)}
-          disabled={selectedDate.toDateString() === new Date().toDateString()}
-        >
-          ›
-        </button>
+        <button className="date-nav-arrow" onClick={() => cambiarDia(1)} disabled={selectedDate.toDateString() === new Date().toDateString()}>›</button>
       </div>
 
-      {/* Pestañas de Navegación Originales con el Apartado de Plan de Porciones Nutricionales al lado */}
       <div className="nutricion-tabs-original">
-        <button 
-          className={`tab-btn-orig ${activeTab === 'diario' ? 'active' : ''}`}
-          onClick={() => setActiveTab('diario')}
-        >
-          Diario
-        </button>
-        <button 
-          className={`tab-btn-orig ${activeTab === 'plan_porciones' ? 'active' : ''}`}
-          onClick={() => setActiveTab('plan_porciones')}
-        >
-          Plan de Porciones Nutricionales
-        </button>
-        <button 
-          className={`tab-btn-orig ${activeTab === 'recetas' ? 'active' : ''}`}
-          onClick={() => setActiveTab('recetas')}
-        >
-          Mi Plan / Recetas
-        </button>
-        <button 
-          className={`tab-btn-orig ${activeTab === 'peso' ? 'active' : ''}`}
-          onClick={() => setActiveTab('peso')}
-        >
-          Mi Peso
-        </button>
+        <button className={`tab-btn-orig ${activeTab === 'diario' ? 'active' : ''}`} onClick={() => setActiveTab('diario')}>Diario</button>
+        <button className={`tab-btn-orig ${activeTab === 'plan_porciones' ? 'active' : ''}`} onClick={() => setActiveTab('plan_porciones')}>Plan de Porciones Nutricionales</button>
+        <button className={`tab-btn-orig ${activeTab === 'recetas' ? 'active' : ''}`} onClick={() => setActiveTab('recetas')}>Mi Plan / Recetas</button>
+        <button className={`tab-btn-orig ${activeTab === 'peso' ? 'active' : ''}`} onClick={() => setActiveTab('peso')}>Mi Peso</button>
       </div>
 
       <div className="nutricion-main-content">
         {activeTab === 'diario' && (
           <>
-            {/* Metas Diarias idénticas a la imagen de referencia */}
             <section className="metas-diarias-section">
               <div className="metas-header-row">
                 <h3><LucideIcon name="target" size={16} /> Metas Diarias</h3>
-                <span className="nutriologo-badge-tag">Nutriólogo asignado</span>
+                <span className="nutriologo-badge-tag">{planAsignado?.especialista_nombre ? planAsignado.especialista_nombre : 'Nutriólogo asignado'}</span>
               </div>
               <div className="metas-grid-cards">
-                <div className="meta-card-item calorias">
+                <div className="meta-card-item">
                   <div className="meta-card-icon"><LucideIcon name="flame" size={18} /></div>
                   <div className="meta-card-data">
                     <span className="meta-num">{resumenDia.calorias.objetivo}</span>
                     <span className="meta-lbl">Calorías</span>
                   </div>
                 </div>
-                <div className="meta-card-item proteinas">
+                <div className="meta-card-item">
                   <div className="meta-card-icon"><LucideIcon name="beef" size={18} /></div>
                   <div className="meta-card-data">
                     <span className="meta-num">{resumenDia.proteinas.objetivo}g</span>
                     <span className="meta-lbl">Proteínas</span>
                   </div>
                 </div>
-                <div className="meta-card-item carbos">
+                <div className="meta-card-item">
                   <div className="meta-card-icon"><LucideIcon name="wheat" size={18} /></div>
                   <div className="meta-card-data">
                     <span className="meta-num">{resumenDia.carbohidratos.objetivo}g</span>
                     <span className="meta-lbl">Carbohidratos</span>
                   </div>
                 </div>
-                <div className="meta-card-item grasas">
+                <div className="meta-card-item">
                   <div className="meta-card-icon"><LucideIcon name="droplet" size={18} /></div>
                   <div className="meta-card-data">
                     <span className="meta-num">{resumenDia.grasas.objetivo}g</span>
@@ -350,7 +220,6 @@ const Nutricion = () => {
               </div>
             </section>
 
-            {/* Apartado Alimentos Equivalentes idéntico en diseño y estructura */}
             <section className="alimentos-equivalentes-container">
               <div className="equivalentes-title-bar">
                 <LucideIcon name="apple" size={18} />
@@ -386,7 +255,7 @@ const Nutricion = () => {
                             ))
                           ) : (
                             <div className="equiv-food-row-item">
-                              <span className="equiv-food-name-dot">· Sin alimentos registrados en este grupo</span>
+                              <span className="equiv-food-name-dot">· Sin alimentos registrados</span>
                             </div>
                           )}
                         </div>
@@ -395,7 +264,6 @@ const Nutricion = () => {
                   })}
                 </div>
               ) : (
-                /* Diseño estático por defecto idéntico a la captura si no hay plan personalizado */
                 <div className="equivalentes-accordion-list">
                   <details className="equiv-group-accordion" open>
                     <summary className="equiv-group-header">
@@ -409,78 +277,15 @@ const Nutricion = () => {
                       </div>
                     </summary>
                     <div className="equiv-group-content-list">
-                      <div className="equiv-food-row-item">
-                        <span className="equiv-food-name-dot">· Manzana</span>
-                        <span className="equiv-food-porcion-badge">1 porción</span>
-                      </div>
-                      <div className="equiv-food-row-item">
-                        <span className="equiv-food-name-dot">· Plátano</span>
-                        <span className="equiv-food-porcion-badge">1 porción</span>
-                      </div>
-                      <div className="equiv-food-row-item">
-                        <span className="equiv-food-name-dot">· Papaya</span>
-                        <span className="equiv-food-porcion-badge">1 porción</span>
-                      </div>
-                    </div>
-                  </details>
-
-                  <details className="equiv-group-accordion">
-                    <summary className="equiv-group-header">
-                      <div className="equiv-group-left">
-                        <span className="equiv-group-dot-icon"><LucideIcon name="circle" size={10} /></span>
-                        <span className="equiv-group-title-text">Cereales</span>
-                      </div>
-                      <div className="equiv-group-right">
-                        <span className="equiv-group-count-sub">5 equivalentes</span>
-                        <LucideIcon name="chevron-down" size={16} className="equiv-chevron-icon" />
-                      </div>
-                    </summary>
-                  </details>
-
-                  <details className="equiv-group-accordion">
-                    <summary className="equiv-group-header">
-                      <div className="equiv-group-left">
-                        <span className="equiv-group-dot-icon"><LucideIcon name="circle" size={10} /></span>
-                        <span className="equiv-group-title-text">Proteínas</span>
-                      </div>
-                      <div className="equiv-group-right">
-                        <span className="equiv-group-count-sub">4 equivalentes</span>
-                        <LucideIcon name="chevron-down" size={16} className="equiv-chevron-icon" />
-                      </div>
-                    </summary>
-                  </details>
-
-                  <details className="equiv-group-accordion" open>
-                    <summary className="equiv-group-header">
-                      <div className="equiv-group-left">
-                        <span className="equiv-group-dot-icon"><LucideIcon name="circle" size={10} /></span>
-                        <span className="equiv-group-title-text">Grasas</span>
-                      </div>
-                      <div className="equiv-group-right">
-                        <span className="equiv-group-count-sub">2 equivalentes</span>
-                        <LucideIcon name="chevron-down" size={16} className="equiv-chevron-icon" />
-                      </div>
-                    </summary>
-                    <div className="equiv-group-content-list">
-                      <div className="equiv-food-row-item">
-                        <span className="equiv-food-name-dot">· Aguacate</span>
-                        <span className="equiv-food-porcion-badge">1 porción</span>
-                      </div>
-                      <div className="equiv-food-row-item">
-                        <span className="equiv-food-name-dot">· Nueces</span>
-                        <span className="equiv-food-porcion-badge">1 porción</span>
-                      </div>
-                      <div className="equiv-food-row-item">
-                        <span className="equiv-food-name-dot">· Aceite de oliva</span>
-                        <span className="equiv-food-porcion-badge">1 porción</span>
-                      </div>
+                      <div className="equiv-food-row-item"><span className="equiv-food-name-dot">· Manzana</span><span className="equiv-food-porcion-badge">1 porción</span></div>
+                      <div className="equiv-food-row-item"><span className="equiv-food-name-dot">· Plátano</span><span className="equiv-food-porcion-badge">1 porción</span></div>
+                      <div className="equiv-food-row-item"><span className="equiv-food-name-dot">· Papaya</span><span className="equiv-food-porcion-badge">1 porción</span></div>
                     </div>
                   </details>
                 </div>
               )}
             </section>
 
-            {/* Sección Recomendaciones idéntica a la imagen */}
             <section className="recomendaciones-box-card">
               <div className="recomendaciones-title-row">
                 <LucideIcon name="check-square" size={16} />
@@ -502,7 +307,6 @@ const Nutricion = () => {
               </ul>
             </section>
 
-            {/* Recetas sugeridas idénticas a la imagen de referencia */}
             <section className="recetas-sugeridas-section">
               <div className="recetas-sug-title-row">
                 <LucideIcon name="search" size={16} />
@@ -525,80 +329,64 @@ const Nutricion = () => {
           </>
         )}
 
-        {/* Apartado Plan de Porciones Nutricionales (funcional con menú desplegable sincronizado con el especialista) */}
+        {/* Apartado Dinámico: Plan de Porciones Nutricionales sincronizado */}
         {activeTab === 'plan_porciones' && (
           <div className="plan-porciones-tab-container">
             {planAsignado?.tiene_plan ? (
               <>
-                <section className="plan-resumen-section">
-                  <div className="plan-resumen-header">
-                    <h2><LucideIcon name="clipboard-list" size={18} /> {planAsignado.nombre || 'Plan de Porciones Nutricionales'}</h2>
-                    {planAsignado.especialista_nombre && (
-                      <span className="plan-especialista">
-                        <LucideIcon name="stethoscope" size={14} /> {planAsignado.especialista_nombre}
-                      </span>
-                    )}
+                <section className="metas-diarias-section">
+                  <div className="metas-header-row">
+                    <h3><LucideIcon name="clipboard-list" size={16} /> {planAsignado.nombre || 'Plan Nutricional Asignado'}</h3>
+                    <span className="nutriologo-badge-tag">{planAsignado.especialista_nombre || 'Especialista'}</span>
                   </div>
-
-                  <div className="plan-macros-grid">
-                    <div className="plan-macro-card calorias">
-                      <div className="plan-macro-icon"><LucideIcon name="flame" size={18} /></div>
-                      <div className="plan-macro-info">
-                        <span className="plan-macro-value">{resumenDia.calorias.objetivo}</span>
-                        <span className="plan-macro-label">kcal/día</span>
+                  <div className="metas-grid-cards">
+                    <div className="meta-card-item">
+                      <div className="meta-card-icon"><LucideIcon name="flame" size={18} /></div>
+                      <div className="meta-card-data">
+                        <span className="meta-num">{resumenDia.calorias.objetivo}</span>
+                        <span className="meta-lbl">Calorías</span>
                       </div>
                     </div>
-                    <div className="plan-macro-card proteinas">
-                      <div className="plan-macro-icon"><LucideIcon name="beef" size={18} /></div>
-                      <div className="plan-macro-info">
-                        <span className="plan-macro-value">{resumenDia.proteinas.objetivo}</span>
-                        <span className="plan-macro-label">g proteínas</span>
+                    <div className="meta-card-item">
+                      <div className="meta-card-icon"><LucideIcon name="beef" size={18} /></div>
+                      <div className="meta-card-data">
+                        <span className="meta-num">{resumenDia.proteinas.objetivo}g</span>
+                        <span className="meta-lbl">Proteínas</span>
                       </div>
                     </div>
-                    <div className="plan-macro-card carbos">
-                      <div className="plan-macro-icon"><LucideIcon name="wheat" size={18} /></div>
-                      <div className="plan-macro-info">
-                        <span className="plan-macro-value">{resumenDia.carbohidratos.objetivo}</span>
-                        <span className="plan-macro-label">g carbohidratos</span>
+                    <div className="meta-card-item">
+                      <div className="meta-card-icon"><LucideIcon name="wheat" size={18} /></div>
+                      <div className="meta-card-data">
+                        <span className="meta-num">{resumenDia.carbohidratos.objetivo}g</span>
+                        <span className="meta-lbl">Carbohidratos</span>
                       </div>
                     </div>
-                    <div className="plan-macro-card grasas">
-                      <div className="plan-macro-icon"><LucideIcon name="droplet" size={18} /></div>
-                      <div className="plan-macro-info">
-                        <span className="plan-macro-value">{resumenDia.grasas.objetivo}</span>
-                        <span className="plan-macro-label">g grasas</span>
+                    <div className="meta-card-item">
+                      <div className="meta-card-icon"><LucideIcon name="droplet" size={18} /></div>
+                      <div className="meta-card-data">
+                        <span className="meta-num">{resumenDia.grasas.objetivo}g</span>
+                        <span className="meta-lbl">Grasas</span>
                       </div>
                     </div>
                   </div>
                 </section>
 
-                {/* Menú desplegable detallado por tiempo de comida e indicador de porciones */}
                 {planAsignado.contenido?.cuadro_equivalentes?.grupos?.length > 0 && (() => {
                   const cuadro = planAsignado.contenido.cuadro_equivalentes;
                   const tiempos = cuadro.tiempos || [];
                   const grupos = cuadro.grupos || [];
                   const gruposAlimentos = planAsignado.contenido?.grupos_alimentos || [];
-                  const ICONOS_TIEMPO = {
-                    'Desayuno': 'sunrise', 'Colación 1': 'apple', 'Comida': 'utensils',
-                    'Colación 2': 'cookie', 'Cena': 'moon'
-                  };
-
-                  const getAlimentosForGrupo = (nombreGrupo) => {
-                    const grupoData = gruposAlimentos.find(g => g.nombre === nombreGrupo);
-                    if (!grupoData?.alimentos?.length) return [];
-                    return limpiarAlimentos(grupoData.alimentos);
-                  };
 
                   return (
                     <section className="alimentos-equivalentes-container">
                       <div className="equivalentes-title-bar">
-                        <LucideIcon name="clipboard-list" size={18} />
-                        <h2>Desglose de Porciones por Comida</h2>
+                        <LucideIcon name="apple" size={18} />
+                        <h2>Distribución de Porciones por Comida</h2>
                       </div>
                       <div className="equivalentes-accordion-list">
                         {tiempos.map((tiempo, tIdx) => {
                           const gruposActivos = grupos
-                            .map((g, gIdx) => ({ nombre: g.nombre, cantidad: g.equivalentes?.[tIdx] || 0 }))
+                            .map((g) => ({ nombre: g.nombre, cantidad: g.equivalentes?.[tIdx] || 0 }))
                             .filter(g => g.cantidad > 0);
 
                           if (gruposActivos.length === 0) return null;
@@ -607,7 +395,7 @@ const Nutricion = () => {
                             <details key={tIdx} className="equiv-group-accordion" open={tIdx === 0}>
                               <summary className="equiv-group-header">
                                 <div className="equiv-group-left">
-                                  <span className="equiv-group-dot-icon"><LucideIcon name={ICONOS_TIEMPO[tiempo] || 'utensils'} size={14} /></span>
+                                  <span className="equiv-group-dot-icon"><LucideIcon name="circle" size={10} /></span>
                                   <span className="equiv-group-title-text">{tiempo}</span>
                                 </div>
                                 <div className="equiv-group-right">
@@ -617,17 +405,18 @@ const Nutricion = () => {
                               </summary>
                               <div className="equiv-group-content-list">
                                 {gruposActivos.map((g, i) => {
-                                  const alimentos = getAlimentosForGrupo(g.nombre);
+                                  const grupoData = gruposAlimentos.find(ga => ga.nombre === g.nombre);
+                                  const alimentos = limpiarAlimentos(grupoData?.alimentos || []);
                                   return (
-                                    <div key={i} className="equiv-food-row-item" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '4px' }}>
-                                      <div style={{ display: 'flex', justifyContent: 'space-width', width: '100%', justifyContent: 'space-between' }}>
+                                    <div key={i} className="equiv-food-row-item" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '4px', padding: '8px' }}>
+                                      <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
                                         <span className="equiv-food-name-dot"><strong>{g.nombre}</strong></span>
                                         <span className="equiv-food-porcion-badge">{g.cantidad} porciones</span>
                                       </div>
                                       {alimentos.length > 0 && (
-                                        <div style={{ paddingLeft: '12px', fontSize: '12px', color: '#8B949E' }}>
+                                        <div style={{ paddingLeft: '8px', fontSize: '11px', color: '#8B949E', display: 'flex', flexDirection: 'column', gap: '2px' }}>
                                           {alimentos.slice(0, 3).map((a, aIdx) => (
-                                            <div key={aIdx}>· {a.nombre} ({a.equivalente || '1 porción'})</div>
+                                            <span key={aIdx}>· {a.nombre} ({a.equivalente || '1 porción'})</span>
                                           ))}
                                         </div>
                                       )}
@@ -642,12 +431,28 @@ const Nutricion = () => {
                     </section>
                   );
                 })()}
+
+                <section className="recomendaciones-box-card">
+                  <div className="recomendaciones-title-row">
+                    <LucideIcon name="check-square" size={16} />
+                    <h2>Recomendaciones del Especialista</h2>
+                  </div>
+                  <ul className="recomendaciones-check-list">
+                    {planAsignado.contenido?.recomendaciones?.length > 0 ? (
+                      planAsignado.contenido.recomendaciones.map((rec, idx) => (
+                        <li key={idx}><span className="check-mark-icon">✓</span> {rec}</li>
+                      ))
+                    ) : (
+                      <li><span className="check-mark-icon">✓</span> Sigue las porciones indicadas por tu especialista.</li>
+                    )}
+                  </ul>
+                </section>
               </>
             ) : (
-              <section className="plan-empty-section" style={{ textAlign: 'center', padding: '40px', background: '#161B22', borderRadius: '12px', color: '#8B949E' }}>
-                <LucideIcon name="salad" size={40} />
-                <h3 style={{ color: '#E6EDF3', marginTop: '12px' }}>Sin plan de porciones asignado</h3>
-                <p>Tu especialista asignará las calorías, grasas, porciones y recomendaciones desde su panel para reflejarse aquí automáticamente.</p>
+              <section className="alimentos-equivalentes-container" style={{ textAlign: 'center', padding: '30px' }}>
+                <LucideIcon name="salad" size={36} style={{ color: '#8B949E', marginBottom: '10px' }} />
+                <h3 style={{ color: '#E6EDF3', fontSize: '15px', margin: '0 0 6px 0' }}>Sin plan de porciones asignado</h3>
+                <p style={{ color: '#8B949E', fontSize: '12px', margin: 0 }}>Tu nutriólogo asignará las porciones y calorías desde su panel para reflejarse aquí automáticamente.</p>
               </section>
             )}
           </div>
@@ -656,14 +461,13 @@ const Nutricion = () => {
         {activeTab === 'recetas' && (
           <>
             {loadingPlan ? (
-              <div className="loading-state"><div className="loading-spinner"></div><p>Cargando tu plan nutricional...</p></div>
+              <div style={{ textAlign: 'center', padding: '30px', color: '#8B949E' }}>Cargando plan nutricional...</div>
             ) : planAsignado?.tiene_plan ? (
               <VistaEquivalentes plan={planAsignado} contenido={planAsignado.contenido} pacienteView />
             ) : (
-              <section className="plan-empty-section" style={{ textAlign: 'center', padding: '40px', background: '#161B22', borderRadius: '12px', color: '#8B949E' }}>
-                <LucideIcon name="clipboard-list" size={40} />
-                <h3 style={{ color: '#E6EDF3', marginTop: '12px' }}>Sin plan nutricional asignado</h3>
-                <p>Tu nutriólogo te asignará un plan personalizado para apoyar tu recuperación.</p>
+              <section className="alimentos-equivalentes-container" style={{ textAlign: 'center', padding: '30px' }}>
+                <h3 style={{ color: '#E6EDF3', fontSize: '15px' }}>Sin plan nutricional asignado</h3>
+                <p style={{ color: '#8B949E', fontSize: '12px' }}>Tu nutriólogo te asignará recetas y equivalentes personalizados.</p>
               </section>
             )}
           </>
@@ -673,26 +477,6 @@ const Nutricion = () => {
           <SeguimientoPeso pacienteId={pacienteId} onBack={() => setActiveTab('diario')} />
         )}
       </div>
-
-      {/* Modal Calendario */}
-      {showCalendar && (
-        <div className="modal-overlay" onClick={() => setShowCalendar(false)}>
-          <div className="modal-content calendar-modal" onClick={e => e.stopPropagation()}>
-            <div className="calendar-header">
-              <button className="modal-close" onClick={() => setShowCalendar(false)}>×</button>
-              <h2>{selectedDate.toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' })}</h2>
-            </div>
-            <div className="calendar-nav">
-              <button onClick={() => setSelectedDate(new Date(selectedDate.getFullYear(), selectedDate.getMonth() - 1, 1))}>‹</button>
-              <span>{selectedDate.toLocaleDateString('es-MX', { month: 'long', year: 'numeric' })}</span>
-              <button onClick={() => setSelectedDate(new Date(selectedDate.getFullYear(), selectedDate.getMonth() + 1, 1))}>›</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      <AccessibilityPanel />
-      <AccessibilityFAB />
     </div>
   );
 };
