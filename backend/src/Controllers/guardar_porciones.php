@@ -1,11 +1,15 @@
 <?php
+// Limpiar cualquier salida previa o advertencia
+ob_start();
+ob_clean();
+
 // Permitir peticiones desde cualquier origen (CORS)
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With");
 header("Access-Control-Allow-Methods: POST, GET, OPTIONS");
 header("Content-Type: application/json; charset=UTF-8");
 
-// Evitar que warnings o notices de PHP rompan la respuesta JSON
+// Desactivar impresión de errores/warnings de PHP en pantalla
 error_reporting(0);
 ini_set('display_errors', 0);
 
@@ -15,7 +19,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit();
 }
 
-// Intentar incluir la conexión a la BD en diferentes rutas posibles para evitar errores en Railway/Local
+// Intentar incluir la conexión a la BD
 if (file_exists(__DIR__ . '/../../config/config.inc.php')) {
     require_once __DIR__ . '/../../config/config.inc.php';
 } elseif (file_exists(__DIR__ . '/../config/config.inc.php')) {
@@ -31,6 +35,7 @@ if (!isset($conn) && isset($conexion)) {
 
 // Verificar que la conexión a la BD esté disponible
 if (!isset($conn) || !$conn) {
+    ob_clean();
     http_response_code(500);
     echo json_encode(["status" => "error", "message" => "Error de conexión a la base de datos."]);
     exit();
@@ -39,6 +44,7 @@ if (!isset($conn) || !$conn) {
 $input = json_decode(file_get_contents("php://input"), true);
 
 if (!$input) {
+    ob_clean();
     echo json_encode(["status" => "error", "message" => "Datos de entrada no válidos"]);
     exit();
 }
@@ -49,6 +55,7 @@ $observaciones   = isset($input['observaciones']) ? trim($input['observaciones']
 $grupos          = isset($input['grupos']) && is_array($input['grupos']) ? $input['grupos'] : [];
 
 if ($paciente_id === 0 || empty($grupos)) {
+    ob_clean();
     echo json_encode(["status" => "error", "message" => "Selecciona un paciente y al menos un grupo de alimento"]);
     exit();
 }
@@ -94,6 +101,7 @@ try {
     }
     $stmtDetail->close();
 
+    ob_clean();
     echo json_encode([
         "status" => "success",
         "message" => "Plan de porciones guardado correctamente",
@@ -101,6 +109,7 @@ try {
     ]);
 
 } catch (Exception $e) {
+    ob_clean();
     http_response_code(500);
     echo json_encode([
         "status" => "error",
