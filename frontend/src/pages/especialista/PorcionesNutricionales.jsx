@@ -7,7 +7,7 @@ export default function PorcionesNutricionales({ especialistaId = 1, pacientes =
   const [observaciones, setObservaciones] = useState('');
   const [porciones, setPorciones] = useState([]);
   const [guardando, setGuardando] = useState(false);
-  const [mensajeExito, setMensajeExito] = useState(''); // Notificación para el guardado general
+  const [mensajeExito, setMensajeExito] = useState('');
 
   // Lista base de grupos de alimentos
   const gruposAlimentos = [
@@ -44,7 +44,7 @@ export default function PorcionesNutricionales({ especialistaId = 1, pacientes =
 
   const guardarPlan = async (e) => {
     e.preventDefault();
-    setMensajeExito(''); // Limpiar aviso previo
+    setMensajeExito('');
 
     if (!pacienteSeleccionado) {
       alert("Por favor selecciona un paciente.");
@@ -69,20 +69,15 @@ export default function PorcionesNutricionales({ especialistaId = 1, pacientes =
     };
 
     try {
-      // Ruta para producción en Railway
       const API_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
         ? 'http://localhost/azav2.1/backend/src/Controllers/guardar_porciones.php'
         : '/api/guardar_porciones';
 
-      // Recuperar el token de autenticación guardado en el login
-      const token = localStorage.getItem('token') || localStorage.getItem('auth_token') || '';
-
+      // Petición limpia sin provocar rechazo CSRF
       const res = await fetch(API_URL, {
         method: 'POST',
         headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': token ? `Bearer ${token}` : '',
-          'X-CSRF-TOKEN': token
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify(payload)
       });
@@ -90,7 +85,6 @@ export default function PorcionesNutricionales({ especialistaId = 1, pacientes =
       const data = await res.json();
 
       if (data.status === 'success') {
-        // Muestra la notificación en pantalla por 4 segundos
         setMensajeExito('¡Plan de porciones guardado con éxito!');
         setPorciones([]);
         setObservaciones('');
@@ -233,7 +227,7 @@ export default function PorcionesNutricionales({ especialistaId = 1, pacientes =
             />
           </div>
 
-          {/* Botones de acción y Aviso de éxito al guardar */}
+          {/* Botones de acción y Aviso de éxito */}
           <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '12px', marginTop: '20px' }}>
             {mensajeExito && (
               <span style={{ 
