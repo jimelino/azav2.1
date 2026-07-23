@@ -73,11 +73,15 @@ export default function PorcionesNutricionales({ especialistaId = 1, pacientes =
         ? 'http://localhost/azav2.1/backend/src/Controllers/guardar_porciones.php'
         : '/api/guardar_porciones';
 
-      // Petición limpia sin provocar rechazo CSRF
+      const token = localStorage.getItem('token') || localStorage.getItem('auth_token') || '';
+
+      // Petición con X-Requested-With para cumplir con la validación de CsrfMiddleware
       const res = await fetch(API_URL, {
         method: 'POST',
         headers: { 
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest',
+          ...(token && { 'Authorization': `Bearer ${token}` })
         },
         body: JSON.stringify(payload)
       });

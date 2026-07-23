@@ -22,6 +22,15 @@ class CsrfMiddleware
         'http://localhost:8000',
         'https://dtai.uteq.edu.mx',
         'http://dtai.uteq.edu.mx',
+        'https://azaria-production.up.railway.app', // <-- Dominio de producción en Railway
+    ];
+
+    /**
+     * Rutas que están exentas de la validación estricta de CSRF
+     */
+    private static array $exceptRoutes = [
+        '/api/guardar_porciones',
+        '/backend/src/Controllers/guardar_porciones.php'
     ];
 
     /**
@@ -36,7 +45,15 @@ class CsrfMiddleware
             return;
         }
 
-        // Verificar X-Requested-With header (axios lo puede enviar)
+        // Excepción de rutas permitidas directamente
+        $uri = $_SERVER['REQUEST_URI'] ?? '';
+        foreach (self::$exceptRoutes as $except) {
+            if (strpos($uri, $except) !== false) {
+                return; // Omitir verificación CSRF para esta ruta
+            }
+        }
+
+        // Verificar X-Requested-With header (axios o fetch lo pueden enviar)
         $xRequestedWith = $_SERVER['HTTP_X_REQUESTED_WITH'] ?? '';
         if (strtolower($xRequestedWith) === 'xmlhttprequest') {
             return; // OK - request hecho desde JavaScript
