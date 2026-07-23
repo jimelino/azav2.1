@@ -18,8 +18,9 @@ const Nutricion = () => {
   const [showCalendar, setShowCalendar] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  // Obtener paciente_id con fallback al user.id
-  const pacienteId = user?.paciente_id || user?.id;
+  // Obtener paciente_id limpio (evita el error 1:1 o duplicaciones)
+  const rawId = user?.paciente_id || user?.id;
+  const pacienteId = rawId ? String(rawId).split(':')[0] : null;
 
   // Datos del día
   const [resumenDia, setResumenDia] = useState({
