@@ -44,9 +44,6 @@ const Nutricion = () => {
     snacks: { items: [], calorias: 0, objetivo: 200 }
   });
 
-  // Historial
-  const [historialDias, setHistorialDias] = useState({});
-
   // Plan nutricional asignado
   const [planAsignado, setPlanAsignado] = useState(null);
   const [loadingPlan, setLoadingPlan] = useState(false);
@@ -119,13 +116,16 @@ const Nutricion = () => {
     });
   };
 
-  useEffect(() => {
-    const tieneCaloriasPlan = planAsignado?.tiene_plan && (
-      planAsignado.calorias_diarias > 0 ||
-      planAsignado.contenido?.totales?.calorias > 0
-    );
+  const tienePlanActivo = (plan) => {
+    if (!plan) return false;
+    if (plan.tiene_plan === true || plan.tiene_plan === 1 || plan.tiene_plan === "1") return true;
+    if (plan.calorias_diarias > 0 || plan.proteinas_g > 0 || plan.carbohidratos_g > 0 || plan.grasas_g > 0) return true;
+    if (plan.contenido && Object.keys(plan.contenido).length > 0) return true;
+    return false;
+  };
 
-    if (tieneCaloriasPlan) {
+  useEffect(() => {
+    if (tienePlanActivo(planAsignado)) {
       sincronizarObjetivosConPlan();
     }
   }, [planAsignado]);
@@ -137,66 +137,21 @@ const Nutricion = () => {
     try {
       const response = await api.get(`/nutricion/resumen/${pacienteId}/${fechaStr}`);
       if (response.data) {
-        const objetivoActual = resumenDia.calorias.objetivo;
-        const nuevosMacros = response.data.macros || resumenDia;
-
-        if (planAsignado?.tiene_plan && objetivoActual !== 1800) {
-          nuevosMacros.calorias.objetivo = objetivoActual;
-          nuevosMacros.proteinas.objetivo = resumenDia.proteinas.objetivo;
-          nuevosMacros.carbohidratos.objetivo = resumenDia.carbohidratos.objetivo;
-          nuevosMacros.grasas.objetivo = resumenDia.grasas.objetivo;
-        }
-
-        setResumenDia(nuevosMacros);
+        setResumenDia(response.data.macros || resumenDia);
         setComidas(response.data.comidas || comidas);
         setAgua(response.data.agua || agua);
       }
     } catch (err) {
-      console.error('Error al cargar datos:', err);
-      const ejemplos = getDatosEjemplo();
-      if (planAsignado?.tiene_plan) {
-        ejemplos.macros.calorias.objetivo = resumenDia.calorias.objetivo;
-        ejemplos.macros.proteinas.objetivo = resumenDia.proteinas.objetivo;
-        ejemplos.macros.carbohidratos.objetivo = resumenDia.carbohidratos.objetivo;
-        ejemplos.macros.grasas.objetivo = resumenDia.grasas.objetivo;
-      }
-      setResumenDia(ejemplos.macros);
-      setComidas(ejemplos.comidas);
+      console.error('Error al cargar datos del día:', err);
     } finally {
       setLoading(false);
     }
   };
 
-  const getDatosEjemplo = () => ({
-    macros: {
-      calorias: { consumidas: 308, objetivo: 1518 },
-      carbohidratos: { consumidas: 28, objetivo: 167 },
-      proteinas: { consumidas: 20, objetivo: 93 },
-      grasas: { consumidas: 12, objetivo: 49 }
-    },
-    comidas: {
-      desayuno: {
-        items: [{ id: 1, nombre: 'Avena con frutas', calorias: 250, carbohidratos: 45, proteinas: 8, grasas: 5 }],
-        calorias: 250,
-        objetivo: 450
-      },
-      almuerzo: { items: [], calorias: 0, objetivo: 550 },
-      cena: { items: [], calorias: 0, objetivo: 450 },
-      snacks: {
-        items: [{ id: 2, nombre: 'Manzana', calorias: 58, carbohidratos: 14, proteinas: 0, grasas: 0 }],
-        calorias: 58,
-        objetivo: 200
-      }
-    }
-  });
-
   const sincronizarObjetivosConPlan = (plan = planAsignado) => {
-    if (!plan?.tiene_plan) return;
+    if (!tienePlanActivo(plan)) return;
 
-    const caloriasDirectas = Number(plan.calorias_diarias) || 0;
-    const caloriasContenido = Number(plan.contenido?.totales?.calorias) || 0;
-
-    const caloriasTotales = caloriasDirectas > 0 ? caloriasDirectas : (caloriasContenido > 0 ? caloriasContenido : 1800);
+    const caloriasTotales = Number(plan.calorias_diarias) || Number(plan.contenido?.totales?.calorias) || 1800;
     const proteinasTotales = Number(plan.proteinas_g) || Number(plan.contenido?.totales?.proteinas) || 93;
     const carbosTotales = Number(plan.carbohidratos_g) || Number(plan.contenido?.totales?.carbohidratos) || 167;
     const grasasTotales = Number(plan.grasas_g) || Number(plan.contenido?.totales?.grasas) || 49;
@@ -218,7 +173,7 @@ const Nutricion = () => {
       const response = await api.get(`/nutricion/plan-paciente/${pacienteId}`);
       let data = response?.data?.data || response?.data || response;
 
-      if (data && data.tiene_plan) {
+      if (data) {
         if (!data.calorias_diarias && data.contenido?.totales?.calorias) {
           data.calorias_diarias = data.contenido.totales.calorias;
         }
@@ -238,7 +193,7 @@ const Nutricion = () => {
         }
         sincronizarObjetivosConPlan(data);
       } else {
-        setPlanAsignado(data);
+        setPlanAsignado(null);
       }
     } catch (err) {
       console.error('Error al cargar plan:', err);
@@ -445,7 +400,7 @@ const Nutricion = () => {
       <div className="nutricion-content">
         {activeTab === 'diario' && (
           <>
-            {planAsignado?.tiene_plan ? (
+            {tienePlanActivo(planAsignado) ? (
               <section className="plan-resumen-section">
                 <div className="plan-resumen-header">
                   <h2><LucideIcon name="clipboard-list" size={20} /> {planAsignado.nombre || 'Mi Plan Nutricional'}</h2>
@@ -486,7 +441,7 @@ const Nutricion = () => {
           </>
         )}
 
-        {/* APARTADO PLAN DE PORCIONES (Actualizado dinámicamente o con ceros) */}
+        {/* APARTADO PLAN DE PORCIONES */}
         {activeTab === 'plan_porciones' && (
           <div style={{ backgroundColor: '#ffffff', padding: '20px', borderRadius: '12px' }}>
             {loadingPlan ? (
@@ -494,7 +449,7 @@ const Nutricion = () => {
                 <div className="loading-spinner"></div>
                 <p>Cargando plan de porciones...</p>
               </div>
-            ) : planAsignado?.tiene_plan ? (
+            ) : tienePlanActivo(planAsignado) ? (
               <>
                 {/* Metas Diarias */}
                 <div style={{ backgroundColor: '#f9f9f9', padding: '15px', borderRadius: '12px', marginBottom: '20px', border: '1px solid #eee' }}>
@@ -608,7 +563,7 @@ const Nutricion = () => {
                 <div className="loading-spinner"></div>
                 <p>Cargando tu plan nutricional...</p>
               </div>
-            ) : planAsignado?.tiene_plan ? (
+            ) : tienePlanActivo(planAsignado) ? (
               <VistaEquivalentes plan={planAsignado} contenido={planAsignado.contenido} pacienteView />
             ) : (
               <section className="plan-empty-section">
