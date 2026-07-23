@@ -15,16 +15,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit();
 }
 
-// Habilitar reporte de errores temporalmente si falla
 error_reporting(E_ALL);
 ini_set('display_errors', 0);
 
 try {
-    // 1. Obtener la conexión a la base de datos (PDO) de la arquitectura del proyecto
     if (class_exists('App\Services\DatabaseService')) {
         $db = \App\Services\DatabaseService::getInstance()->getConnection();
     } else {
-        // Intentar autoloader / conexión manual PDO como fallback
         $possible_loaders = [
             __DIR__ . '/../vendor/autoload.php',
             __DIR__ . '/../../vendor/autoload.php',
@@ -39,7 +36,6 @@ try {
         $db = \App\Services\DatabaseService::getInstance()->getConnection();
     }
 
-    // 2. Leer JSON de entrada
     $inputRaw = file_get_contents("php://input");
     $input = json_decode($inputRaw, true);
 
@@ -52,6 +48,14 @@ try {
     $paciente_id     = isset($input['paciente_id']) ? intval($input['paciente_id']) : 0;
     $especialista_id = isset($input['especialista_id']) ? intval($input['especialista_id']) : 1;
     $observaciones   = isset($input['observaciones']) ? trim($input['observaciones']) : '';
+    $recomendaciones = isset($input['recomendaciones']) ? trim($input['recomendaciones']) : '';
+    
+    // Macros
+    $calorias        = isset($input['calorias']) ? floatval($input['calorias']) : 0;
+    $proteinas       = isset($input['proteinas']) ? floatval($input['proteinas']) : 0;
+    $carbohidratos   = isset($input['carbohidratos']) ? floatval($input['carbohidratos']) : 0;
+    $grasas          = isset($input['grasas']) ? floatval($input['grasas']) : 0;
+
     $grupos          = isset($input['grupos']) && is_array($input['grupos']) ? $input['grupos'] : [];
 
     if ($paciente_id === 0 || empty($grupos)) {
@@ -62,23 +66,35 @@ try {
 
     $fechaActual = date('Y-m-d');
 
-    // 3. Iniciar Transacción PDO
     $db->beginTransaction();
 
-    // Insertar o Actualizar cabecera
+    // Insertar o Actualizar la cabecera del plan (incluyendo macros y recomendaciones)
     $sqlCabecera = "
-        INSERT INTO paciente_porciones_diarias (paciente_id, especialista_id, fecha_asignacion, observaciones)
-        VALUES (:paciente_id, :especialista_id, :fecha, :observaciones)
+        INSERT INTO paciente_porciones_diarias 
+        (paciente_id, especialista_id, fecha_asignacion, observaciones, calorias, proteinas, carbohidratos, grasas, recomendaciones)
+        VALUES 
+        (:paciente_id, :especialista_id, :fecha, :observaciones, :calorias, :proteinas, :carbohidratos, :grasas, :recomendaciones)
         ON DUPLICATE KEY UPDATE 
             observaciones = VALUES(observaciones),
+            calorias = VALUES(calorias),
+            proteinas = VALUES(proteinas),
+            carbohidratos = VALUES(carbohidratos),
+            grasas = VALUES(grasas),
+            recomendaciones = VALUES(recomendaciones),
             id = LAST_INSERT_ID(id)
     ";
+    
     $stmt = $db->prepare($sqlCabecera);
     $stmt->execute([
         ':paciente_id'     => $paciente_id,
         ':especialista_id' => $especialista_id,
         ':fecha'           => $fechaActual,
-        ':observaciones'   => $observaciones
+        ':observaciones'   => $observaciones,
+        ':calorias'        => $calorias,
+        ':proteinas'       => $proteinas,
+        ':carbohidratos'   => $carbohidratos,
+        ':grasas'          => $grasas,
+        ':recomendaciones' => $recomendaciones
     ]);
 
     $porciones_diarias_id = $db->lastInsertId();
@@ -87,7 +103,7 @@ try {
     $stmtClean = $db->prepare("DELETE FROM paciente_porciones_detalle WHERE porciones_diarias_id = :id");
     $stmtClean->execute([':id' => $porciones_diarias_id]);
 
-    // Insertar el nuevo detalle
+    // Insertar detalle de porciones
     $sqlDetalle = "
         INSERT INTO paciente_porciones_detalle (porciones_diarias_id, grupo_id, numero_porciones, opciones_sugeridas)
         VALUES (:porciones_id, :grupo_id, :porciones, :opciones)
@@ -109,7 +125,6 @@ try {
         }
     }
 
-    // Confirmar cambios
     $db->commit();
 
     http_response_code(200);

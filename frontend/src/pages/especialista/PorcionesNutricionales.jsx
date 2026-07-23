@@ -1,28 +1,33 @@
 import React, { useState } from 'react';
-import { ArrowLeft, Plus, Trash2, Scale, CheckCircle } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Scale, CheckCircle, Flame, FileText } from 'lucide-react';
 import './EspecialistaDashboard.css';
 
 export default function PorcionesNutricionales({ especialistaId = 1, pacientes = [], onBack }) {
   const [pacienteSeleccionado, setPacienteSeleccionado] = useState('');
+  
+  // Nuevos estados para Metas y Recomendaciones
+  const [calorias, setCalorias] = useState('');
+  const [proteinas, setProteinas] = useState('');
+  const [carbohidratos, setCarbohidratos] = useState('');
+  const [grasas, setGrasas] = useState('');
+  const [recomendaciones, setRecomendaciones] = useState('');
+
   const [observaciones, setObservaciones] = useState('');
   const [porciones, setPorciones] = useState([]);
   const [guardando, setGuardando] = useState(false);
   const [mensajeExito, setMensajeExito] = useState('');
 
-  // Lista base de grupos de alimentos
   const gruposAlimentos = [
     "Verduras", "Frutas", "Cereales sin grasa", "Cereales con grasa",
     "Leguminosas", "AOA Muy Bajo en Grasa", "AOA Bajo en Grasa",
     "AOA Moderado en Grasa", "Leche Descremada", "Aceites sin Proteina"
   ];
 
-  // Obtener ID numérico según la lista (1 al 10)
   const obtenerGrupoId = (nombre) => {
     const idx = gruposAlimentos.indexOf(nombre);
     return idx !== -1 ? idx + 1 : 1;
   };
 
-  // Garantizar que la cuenta de pruebas paciente1@test.com esté presente si la lista viene vacía
   const listaPacientes = [...pacientes];
   if (!listaPacientes.some(p => p.email === 'paciente1@test.com')) {
     listaPacientes.unshift({ id: 999, nombre: 'Paciente de Prueba', email: 'paciente1@test.com' });
@@ -60,6 +65,11 @@ export default function PorcionesNutricionales({ especialistaId = 1, pacientes =
     const payload = {
       paciente_id: pacienteSeleccionado,
       especialista_id: especialistaId,
+      calorias: calorias ? parseFloat(calorias) : 0,
+      proteinas: proteinas ? parseFloat(proteinas) : 0,
+      carbohidratos: carbohidratos ? parseFloat(carbohidratos) : 0,
+      grasas: grasas ? parseFloat(grasas) : 0,
+      recomendaciones,
       observaciones,
       grupos: porciones.map(p => ({
         grupo_id: obtenerGrupoId(p.grupo),
@@ -75,7 +85,6 @@ export default function PorcionesNutricionales({ especialistaId = 1, pacientes =
 
       const token = localStorage.getItem('token') || localStorage.getItem('auth_token') || '';
 
-      // Petición con X-Requested-With para cumplir con la validación de CsrfMiddleware
       const res = await fetch(API_URL, {
         method: 'POST',
         headers: { 
@@ -92,6 +101,11 @@ export default function PorcionesNutricionales({ especialistaId = 1, pacientes =
         setMensajeExito('¡Plan de porciones guardado con éxito!');
         setPorciones([]);
         setObservaciones('');
+        setCalorias('');
+        setProteinas('');
+        setCarbohidratos('');
+        setGrasas('');
+        setRecomendaciones('');
         setPacienteSeleccionado('');
 
         setTimeout(() => {
@@ -110,7 +124,6 @@ export default function PorcionesNutricionales({ especialistaId = 1, pacientes =
 
   return (
     <div style={{ padding: '20px', maxWidth: '1000px', margin: '0 auto' }}>
-      {/* Botón Volver */}
       <button 
         onClick={onBack} 
         style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'none', border: 'none', color: '#0066cc', cursor: 'pointer', fontWeight: 'bold', marginBottom: '15px' }}
@@ -122,7 +135,7 @@ export default function PorcionesNutricionales({ especialistaId = 1, pacientes =
         <h2 style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#005691', marginTop: 0 }}>
           <Scale size={28} /> Cálculo de Porciones y Equivalentes
         </h2>
-        <p style={{ color: '#666' }}>Asigna los grupos de alimentos y redacta las opciones recomendadas para el paciente.</p>
+        <p style={{ color: '#666' }}>Asigna metas nutricionales, porciones de alimentos y recomendaciones para el paciente.</p>
 
         <form onSubmit={guardarPlan}>
           {/* Selector de Paciente */}
@@ -141,6 +154,55 @@ export default function PorcionesNutricionales({ especialistaId = 1, pacientes =
                 </option>
               ))}
             </select>
+          </div>
+
+          {/* METAS DIARIAS (CALORÍAS Y MACROS) */}
+          <div style={{ background: '#f8fafc', padding: '16px', borderRadius: '10px', border: '1px solid #e2e8f0', marginBottom: '20px' }}>
+            <h3 style={{ margin: '0 0 12px 0', fontSize: '16px', display: 'flex', alignItems: 'center', gap: '8px', color: '#1e293b' }}>
+              <Flame size={20} color="#f97316" /> Metas Diarias (Calorías y Macronutrientes)
+            </h3>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '12px' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '4px' }}>Calorías (kcal):</label>
+                <input
+                  type="number"
+                  placeholder="Ej: 2000"
+                  value={calorias}
+                  onChange={(e) => setCalorias(e.target.value)}
+                  style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #ccc' }}
+                />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '4px' }}>Proteínas (g):</label>
+                <input
+                  type="number"
+                  placeholder="Ej: 120"
+                  value={proteinas}
+                  onChange={(e) => setProteinas(e.target.value)}
+                  style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #ccc' }}
+                />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '4px' }}>Carbohidratos (g):</label>
+                <input
+                  type="number"
+                  placeholder="Ej: 220"
+                  value={carbohidratos}
+                  onChange={(e) => setCarbohidratos(e.target.value)}
+                  style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #ccc' }}
+                />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '4px' }}>Grasas (g):</label>
+                <input
+                  type="number"
+                  placeholder="Ej: 60"
+                  value={grasas}
+                  onChange={(e) => setGrasas(e.target.value)}
+                  style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #ccc' }}
+                />
+              </div>
+            </div>
           </div>
 
           {/* Distribución Header */}
@@ -219,11 +281,25 @@ export default function PorcionesNutricionales({ especialistaId = 1, pacientes =
             </div>
           )}
 
-          {/* Observaciones */}
+          {/* RECOMENDACIONES */}
           <div style={{ marginTop: '20px' }}>
-            <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '8px' }}>Observaciones Generales:</label>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 'bold', marginBottom: '8px' }}>
+              <FileText size={18} color="#2e6930" /> Recomendaciones Específicas:
+            </label>
             <textarea
               rows="3"
+              placeholder="Ej: Consumir suficiente agua durante el día. Evitar ultraprocesados."
+              value={recomendaciones}
+              onChange={(e) => setRecomendaciones(e.target.value)}
+              style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #ccc' }}
+            />
+          </div>
+
+          {/* Observaciones Generales */}
+          <div style={{ marginTop: '15px' }}>
+            <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '8px' }}>Observaciones Generales:</label>
+            <textarea
+              rows="2"
               placeholder="Ej: Consumir las porciones de fruta antes de las 6:00 PM."
               value={observaciones}
               onChange={(e) => setObservaciones(e.target.value)}
@@ -261,7 +337,7 @@ export default function PorcionesNutricionales({ especialistaId = 1, pacientes =
               disabled={guardando}
               style={{ background: '#0066cc', color: '#fff', border: 'none', padding: '10px 24px', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}
             >
-              {guardando ? 'Guardando...' : 'Guardar Porciones'}
+              {guardando ? 'Guardando...' : 'Guardar Porciones y Plan'}
             </button>
           </div>
         </form>
