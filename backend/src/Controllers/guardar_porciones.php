@@ -5,18 +5,35 @@ header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-W
 header("Access-Control-Allow-Methods: POST, GET, OPTIONS");
 header("Content-Type: application/json; charset=UTF-8");
 
+// Evitar que warnings o notices de PHP rompan la respuesta JSON
+error_reporting(0);
+ini_set('display_errors', 0);
+
 // Si el navegador consulta las opciones previas (Preflight OPTIONS)
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
     exit();
 }
 
-// Conexión a BD (Ajusta la ruta según la ubicación de tu conexión o config)
-require_once __DIR__ . '/../../config/config.inc.php'; 
+// Intentar incluir la conexión a la BD en diferentes rutas posibles para evitar errores en Railway/Local
+if (file_exists(__DIR__ . '/../../config/config.inc.php')) {
+    require_once __DIR__ . '/../../config/config.inc.php';
+} elseif (file_exists(__DIR__ . '/../config/config.inc.php')) {
+    require_once __DIR__ . '/../config/config.inc.php';
+} elseif (file_exists(__DIR__ . '/config/config.inc.php')) {
+    require_once __DIR__ . '/config/config.inc.php';
+}
 
-// Si usas la variable de conexión global (ej: $conn, $db o $conexion)
+// Asignar variable de conexión global
 if (!isset($conn) && isset($conexion)) {
     $conn = $conexion;
+}
+
+// Verificar que la conexión a la BD esté disponible
+if (!isset($conn) || !$conn) {
+    http_response_code(500);
+    echo json_encode(["status" => "error", "message" => "Error de conexión a la base de datos."]);
+    exit();
 }
 
 $input = json_decode(file_get_contents("php://input"), true);
@@ -53,7 +70,7 @@ try {
     $porciones_diarias_id = $stmt->insert_id;
     $stmt->close();
 
-    // 2. Limpiar detalle previo
+    // 2. Limpiar detalle previo para este registro
     $stmtClean = $conn->prepare("DELETE FROM paciente_porciones_detalle WHERE porciones_diarias_id = ?");
     $stmtClean->bind_param("i", $porciones_diarias_id);
     $stmtClean->execute();

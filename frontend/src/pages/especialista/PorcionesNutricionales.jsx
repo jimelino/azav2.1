@@ -7,7 +7,7 @@ export default function PorcionesNutricionales({ especialistaId = 1, pacientes =
   const [observaciones, setObservaciones] = useState('');
   const [porciones, setPorciones] = useState([]);
   const [guardando, setGuardando] = useState(false);
-  const [mensajeGrupo, setMensajeGrupo] = useState(''); // Estado para la notificación
+  const [mensajeExito, setMensajeExito] = useState(''); // Notificación para el guardado general
 
   // Lista base de grupos de alimentos
   const gruposAlimentos = [
@@ -28,14 +28,8 @@ export default function PorcionesNutricionales({ especialistaId = 1, pacientes =
     listaPacientes.unshift({ id: 999, nombre: 'Paciente de Prueba', email: 'paciente1@test.com' });
   }
 
-  // Agrega fila y activa la notificación por 2 segundos
   const agregarFila = () => {
     setPorciones([...porciones, { grupo: gruposAlimentos[0], cantidad: 1, opciones: '' }]);
-    
-    setMensajeGrupo('¡Grupo agregado correctamente!');
-    setTimeout(() => {
-      setMensajeGrupo('');
-    }, 2000);
   };
 
   const eliminarFila = (index) => {
@@ -50,6 +44,8 @@ export default function PorcionesNutricionales({ especialistaId = 1, pacientes =
 
   const guardarPlan = async (e) => {
     e.preventDefault();
+    setMensajeExito(''); // Limpiar aviso previo
+
     if (!pacienteSeleccionado) {
       alert("Por favor selecciona un paciente.");
       return;
@@ -73,12 +69,10 @@ export default function PorcionesNutricionales({ especialistaId = 1, pacientes =
     };
 
     try {
+      const API_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+        ? 'http://localhost/azav2.1/backend/src/Controllers/guardar_porciones.php'
+        : '/backend/src/Controllers/guardar_porciones.php';
 
-        // Si en Railway tus endpoints se sirven desde la raíz o ruta relativa del dominio actual:
-  const API_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
-  ? 'http://localhost/azav2.1/backend/src/Controllers/guardar_porciones.php'
-  : '/backend/src/Controllers/guardar_porciones.php';
-  // O bien '/guardar_porciones.php' según como lo tenías funcionando en tus otros componentes
       const res = await fetch(API_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -88,10 +82,15 @@ export default function PorcionesNutricionales({ especialistaId = 1, pacientes =
       const data = await res.json();
 
       if (data.status === 'success') {
-        alert("¡Plan de porciones guardado con éxito!");
+        // Muestra la notificación en pantalla por 4 segundos
+        setMensajeExito('¡Plan de porciones guardado con éxito!');
         setPorciones([]);
         setObservaciones('');
         setPacienteSeleccionado('');
+
+        setTimeout(() => {
+          setMensajeExito('');
+        }, 4000);
       } else {
         alert("Error al guardar: " + (data.message || 'Error desconocido'));
       }
@@ -138,36 +137,16 @@ export default function PorcionesNutricionales({ especialistaId = 1, pacientes =
             </select>
           </div>
 
-          {/* Distribución */}
+          {/* Distribución Header */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '20px 0 10px 0' }}>
             <h3 style={{ margin: 0 }}>Distribución de Equivalentes</h3>
-            
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              {/* Notificación de éxito al agregar grupo */}
-              {mensajeGrupo && (
-                <span style={{ 
-                  color: '#166534', 
-                  backgroundColor: '#dcfce7', 
-                  padding: '6px 12px', 
-                  borderRadius: '6px', 
-                  fontSize: '14px', 
-                  fontWeight: 'bold',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px'
-                }}>
-                  <CheckCircle size={16} /> {mensajeGrupo}
-                </span>
-              )}
-
-              <button
-                type="button"
-                onClick={agregarFila}
-                style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#e6f0fa', color: '#0066cc', border: 'none', padding: '8px 16px', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}
-              >
-                <Plus size={18} /> Agregar Grupo
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={agregarFila}
+              style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#e6f0fa', color: '#0066cc', border: 'none', padding: '8px 16px', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}
+            >
+              <Plus size={18} /> Agregar Grupo
+            </button>
           </div>
 
           {porciones.length === 0 ? (
@@ -246,8 +225,24 @@ export default function PorcionesNutricionales({ especialistaId = 1, pacientes =
             />
           </div>
 
-          {/* Botones */}
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '20px' }}>
+          {/* Botones de acción y Aviso de éxito al guardar */}
+          <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '12px', marginTop: '20px' }}>
+            {mensajeExito && (
+              <span style={{ 
+                color: '#166534', 
+                backgroundColor: '#dcfce7', 
+                padding: '10px 16px', 
+                borderRadius: '8px', 
+                fontSize: '14px', 
+                fontWeight: 'bold',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px'
+              }}>
+                <CheckCircle size={18} /> {mensajeExito}
+              </span>
+            )}
+
             <button
               type="button"
               onClick={onBack}
