@@ -66,10 +66,10 @@ export default function PorcionesNutricionales({ especialistaId = 1, pacientes =
     };
 
     try {
-      // Detecta si la app se ejecuta de forma local o en Railway
-      const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+      // Ajuste de ruta: utiliza 'localhost' para desarrollo local y ruta relativa para Railway
+      const API_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
         ? 'http://localhost/azav2.1/backend/src/Controllers/guardar_porciones.php'
-        : 'https://azaria-production.up.railway.app/backend/src/Controllers/guardar_porciones.php';
+        : '/backend/src/Controllers/guardar_porciones.php';
 
       const res = await fetch(API_URL, {
         method: 'POST',
