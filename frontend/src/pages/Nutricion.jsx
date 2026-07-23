@@ -116,7 +116,6 @@ const Nutricion = () => {
   const handleCheckToggle = (key, value) => {
     setEquivalentesCheck(prev => {
       const updated = { ...prev, [key]: value };
-      // Limpiar keys con valor 0
       if (value === 0) delete updated[key];
       localStorage.setItem(getChecklistKey(), JSON.stringify(updated));
       return updated;
@@ -125,7 +124,6 @@ const Nutricion = () => {
 
   // Sincronizar objetivos cuando se carga el plan
   useEffect(() => {
-    // Verificar si hay calorías en cualquiera de los campos posibles
     const tieneCaloriasPlan = planAsignado?.tiene_plan && (
       planAsignado.calorias_diarias > 0 ||
       planAsignado.contenido?.totales?.calorias > 0
@@ -141,14 +139,11 @@ const Nutricion = () => {
     const fechaStr = selectedDate.toISOString().split('T')[0];
 
     try {
-      // Cargar resumen del día
       const response = await api.get(`/nutricion/resumen/${pacienteId}/${fechaStr}`);
       if (response.data) {
-        // Mantener los objetivos del plan si existen
         const objetivoActual = resumenDia.calorias.objetivo;
         const nuevosMacros = response.data.macros || resumenDia;
 
-        // Si ya tenemos objetivos del plan, mantenerlos
         if (planAsignado?.tiene_plan && objetivoActual !== 1800) {
           nuevosMacros.calorias.objetivo = objetivoActual;
           nuevosMacros.proteinas.objetivo = resumenDia.proteinas.objetivo;
@@ -162,7 +157,6 @@ const Nutricion = () => {
       }
     } catch (err) {
       console.error('Error al cargar datos:', err);
-      // Usar datos de ejemplo pero mantener objetivos del plan si existen
       const ejemplos = getDatosEjemplo();
       if (planAsignado?.tiene_plan) {
         ejemplos.macros.calorias.objetivo = resumenDia.calorias.objetivo;
@@ -204,33 +198,24 @@ const Nutricion = () => {
     }
   });
 
-  // Sincronizar los objetivos del Diario con el plan nutricional
   const sincronizarObjetivosConPlan = (plan = planAsignado) => {
     if (!plan?.tiene_plan) return;
 
-    // Obtener calorías del plan (priorizar campo directo, luego contenido JSON)
     const caloriasDirectas = Number(plan.calorias_diarias) || 0;
     const caloriasContenido = Number(plan.contenido?.totales?.calorias) || 0;
-
-    console.log('Sincronizando plan:', {
-      calorias_diarias: caloriasDirectas,
-      contenido_totales_calorias: caloriasContenido
-    });
 
     const caloriasTotales = caloriasDirectas > 0 ? caloriasDirectas : (caloriasContenido > 0 ? caloriasContenido : 1800);
     const proteinasTotales = Number(plan.proteinas_g) || Number(plan.contenido?.totales?.proteinas) || 93;
     const carbosTotales = Number(plan.carbohidratos_g) || Number(plan.contenido?.totales?.carbohidratos) || 167;
     const grasasTotales = Number(plan.grasas_g) || Number(plan.contenido?.totales?.grasas) || 49;
 
-    // Calcular distribución de calorías por comida basado en el plan
     let objetivosPorComida = {
-      desayuno: Math.round(caloriasTotales * 0.30),  // 30%
-      almuerzo: Math.round(caloriasTotales * 0.35),  // 35%
-      cena: Math.round(caloriasTotales * 0.25),      // 25%
-      snacks: Math.round(caloriasTotales * 0.10)     // 10%
+      desayuno: Math.round(caloriasTotales * 0.30),
+      almuerzo: Math.round(caloriasTotales * 0.35),
+      cena: Math.round(caloriasTotales * 0.25),
+      snacks: Math.round(caloriasTotales * 0.10)
     };
 
-    // Si el plan tiene comidas con calorías específicas, usar esas
     if (plan.contenido?.comidas?.length > 0) {
       const comidasPlan = plan.contenido.comidas;
       const distribucion = { desayuno: 0, almuerzo: 0, cena: 0, snacks: 0 };
@@ -248,7 +233,6 @@ const Nutricion = () => {
         }
       });
 
-      // Si hay calorías específicas en el plan, usarlas
       if (distribucion.desayuno > 0 || distribucion.almuerzo > 0 || distribucion.cena > 0) {
         objetivosPorComida = {
           desayuno: distribucion.desayuno || objetivosPorComida.desayuno,
@@ -259,7 +243,6 @@ const Nutricion = () => {
       }
     }
 
-    // Actualizar el resumen del día con los objetivos del plan
     setResumenDia(prev => ({
       ...prev,
       calorias: { ...prev.calorias, objetivo: caloriasTotales },
@@ -268,7 +251,6 @@ const Nutricion = () => {
       grasas: { ...prev.grasas, objetivo: Math.round(grasasTotales) }
     }));
 
-    // Actualizar los objetivos de cada comida
     setComidas(prev => ({
       ...prev,
       desayuno: { ...prev.desayuno, objetivo: objetivosPorComida.desayuno },
@@ -284,11 +266,9 @@ const Nutricion = () => {
     setLoadingPlan(true);
     try {
       const response = await api.get(`/nutricion/plan-paciente/${pacienteId}`);
-      // Manejar estructura de respuesta (puede venir en response.data o response.data.data)
       let data = response?.data?.data || response?.data || response;
 
       if (data && data.tiene_plan) {
-        // Asegurar que las calorías estén disponibles
         if (!data.calorias_diarias && data.contenido?.totales?.calorias) {
           data.calorias_diarias = data.contenido.totales.calorias;
         }
@@ -306,7 +286,6 @@ const Nutricion = () => {
         if (data.contenido?.comidas) {
           setRecetas(data.contenido.comidas);
         }
-        // Sincronizar inmediatamente con los datos cargados
         sincronizarObjetivosConPlan(data);
       } else {
         setPlanAsignado(data);
@@ -320,13 +299,6 @@ const Nutricion = () => {
     }
   };
 
-  const cargarRecetas = async () => {
-    // Ya cargado por cargarPlanNutricional
-    if (!planAsignado) {
-      await cargarPlanNutricional();
-    }
-  };
-
   const agregarVasoAgua = () => {
     const nuevosVasos = [...agua.vasos];
     const indexVacio = nuevosVasos.findIndex(v => !v);
@@ -335,7 +307,6 @@ const Nutricion = () => {
       const nuevaConsumida = nuevosVasos.filter(v => v).length * 0.25;
       setAgua({ ...agua, vasos: nuevosVasos, consumida: nuevaConsumida });
 
-      // Guardar en backend
       api.post('/nutricion/agua', {
         paciente_id: pacienteId,
         fecha: selectedDate.toISOString().split('T')[0],
@@ -363,34 +334,19 @@ const Nutricion = () => {
   const registrarAlimento = async (alimento) => {
     setRegistrando(true);
     try {
-      // Agregar al estado local
       const nuevasComidas = { ...comidas };
       nuevasComidas[tipoComidaActual].items.push(alimento);
       nuevasComidas[tipoComidaActual].calorias += alimento.calorias;
       setComidas(nuevasComidas);
 
-      // Actualizar resumen de macros
       setResumenDia(prev => ({
         ...prev,
-        calorias: {
-          ...prev.calorias,
-          consumidas: prev.calorias.consumidas + alimento.calorias
-        },
-        carbohidratos: {
-          ...prev.carbohidratos,
-          consumidas: prev.carbohidratos.consumidas + alimento.carbohidratos
-        },
-        proteinas: {
-          ...prev.proteinas,
-          consumidas: prev.proteinas.consumidas + alimento.proteinas
-        },
-        grasas: {
-          ...prev.grasas,
-          consumidas: prev.grasas.consumidas + alimento.grasas
-        }
+        calorias: { ...prev.calorias, consumidas: prev.calorias.consumidas + alimento.calorias },
+        carbohidratos: { ...prev.carbohidratos, consumidas: prev.carbohidratos.consumidas + alimento.carbohidratos },
+        proteinas: { ...prev.proteinas, consumidas: prev.proteinas.consumidas + alimento.proteinas },
+        grasas: { ...prev.grasas, consumidas: prev.grasas.consumidas + alimento.grasas }
       }));
 
-      // Enviar al backend
       await api.post('/nutricion/alimento', {
         paciente_id: pacienteId,
         fecha: selectedDate.toISOString().split('T')[0],
@@ -410,7 +366,6 @@ const Nutricion = () => {
     }
   };
 
-  // Obtener alimentos del plan nutricional como opciones rápidas
   const getAlimentosDelPlan = () => {
     if (!planAsignado?.contenido?.comidas) return [];
 
@@ -420,7 +375,6 @@ const Nutricion = () => {
     planAsignado.contenido.comidas.forEach(comida => {
       if (comida.opciones && comida.opciones.length > 0) {
         comida.opciones.forEach(opcion => {
-          // Verificar si este alimento es relevante para el tipo de comida actual
           const tipoComidaOpcion = comida.tipo_comida?.toLowerCase();
           const esRelevante =
             (tipoComidaActual === 'desayuno' && tipoComidaOpcion === 'desayuno') ||
@@ -450,15 +404,12 @@ const Nutricion = () => {
   const getAlimentosFiltrados = () => {
     const alimentosPlan = getAlimentosDelPlan();
 
-    // Si no hay búsqueda, mostrar primero los del plan relevantes, luego todos
     if (!alimentosBusqueda.trim()) {
-      // Ordenar: primero los relevantes del plan, luego otros del plan, luego predefinidos
       const relevantes = alimentosPlan.filter(a => a.esRelevante);
       const otrosDelPlan = alimentosPlan.filter(a => !a.esRelevante);
       return [...relevantes, ...otrosDelPlan, ...alimentosPredefinidos];
     }
 
-    // Filtrar por búsqueda
     const busqueda = alimentosBusqueda.toLowerCase();
     const planFiltrados = alimentosPlan.filter(a =>
       a.nombre.toLowerCase().includes(busqueda) ||
@@ -534,7 +485,7 @@ const Nutricion = () => {
   };
 
   return (
-    <div className="nutricion-page">
+    <div className="nutricion-page" style={{ backgroundColor: '#ffffff' }}>
       {/* Ayuda por voz */}
       <VoiceHelper currentModule="nutricion" />
 
@@ -573,13 +524,19 @@ const Nutricion = () => {
       {/* Semana */}
       <div className="week-indicator">Semana {getSemanaDelMes()}</div>
 
-      {/* Tabs */}
+      {/* Tabs con la nueva pestaña "Plan de Porciones" agregada al lado de "Diario" */}
       <div className="nutricion-tabs">
         <button
           className={`nutricion-tab ${activeTab === 'diario' ? 'active' : ''}`}
           onClick={() => setActiveTab('diario')}
         >
           Diario
+        </button>
+        <button
+          className={`nutricion-tab ${activeTab === 'plan_porciones' ? 'active' : ''}`}
+          onClick={() => setActiveTab('plan_porciones')}
+        >
+          Plan de Porciones
         </button>
         <button
           className={`nutricion-tab ${activeTab === 'recetas' ? 'active' : ''}`}
@@ -650,7 +607,6 @@ const Nutricion = () => {
                   </div>
                 </div>
 
-                {/* Checklist de equivalentes del plan */}
                 {(planAsignado.contenido?.tipo === 'equivalentes' || planAsignado.contenido?.cuadro_equivalentes?.grupos?.length > 0 || planAsignado.contenido?.texto_original?.includes('|||')) && (
                   <div className="plan-equiv-wrapper">
                     <VistaEquivalentes
@@ -800,8 +756,83 @@ const Nutricion = () => {
                 <p className="agua-alimentos">+ Agua de los alimentos: 0 mL</p>
               </div>
             </section>
-
           </>
+        )}
+
+        {/* NUEVO APARTADO: Plan de Porciones con fondo blanco y adaptado al especialista */}
+        {activeTab === 'plan_porciones' && (
+          <div style={{ backgroundColor: '#ffffff', padding: '20px', borderRadius: '12px' }}>
+            {loadingPlan ? (
+              <div className="loading-state">
+                <div className="loading-spinner"></div>
+                <p>Cargando plan de porciones...</p>
+              </div>
+            ) : planAsignado?.tiene_plan ? (
+              <>
+                {/* 1. Metas Diarias */}
+                <div style={{ backgroundColor: '#f9f9f9', padding: '15px', borderRadius: '12px', marginBottom: '20px', border: '1px solid #eee' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                    <h4 style={{ margin: 0, color: '#333', fontSize: '16px' }}>Metas Diarias</h4>
+                    {planAsignado.especialista_nombre && (
+                      <span style={{ fontSize: '12px', color: '#666' }}>Nutriólogo asignado: {planAsignado.especialista_nombre}</span>
+                    )}
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px' }}>
+                    <div style={{ background: '#fff', padding: '12px', borderRadius: '8px', border: '1px solid #e0e0e0' }}>
+                      <span style={{ fontSize: '18px', fontWeight: 'bold', color: '#d9534f' }}>
+                        {planAsignado.calorias_diarias || planAsignado.contenido?.totales?.calorias || 0} kcal
+                      </span>
+                      <p style={{ margin: '2px 0 0 0', fontSize: '12px', color: '#666' }}>Calorías</p>
+                    </div>
+                    <div style={{ background: '#fff', padding: '12px', borderRadius: '8px', border: '1px solid #e0e0e0' }}>
+                      <span style={{ fontSize: '18px', fontWeight: 'bold', color: '#f0ad4e' }}>
+                        {Number(planAsignado.proteinas_g || planAsignado.contenido?.totales?.proteinas || 0).toFixed(0)}g
+                      </span>
+                      <p style={{ margin: '2px 0 0 0', fontSize: '12px', color: '#666' }}>Proteínas</p>
+                    </div>
+                    <div style={{ background: '#fff', padding: '12px', borderRadius: '8px', border: '1px solid #e0e0e0' }}>
+                      <span style={{ fontSize: '18px', fontWeight: 'bold', color: '#5bc0de' }}>
+                        {Number(planAsignado.carbohidratos_g || planAsignado.contenido?.totales?.carbohidratos || 0).toFixed(0)}g
+                      </span>
+                      <p style={{ margin: '2px 0 0 0', fontSize: '12px', color: '#666' }}>Carbohidratos</p>
+                    </div>
+                    <div style={{ background: '#fff', padding: '12px', borderRadius: '8px', border: '1px solid #e0e0e0' }}>
+                      <span style={{ fontSize: '18px', fontWeight: 'bold', color: '#5cb85c' }}>
+                        {Number(planAsignado.grasas_g || planAsignado.contenido?.totales?.grasas || 0).toFixed(0)}g
+                      </span>
+                      <p style={{ margin: '2px 0 0 0', fontSize: '12px', color: '#666' }}>Grasas</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 2. Alimentos Equivalentes */}
+                <div style={{ marginBottom: '20px' }}>
+                  <VistaEquivalentes
+                    plan={planAsignado}
+                    contenido={planAsignado.contenido}
+                    pacienteView
+                  />
+                </div>
+
+                {/* 3. Recomendaciones del especialista */}
+                {(planAsignado.contenido?.recomendaciones?.length > 0 || planAsignado.contenido?.indicaciones_generales?.length > 0) && (
+                  <div style={{ backgroundColor: '#f4fbf7', borderLeft: '4px solid #1b6b39', padding: '15px', borderRadius: '6px' }}>
+                    <h4 style={{ margin: '0 0 8px 0', color: '#1b6b39', fontSize: '16px' }}>Recomendaciones</h4>
+                    <ul style={{ margin: 0, paddingLeft: '20px', fontSize: '14px', color: '#333' }}>
+                      {(planAsignado.contenido?.recomendaciones || planAsignado.contenido?.indicaciones_generales || []).map((rec, idx) => (
+                        <li key={idx} style={{ marginBottom: '4px' }}>{rec}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </>
+            ) : (
+              <div style={{ textAlign: 'center', padding: '40px', border: '2px dashed #e0e0e0', borderRadius: '10px' }}>
+                <p style={{ fontSize: '18px', fontWeight: '500', color: '#444' }}>Sin plan nutricional asignado</p>
+                <p style={{ fontSize: '14px', color: '#777' }}>Tu nutriólogo te asignará un plan de porciones próximamente.</p>
+              </div>
+            )}
+          </div>
         )}
 
         {activeTab === 'recetas' && (
@@ -814,7 +845,6 @@ const Nutricion = () => {
             ) : planAsignado?.tiene_plan ? (
               (planAsignado.contenido?.tipo === 'equivalentes' || planAsignado.contenido?.cuadro_equivalentes?.grupos?.length > 0) ? (
                 <>
-                  {/* Header del plan */}
                   <div className="mi-plan-header">
                     <div className="mi-plan-title-row">
                       <h2><LucideIcon name="clipboard-list" size={22} /> {planAsignado.nombre || 'Mi Plan Nutricional'}</h2>
@@ -833,7 +863,6 @@ const Nutricion = () => {
                     )}
                   </div>
 
-                  {/* Macros del plan */}
                   <div className="mi-plan-macros">
                     <div className="mi-plan-macro calorias">
                       <LucideIcon name="flame" size={18} />
@@ -857,101 +886,11 @@ const Nutricion = () => {
                     </div>
                   </div>
 
-                  {/* Vista completa de equivalentes (cuadro + grupos + libres + recomendaciones) */}
                   <VistaEquivalentes
                     plan={planAsignado}
                     contenido={planAsignado.contenido}
                     pacienteView
                   />
-
-                  {/* Recetas adjuntas al plan */}
-                  {(() => {
-                    const recetasAdjuntas = (planAsignado.comidas || []).filter(c => c.receta_id);
-                    if (recetasAdjuntas.length === 0) return null;
-                    const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8000';
-                    const TIPOS_COMIDA = {
-                      desayuno: 'Desayuno', media_manana: 'Colación 1', almuerzo: 'Comida',
-                      merienda: 'Colación 2', cena: 'Cena', snack: 'Snack'
-                    };
-                    return (
-                      <section className="mi-plan-recetas-section">
-                        <h3 className="mi-plan-section-title">
-                          <LucideIcon name="book-open" size={20} /> Recetas Sugeridas
-                        </h3>
-                        <div className="mi-plan-recetas-grid">
-                          {recetasAdjuntas.map((c) => {
-                            const nombre = c.receta_titulo || c.nombre_plato;
-                            const imagen = c.receta_imagen || c.imagen_url;
-                            const ingredientes = c.receta_ingredientes || c.ingredientes || [];
-                            const instrucciones = c.receta_instrucciones || c.instrucciones_json || [];
-                            return (
-                              <div key={c.id} className="mi-plan-receta-card">
-                                {imagen && (
-                                  <img src={`${apiUrl}${imagen}`} alt={nombre} className="mi-plan-receta-img" />
-                                )}
-                                <div className="mi-plan-receta-body">
-                                  <h4 className="mi-plan-receta-nombre">{nombre}</h4>
-                                  <span className="mi-plan-receta-tipo">{TIPOS_COMIDA[c.tipo_comida] || c.tipo_comida}</span>
-                                  {c.calorias > 0 && (
-                                    <div className="mi-plan-receta-macros">
-                                      <span><LucideIcon name="flame" size={14} /> {c.calorias} kcal</span>
-                                      {c.proteinas_g > 0 && <span>{Number(c.proteinas_g).toFixed(0)}g prot</span>}
-                                      {c.carbohidratos_g > 0 && <span>{Number(c.carbohidratos_g).toFixed(0)}g carbs</span>}
-                                    </div>
-                                  )}
-                                  {ingredientes.length > 0 && (
-                                    <details className="mi-plan-receta-details">
-                                      <summary>Ingredientes ({ingredientes.length})</summary>
-                                      <ul>
-                                        {ingredientes.map((ing, i) => (
-                                          <li key={i}>
-                                            {typeof ing === 'string' ? ing : `${ing.cantidad || ''} ${ing.unidad || ''} ${ing.nombre || ''}`}
-                                          </li>
-                                        ))}
-                                      </ul>
-                                    </details>
-                                  )}
-                                  {instrucciones.length > 0 && (
-                                    <details className="mi-plan-receta-details">
-                                      <summary>Preparación ({instrucciones.length} pasos)</summary>
-                                      <ol>
-                                        {instrucciones.map((paso, i) => (
-                                          <li key={i}>{typeof paso === 'string' ? paso : paso.descripcion || paso.paso || ''}</li>
-                                        ))}
-                                      </ol>
-                                    </details>
-                                  )}
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </section>
-                    );
-                  })()}
-
-                  {/* Material visual / Imágenes del plan */}
-                  {planAsignado.contenido?.imagenes?.length > 0 && (() => {
-                    const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8000';
-                    return (
-                      <section className="mi-plan-imagenes-section">
-                        <h3 className="mi-plan-section-title">
-                          <LucideIcon name="image" size={20} /> Material Visual
-                        </h3>
-                        <div className="mi-plan-imagenes-grid">
-                          {planAsignado.contenido.imagenes.map((item, idx) => {
-                            const imgPath = item.path || item;
-                            return (
-                              <div key={idx} className="mi-plan-imagen-card" onClick={() => window.open(`${apiUrl}${imgPath}`, '_blank')}>
-                                <img src={`${apiUrl}${imgPath}`} alt={item.titulo || `Imagen ${idx + 1}`} />
-                                {item.titulo && <span className="mi-plan-imagen-titulo">{item.titulo}</span>}
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </section>
-                    );
-                  })()}
                 </>
               ) : planAsignado.contenido?.generado_con_catalogo === true ? (
                 <VistaPlan
@@ -959,183 +898,12 @@ const Nutricion = () => {
                   contenido={planAsignado.contenido}
                 />
               ) : (
-              <>
-                {/* Info del plan */}
                 <section className="plan-info-section">
                   <div className="plan-header-info">
                     <h3><LucideIcon name="clipboard" size={20} /> {planAsignado.nombre}</h3>
                     <span className="plan-badge-activo">Activo</span>
                   </div>
-                  {planAsignado.descripcion && (
-                    <p className="plan-descripcion">{planAsignado.descripcion}</p>
-                  )}
-                  <p className="plan-especialista">
-                    Asignado por: <strong>{planAsignado.especialista_nombre}</strong>
-                  </p>
-
-                  {/* Objetivo si existe */}
-                  {planAsignado.contenido?.objetivo && (
-                    <div className="plan-objetivo-paciente">
-                      <strong><LucideIcon name="target" size={18} /> Objetivo:</strong> {planAsignado.contenido.objetivo}
-                    </div>
-                  )}
-
-                  {/* Macros del plan */}
-                  <div className="plan-macros-resumen">
-                    <div className="macro-item calorias">
-                      <span className="macro-icon"><LucideIcon name="zap" size={18} /></span>
-                      <span className="macro-value">{planAsignado.calorias_diarias || planAsignado.contenido?.totales?.calorias || 0}</span>
-                      <span className="macro-label">kcal/día</span>
-                    </div>
-                    <div className="macro-item proteinas">
-                      <span className="macro-icon"><LucideIcon name="target" size={18} /></span>
-                      <span className="macro-value">{Number(planAsignado.proteinas_g || planAsignado.contenido?.totales?.proteinas || 0).toFixed(0)}g</span>
-                      <span className="macro-label">Proteínas</span>
-                    </div>
-                    <div className="macro-item carbos">
-                      <span className="macro-icon"><LucideIcon name="sprout" size={18} /></span>
-                      <span className="macro-value">{Number(planAsignado.carbohidratos_g || planAsignado.contenido?.totales?.carbohidratos || 0).toFixed(0)}g</span>
-                      <span className="macro-label">Carbos</span>
-                    </div>
-                    <div className="macro-item grasas">
-                      <span className="macro-icon"><LucideIcon name="droplet" size={18} /></span>
-                      <span className="macro-value">{Number(planAsignado.grasas_g || planAsignado.contenido?.totales?.grasas || 0).toFixed(0)}g</span>
-                      <span className="macro-label">Grasas</span>
-                    </div>
-                  </div>
                 </section>
-
-                {/* Comidas del plan - Diseño mejorado */}
-                <section className="recetas-list-section">
-                  <h3><LucideIcon name="utensils" size={20} /> Tu Menú del Día</h3>
-                  {planAsignado.contenido?.comidas?.length > 0 ? (
-                    <div className="comidas-timeline-paciente">
-                      {planAsignado.contenido.comidas.map((comida, idx) => {
-                        const tipoLabels = {
-                          desayuno: { icon: 'sunrise', label: 'Desayuno' },
-                          almuerzo: { icon: 'utensils', label: 'Almuerzo' },
-                          cena: { icon: 'moon', label: 'Cena' },
-                          snack: { icon: 'apple', label: 'Snack' },
-                          merienda: { icon: 'cookie', label: 'Merienda' }
-                        };
-                        const tipoInfo = tipoLabels[comida.tipo_comida] || { icon: 'utensils', label: comida.nombre_original || comida.tipo_comida };
-
-                        return (
-                          <div key={idx} className="comida-card-paciente">
-                            <div className="comida-card-header">
-                              <div className="comida-tipo-info">
-                                <span className="comida-icono"><LucideIcon name={tipoInfo.icon} size={20} /></span>
-                                <div className="comida-tipo-text">
-                                  <span className="comida-tipo-label">{tipoInfo.label}</span>
-                                  {comida.horario && <span className="comida-hora"><LucideIcon name="alarm-clock" size={14} /> {comida.horario}</span>}
-                                </div>
-                              </div>
-                              {comida.calorias > 0 && (
-                                <span className="comida-kcal-pill">~{comida.calorias} kcal</span>
-                              )}
-                            </div>
-
-                            {/* Opciones de la comida */}
-                            {comida.opciones && comida.opciones.length > 0 ? (
-                              <div className="opciones-grid-paciente">
-                                <div className="opciones-titulo">
-                                  <span className="opciones-count">{comida.opciones.length} {comida.opciones.length === 1 ? 'opción' : 'opciones'} para elegir:</span>
-                                </div>
-                                {comida.opciones.map((opcion, opIdx) => (
-                                  <div key={opIdx} className="opcion-card-paciente">
-                                    <div className="opcion-card-top">
-                                      <span className="opcion-num">#{opcion.numero || opIdx + 1}</span>
-                                      {opcion.calorias_estimadas > 0 && (
-                                        <span className="opcion-kcal-badge">~{opcion.calorias_estimadas} kcal</span>
-                                      )}
-                                    </div>
-                                    <h5 className="opcion-nombre-paciente">{opcion.nombre}</h5>
-                                    <p className="opcion-desc-paciente">
-                                      {opcion.descripcion?.length > 180
-                                        ? opcion.descripcion.substring(0, 180) + '...'
-                                        : opcion.descripcion || 'Ver receta'}
-                                    </p>
-                                    {opcion.calorias_estimadas > 0 && (
-                                      <div className="opcion-macros-paciente">
-                                        <span className="macro proteinas"><LucideIcon name="target" size={14} /> {opcion.proteinas_estimadas}g</span>
-                                        <span className="macro carbos"><LucideIcon name="sprout" size={14} /> {opcion.carbohidratos_estimados}g</span>
-                                        <span className="macro grasas"><LucideIcon name="droplet" size={14} /> {opcion.grasas_estimadas}g</span>
-                                      </div>
-                                    )}
-                                  </div>
-                                ))}
-                              </div>
-                            ) : (
-                              <div className="comida-simple">
-                                <p>{comida.nombre_plato || 'Sin opciones detalladas'}</p>
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  ) : (
-                    <div className="empty-state">
-                      <span className="empty-icon"><LucideIcon name="clipboard" size={32} /></span>
-                      <p>El plan no tiene comidas estructuradas</p>
-                      <p className="help-text">Consulta con tu nutriólogo para más detalles</p>
-                    </div>
-                  )}
-                </section>
-
-                {/* Indicaciones generales */}
-                {planAsignado.contenido?.indicaciones_generales?.length > 0 && (
-                  <section className="indicaciones-section">
-                    <h3><LucideIcon name="pen-line" size={20} /> Indicaciones Generales</h3>
-                    <ul className="indicaciones-list-paciente">
-                      {planAsignado.contenido.indicaciones_generales.map((ind, idx) => (
-                        <li key={idx}>{ind}</li>
-                      ))}
-                    </ul>
-                  </section>
-                )}
-
-                {/* Recomendaciones */}
-                {planAsignado.contenido?.recomendaciones?.length > 0 && (
-                  <section className="recomendaciones-section">
-                    <h3><LucideIcon name="lightbulb" size={20} /> Recomendaciones</h3>
-                    <ul className="recomendaciones-list">
-                      {planAsignado.contenido.recomendaciones.map((rec, idx) => (
-                        <li key={idx}>{rec}</li>
-                      ))}
-                    </ul>
-                  </section>
-                )}
-
-                {/* Gráficas e imágenes informativas */}
-                {(planAsignado.contenido?.graficas?.length > 0 || planAsignado.contenido?.imagenes?.length > 0) && (
-                  <section className="graficas-section-paciente">
-                    <h3><LucideIcon name="bar-chart" size={20} /> Material Informativo</h3>
-                    <div className="graficas-scroll">
-                      {(planAsignado.contenido.graficas || planAsignado.contenido.imagenes || []).map((item, idx) => {
-                        const imagen = item.imagen || item;
-                        const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8000';
-                        const imagePath = imagen.path || imagen;
-
-                        return (
-                          <div key={idx} className="grafica-card-paciente">
-                            <img
-                              src={`${apiUrl}${imagePath}`}
-                              alt={item.titulo || `Gráfica ${idx + 1}`}
-                              className="grafica-img-paciente"
-                              onClick={() => window.open(`${apiUrl}${imagePath}`, '_blank')}
-                            />
-                            <div className="grafica-overlay">
-                              <span className="grafica-title">{item.titulo || `Gráfica ${idx + 1}`}</span>
-                              <span className="grafica-tap">Toca para ampliar</span>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </section>
-                )}
-              </>
               )
             ) : (
               <section className="plan-empty-section">
@@ -1181,7 +949,6 @@ const Nutricion = () => {
                 {renderCalendario()}
               </div>
             </div>
-
           </div>
         </div>
       )}
@@ -1204,7 +971,6 @@ const Nutricion = () => {
             </div>
 
             <div className="food-suggestions">
-              {/* Sección de alimentos del plan */}
               {planAsignado?.tiene_plan && getAlimentosDelPlan().filter(a => a.esRelevante).length > 0 && (
                 <div className="plan-foods-section">
                   <h4><LucideIcon name="clipboard" size={18} /> De tu plan nutricional</h4>
@@ -1219,9 +985,6 @@ const Nutricion = () => {
                           <span className="food-macros">
                             {alimento.calorias} kcal · C:{alimento.carbohidratos}g · P:{alimento.proteinas}g · G:{alimento.grasas}g
                           </span>
-                          {alimento.descripcion && (
-                            <span className="food-description">{alimento.descripcion.substring(0, 80)}...</span>
-                          )}
                         </div>
                         <button
                           className="add-food-btn plan-add-btn"
@@ -1236,7 +999,6 @@ const Nutricion = () => {
                 </div>
               )}
 
-              {/* Sección de otros alimentos */}
               <h4><LucideIcon name="utensils" size={18} /> Otros alimentos</h4>
               <div className="food-list">
                 {getAlimentosFiltrados().filter(a => !a.esDelPlan || !a.esRelevante).map((alimento) => (
@@ -1265,52 +1027,8 @@ const Nutricion = () => {
         </div>
       )}
 
-      {/* Modal Detalle Receta */}
-      {showRecetaDetail && (
-        <div className="modal-overlay" onClick={() => setShowRecetaDetail(null)}>
-          <div className="modal-content receta-detail-modal" onClick={e => e.stopPropagation()}>
-            <button className="modal-close" onClick={() => setShowRecetaDetail(null)}>×</button>
-
-            <div className="receta-detail-header">
-              {showRecetaDetail.imagen ? (
-                <img src={showRecetaDetail.imagen} alt={showRecetaDetail.titulo} />
-              ) : (
-                <div className="receta-detail-placeholder"><LucideIcon name="utensils" size={32} /></div>
-              )}
-            </div>
-
-            <div className="receta-detail-content">
-              <h2>{showRecetaDetail.titulo}</h2>
-
-              <div className="receta-detail-meta">
-                <span><LucideIcon name="alarm-clock" size={16} /> {showRecetaDetail.tiempo} min</span>
-                <span><LucideIcon name="zap" size={16} /> {showRecetaDetail.calorias} kcal</span>
-              </div>
-
-              <div className="receta-detail-section">
-                <h3>Ingredientes</h3>
-                <ul>
-                  {showRecetaDetail.ingredientes?.map((ing, i) => (
-                    <li key={i}>{ing}</li>
-                  ))}
-                </ul>
-              </div>
-
-              <div className="receta-detail-section">
-                <h3>Preparación</h3>
-                <p>{showRecetaDetail.preparacion}</p>
-              </div>
-
-              <button className="btn btn-primary btn-block">Agregar al diario</button>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Panel de Accesibilidad */}
       <AccessibilityPanel />
-
-      {/* FAB de Accesibilidad */}
       <AccessibilityFAB />
     </div>
   );
