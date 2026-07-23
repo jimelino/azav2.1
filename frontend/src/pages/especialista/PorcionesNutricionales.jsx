@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowLeft, Plus, Trash2, Scale } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Scale, CheckCircle } from 'lucide-react';
 import './EspecialistaDashboard.css';
 
 export default function PorcionesNutricionales({ especialistaId = 1, pacientes = [], onBack }) {
@@ -7,6 +7,7 @@ export default function PorcionesNutricionales({ especialistaId = 1, pacientes =
   const [observaciones, setObservaciones] = useState('');
   const [porciones, setPorciones] = useState([]);
   const [guardando, setGuardando] = useState(false);
+  const [mensajeGrupo, setMensajeGrupo] = useState(''); // Estado para la notificación
 
   // Lista base de grupos de alimentos
   const gruposAlimentos = [
@@ -27,8 +28,14 @@ export default function PorcionesNutricionales({ especialistaId = 1, pacientes =
     listaPacientes.unshift({ id: 999, nombre: 'Paciente de Prueba', email: 'paciente1@test.com' });
   }
 
+  // Agrega fila y activa la notificación por 2 segundos
   const agregarFila = () => {
     setPorciones([...porciones, { grupo: gruposAlimentos[0], cantidad: 1, opciones: '' }]);
+    
+    setMensajeGrupo('¡Grupo agregado correctamente!');
+    setTimeout(() => {
+      setMensajeGrupo('');
+    }, 2000);
   };
 
   const eliminarFila = (index) => {
@@ -133,13 +140,33 @@ export default function PorcionesNutricionales({ especialistaId = 1, pacientes =
           {/* Distribución */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '20px 0 10px 0' }}>
             <h3 style={{ margin: 0 }}>Distribución de Equivalentes</h3>
-            <button
-              type="button"
-              onClick={agregarFila}
-              style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#e6f0fa', color: '#0066cc', border: 'none', padding: '8px 16px', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}
-            >
-              <Plus size={18} /> Agregar Grupo
-            </button>
+            
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              {/* Notificación de éxito al agregar grupo */}
+              {mensajeGrupo && (
+                <span style={{ 
+                  color: '#166534', 
+                  backgroundColor: '#dcfce7', 
+                  padding: '6px 12px', 
+                  borderRadius: '6px', 
+                  fontSize: '14px', 
+                  fontWeight: 'bold',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}>
+                  <CheckCircle size={16} /> {mensajeGrupo}
+                </span>
+              )}
+
+              <button
+                type="button"
+                onClick={agregarFila}
+                style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#e6f0fa', color: '#0066cc', border: 'none', padding: '8px 16px', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}
+              >
+                <Plus size={18} /> Agregar Grupo
+              </button>
+            </div>
           </div>
 
           {porciones.length === 0 ? (
