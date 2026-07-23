@@ -1,50 +1,82 @@
 <?php
-// Limpiar cualquier salida previa o advertencia
-ob_start();
-ob_clean();
+// Limpiar cualquier salida previa
+if (ob_get_length()) ob_clean();
 
-// Permitir peticiones desde cualquier origen (CORS)
+// Encabezados CORS y JSON
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With");
 header("Access-Control-Allow-Methods: POST, GET, OPTIONS");
 header("Content-Type: application/json; charset=UTF-8");
 
-// Desactivar impresión de errores/warnings de PHP en pantalla
+// Desactivar impresión de errores de PHP en pantalla
 error_reporting(0);
 ini_set('display_errors', 0);
 
-// Si el navegador consulta las opciones previas (Preflight OPTIONS)
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
     exit();
 }
 
-// Intentar incluir la conexión a la BD
-if (file_exists(__DIR__ . '/../../config/config.inc.php')) {
-    require_once __DIR__ . '/../../config/config.inc.php';
-} elseif (file_exists(__DIR__ . '/../config/config.inc.php')) {
-    require_once __DIR__ . '/../config/config.inc.php';
-} elseif (file_exists(__DIR__ . '/config/config.inc.php')) {
-    require_once __DIR__ . '/config/config.inc.php';
+// -------------------------------------------------------------
+// INCLUSIÓN ROBUSTA DE LA CONEXIÓN A LA BASE DE DATOS
+// -------------------------------------------------------------
+
+// 1. Intentar cargar config.inc.php buscando desde la raíz y directorios superiores
+$possible_paths = [
+    $_SERVER['DOCUMENT_ROOT'] . '/config/config.inc.php',
+    __DIR__ . '/config/config.inc.php',
+    __DIR__ . '/../config/config.inc.php',
+    __DIR__ . '/../../config/config.inc.php',
+    dirname(__DIR__, 2) . '/config/config.inc.php',
+    dirname(__DIR__, 1) . '/config/config.inc.php'
+];
+
+foreach ($possible_paths as $path) {
+    if (file_exists($path)) {
+        require_once $path;
+        break;
+    }
 }
 
-// Asignar variable de conexión global
+// 2. Mapear la variable de conexión global
 if (!isset($conn) && isset($conexion)) {
     $conn = $conexion;
 }
 
-// Verificar que la conexión a la BD esté disponible
+// 3. Fallback: Conexión directa mediante variables de entorno de Railway si no existe $conn
+if (!isset($conn) || !$conn || (method_exists($conn, 'connect_error') && $conn->connect_error)) {
+    $host = getenv('MYSQLHOST') ?: getenv('DB_HOST') ?: 'localhost';
+    $user = getenv('MYSQLUSER') ?: getenv('DB_USER') ?: 'root';
+    $pass = getenv('MYSQLPASSWORD') ?: getenv('DB_PASS') ?: '';
+    $db   = getenv('MYSQLDATABASE') ?: getenv('DB_NAME') ?: '';
+    $port = getenv('MYSQLPORT') ?: getenv('DB_PORT') ?: 3306;
+
+    if (!empty($db)) {
+        $conn = new mysqli($host, $user, $pass, $db, (int)$port);
+        if ($conn->connect_error) {
+            $conn = null;
+        } else {
+            $conn->set_charset("utf8mb4");
+        }
+    }
+}
+
+// 4. Si tras las comprobaciones sigue sin haber conexión, retornar error
 if (!isset($conn) || !$conn) {
-    ob_clean();
+    if (ob_get_length()) ob_clean();
     http_response_code(500);
-    echo json_encode(["status" => "error", "message" => "Error de conexión a la base de datos."]);
+    echo json_encode([
+        "status" => "error", 
+        "message" => "Error de conexión a la base de datos (No se pudo establecer la conexión mysqli)."
+    ]);
     exit();
 }
+// -------------------------------------------------------------
 
 $input = json_decode(file_get_contents("php://input"), true);
 
 if (!$input) {
-    ob_clean();
+    if (ob_get_length()) ob_clean();
     echo json_encode(["status" => "error", "message" => "Datos de entrada no válidos"]);
     exit();
 }
@@ -55,7 +87,7 @@ $observaciones   = isset($input['observaciones']) ? trim($input['observaciones']
 $grupos          = isset($input['grupos']) && is_array($input['grupos']) ? $input['grupos'] : [];
 
 if ($paciente_id === 0 || empty($grupos)) {
-    ob_clean();
+    if (ob_get_length()) ob_clean();
     echo json_encode(["status" => "error", "message" => "Selecciona un paciente y al menos un grupo de alimento"]);
     exit();
 }
@@ -101,7 +133,7 @@ try {
     }
     $stmtDetail->close();
 
-    ob_clean();
+    if (ob_get_length()) ob_clean();
     echo json_encode([
         "status" => "success",
         "message" => "Plan de porciones guardado correctamente",
@@ -109,7 +141,7 @@ try {
     ]);
 
 } catch (Exception $e) {
-    ob_clean();
+    if (ob_get_length()) ob_clean();
     http_response_code(500);
     echo json_encode([
         "status" => "error",
