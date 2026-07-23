@@ -73,11 +73,12 @@ export default function PorcionesNutricionales({ especialistaId = 1, pacientes =
     };
 
     try {
-      // Ajuste de ruta: utiliza 'localhost' para desarrollo local y ruta relativa para Railway
-      const API_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
-        ? 'http://localhost/azav2.1/backend/src/Controllers/guardar_porciones.php'
-        : '/backend/src/Controllers/guardar_porciones.php';
 
+        // Si en Railway tus endpoints se sirven desde la raíz o ruta relativa del dominio actual:
+  const API_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+  ? 'http://localhost/azav2.1/backend/src/Controllers/guardar_porciones.php'
+  : '/backend/src/Controllers/guardar_porciones.php';
+  // O bien '/guardar_porciones.php' según como lo tenías funcionando en tus otros componentes
       const res = await fetch(API_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
