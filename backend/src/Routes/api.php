@@ -137,7 +137,7 @@ route('GET', '/api/fases/progreso/(\d+)', function($pacienteId) {
 
 // RUTAS DE NUTRICIÓN
 route('POST', '/api/guardar_porciones', function() {
-    require_once __DIR__ . '/Controllers/guardar_porciones.php';
+    require_once __DIR__ . '/../Controllers/guardar_porciones.php';
 }, ['auth']);
 
 route('GET', '/api/nutricion/recetas', function() {
@@ -877,5 +877,5 @@ route('DELETE', '/api/admin/usuarios/(\d+)', function($id) {
 
 route('PUT', '/api/admin/usuarios/(\d+)/toggle', function($id) {
     $controller = new AdminController();
-    $controller->toggleUsuario($id);
+    $controller->toggleUsuarioEstado($id);
 }, ['auth', 'role:administrador']);
