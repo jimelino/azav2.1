@@ -879,3 +879,8 @@ route('PUT', '/api/admin/usuarios/(\d+)/toggle', function($id) {
     $controller = new AdminController();
     $controller->toggleUsuarioEstado($id);
 }, ['auth', 'role:administrador']);
+
+route('GET', '/api/nutricion/plan-paciente/(\d+)', function($id) {
+    $controller = new \App\Controllers\NutricionController();
+    $controller->obtenerPlanPaciente($id);
+});

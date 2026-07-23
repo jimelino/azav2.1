@@ -37,6 +37,8 @@ class PlanNutricionalController
 
             $file = $_FILES['pdf'];
 
+
+            
             // Validar tipo de archivo (PDF o DOCX)
             $allowedTypes = [
                 'application/pdf',
@@ -241,6 +243,8 @@ class PlanNutricionalController
 
         return trim($texto);
     }
+
+    
 
     /**
      * Extraer texto de un archivo DOCX

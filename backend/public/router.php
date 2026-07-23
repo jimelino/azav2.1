@@ -74,3 +74,4 @@ if (file_exists($reactIndex)) {
 }
 
 require $_SERVER['DOCUMENT_ROOT'] . '/index.php';
+

@@ -347,6 +347,31 @@ class NutricionController
 
         return Response::success(null, 'Registro de agua actualizado');
     }
+    public function obtenerPlanPaciente($id) {
+    try {
+        // Consulta a la base de datos para obtener el plan del paciente
+        $stmt = $this->db->prepare("SELECT * FROM paciente_porciones_diarias WHERE paciente_id = ? LIMIT 1");
+        $stmt->execute([$id]);
+        $plan = $stmt->fetch(\PDO::FETCH_ASSOC);
+
+        // Si prefieres usar la sintaxis de tus otros métodos con $this->db->query:
+        // $plan = $this->db->query("SELECT * FROM planes_nutricionales WHERE paciente_id = ?", [$id])->fetch();
+
+        header('Content-Type: application/json');
+        echo json_encode([
+            'success' => true,
+            'data' => $plan ? $plan : null
+        ]);
+        exit;
+    } catch (\Exception $e) {
+        header('Content-Type: application/json');
+        echo json_encode([
+            'success' => false,
+            'message' => 'Error al obtener el plan: ' . $e->getMessage()
+        ]);
+        exit;
+    }
+}
 
     // ALIMENTOS
     public function registrarAlimento($data)
