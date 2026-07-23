@@ -68,42 +68,70 @@ try {
 
     $db->beginTransaction();
 
-    // Insertar o Actualizar la cabecera del plan (incluyendo macros y recomendaciones)
-    $sqlCabecera = "
-        INSERT INTO paciente_porciones_diarias 
-        (paciente_id, especialista_id, fecha_asignacion, observaciones, calorias, proteinas, carbohidratos, grasas, recomendaciones)
-        VALUES 
-        (:paciente_id, :especialista_id, :fecha, :observaciones, :calorias, :proteinas, :carbohidratos, :grasas, :recomendaciones)
-        ON DUPLICATE KEY UPDATE 
-            observaciones = VALUES(observaciones),
-            calorias = VALUES(calorias),
-            proteinas = VALUES(proteinas),
-            carbohidratos = VALUES(carbohidratos),
-            grasas = VALUES(grasas),
-            recomendaciones = VALUES(recomendaciones),
-            id = LAST_INSERT_ID(id)
-    ";
-    
-    $stmt = $db->prepare($sqlCabecera);
-    $stmt->execute([
-        ':paciente_id'     => $paciente_id,
-        ':especialista_id' => $especialista_id,
-        ':fecha'           => $fechaActual,
-        ':observaciones'   => $observaciones,
-        ':calorias'        => $calorias,
-        ':proteinas'       => $proteinas,
-        ':carbohidratos'   => $carbohidratos,
-        ':grasas'          => $grasas,
-        ':recomendaciones' => $recomendaciones
+    // 1. Verificar si ya existe un registro para este paciente en la fecha actual (respetando la estructura relacional)
+    $sqlCheck = "SELECT id FROM paciente_porciones_diarias WHERE paciente_id = :paciente_id AND fecha_asignacion = :fecha LIMIT 1";
+    $stmtCheck = $db->prepare($sqlCheck);
+    $stmtCheck->execute([
+        ':paciente_id' => $paciente_id,
+        ':fecha'       => $fechaActual
     ]);
+    $existingPlan = $stmtCheck->fetch(\PDO::FETCH_ASSOC);
 
-    $porciones_diarias_id = $db->lastInsertId();
+    if ($existingPlan) {
+        // Si ya existe, actualizamos la cabecera existente
+        $porciones_diarias_id = $existingPlan['id'];
+        
+        $sqlCabecera = "
+            UPDATE paciente_porciones_diarias 
+            SET especialista_id = :especialista_id,
+                observaciones = :observaciones, 
+                calorias = :calorias, 
+                proteinas = :proteinas, 
+                carbohidratos = :carbohidratos, 
+                grasas = :grasas, 
+                recomendaciones = :recomendaciones
+            WHERE id = :id
+        ";
+        $stmt = $db->prepare($sqlCabecera);
+        $stmt->execute([
+            ':especialista_id' => $especialista_id,
+            ':observaciones'   => $observaciones,
+            ':calorias'        => $calorias,
+            ':proteinas'       => $proteinas,
+            ':carbohidratos'   => $carbohidratos,
+            ':grasas'          => $grasas,
+            ':recomendaciones' => $recomendaciones,
+            ':id'              => $porciones_diarias_id
+        ]);
+    } else {
+        // Si no existe, insertamos un registro nuevo
+        $sqlCabecera = "
+            INSERT INTO paciente_porciones_diarias 
+            (paciente_id, especialista_id, fecha_asignacion, observaciones, calorias, proteinas, carbohidratos, grasas, recomendaciones)
+            VALUES 
+            (:paciente_id, :especialista_id, :fecha, :observaciones, :calorias, :proteinas, :carbohidratos, :grasas, :recomendaciones)
+        ";
+        $stmt = $db->prepare($sqlCabecera);
+        $stmt->execute([
+            ':paciente_id'     => $paciente_id,
+            ':especialista_id' => $especialista_id,
+            ':fecha'           => $fechaActual,
+            ':observaciones'   => $observaciones,
+            ':calorias'        => $calorias,
+            ':proteinas'       => $proteinas,
+            ':carbohidratos'   => $carbohidratos,
+            ':grasas'          => $grasas,
+            ':recomendaciones' => $recomendaciones
+        ]);
 
-    // Limpiar detalle previo
+        $porciones_diarias_id = $db->lastInsertId();
+    }
+
+    // 2. Limpiar detalle previo para asegurarnos de guardar la estructura limpia enviada
     $stmtClean = $db->prepare("DELETE FROM paciente_porciones_detalle WHERE porciones_diarias_id = :id");
     $stmtClean->execute([':id' => $porciones_diarias_id]);
 
-    // Insertar detalle de porciones
+    // 3. Insertar el nuevo detalle de porciones
     $sqlDetalle = "
         INSERT INTO paciente_porciones_detalle (porciones_diarias_id, grupo_id, numero_porciones, opciones_sugeridas)
         VALUES (:porciones_id, :grupo_id, :porciones, :opciones)
@@ -112,7 +140,7 @@ try {
 
     foreach ($grupos as $item) {
         $grupo_id           = intval($item['grupo_id'] ?? 0);
-        $numero_porciones   = floatval($item['numero_porciones'] ?? 0);
+        $numero_porciones   = floatval($item['numero_porciones']  ?? 0);
         $opciones_sugeridas = isset($item['opciones_sugeridas']) ? trim($item['opciones_sugeridas']) : '';
 
         if ($grupo_id > 0 && $numero_porciones > 0) {
@@ -130,7 +158,7 @@ try {
     http_response_code(200);
     echo json_encode([
         "status" => "success",
-        "message" => "Plan de porciones guardado correctamente",
+        "message" => "Plan de porciones guardado y estructura actualizada correctamente",
         "porciones_diarias_id" => $porciones_diarias_id
     ]);
 
