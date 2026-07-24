@@ -193,13 +193,13 @@ class NutricionController
         return Response::success(null, 'Checklist actualizado exitosamente');
     }
 
-    // RESUMEN DEL DÍA - Actualizado con la tabla alimentos_opciones
+    // RESUMEN DEL DÍA - Actualizado con la tabla alimentos_opciones y el campo hidratos_carbono correcto
     public function getResumenDia($pacienteId, $fecha)
     {
         // Obtener comidas del día agrupadas por tipo usando alimentos_opciones
         $comidas = $this->db->query(
             "SELECT rc.*, tc.nombre as tipo_nombre, a.nombre as alimento_nombre,
-                    a.kcal as calorias, a.hidratos_de_carbono as carbohidratos, a.proteinas, a.lipidos as grasas
+                    a.kcal as calorias, a.hidratos_carbono as carbohidratos, a.proteinas, a.lipidos as grasas
              FROM registro_comidas rc
              LEFT JOIN tipos_comida tc ON rc.tipo_comida_id = tc.id
              LEFT JOIN alimentos_opciones a ON rc.alimento_id = a.id
@@ -409,9 +409,9 @@ class NutricionController
             return Response::success([]);
         }
 
-        // Actualizado a alimentos_opciones y sus columnas reales
+        // Actualizado a alimentos_opciones y sus columnas reales (hidratos_carbono)
         $alimentos = $this->db->query(
-            "SELECT id, nombre, kcal as calorias, hidratos_de_carbono as carbohidratos, proteinas, lipidos as grasas, porcion_sugerida as porcion
+            "SELECT id, nombre, kcal as calorias, hidratos_carbono as carbohidratos, proteinas, lipidos as grasas, porcion_sugerida as porcion
              FROM alimentos_opciones
              WHERE nombre LIKE ?
              ORDER BY nombre
