@@ -130,11 +130,11 @@ try {
         $porciones_diarias_id = $db->lastInsertId();
     }
 
-    // 2. Limpiar detalle previo para asegurarnos de guardar la estructura limpia enviada
+    // 2. Limpiar detalle previo para asegurarnos de guardar la estructura limpia (evita duplicados)
     $stmtClean = $db->prepare("DELETE FROM paciente_porciones_detalle WHERE porciones_diarias_id = :id");
     $stmtClean->execute([':id' => $porciones_diarias_id]);
 
-    // 3. Insertar el nuevo detalle de porciones
+    // 3. Insertar el nuevo detalle de porciones con validación de seguridad (IDs del 1 al 8)
     $sqlDetalle = "
         INSERT INTO paciente_porciones_detalle (porciones_diarias_id, grupo_id, numero_porciones, opciones_sugeridas)
         VALUES (:porciones_id, :grupo_id, :porciones, :opciones)
@@ -142,9 +142,14 @@ try {
     $stmtDetail = $db->prepare($sqlDetalle);
 
     foreach ($grupos as $item) {
-        $grupo_id          = intval($item['grupo_id'] ?? 0);
-        $numero_porciones   = floatval($item['numero_porciones']  ?? 0);
+        $grupo_id           = intval($item['grupo_id'] ?? 0);
+        $numero_porciones   = floatval($item['numero_porciones'] ?? 0);
         $opciones_sugeridas = isset($item['opciones_sugeridas']) ? trim($item['opciones_sugeridas']) : '';
+
+        // VALIDACIÓN DE SEGURIDAD: Evita que un ID fuera del rango (como el 9) rompa la base de datos
+        if ($grupo_id < 1 || $grupo_id > 8) {
+            continue;
+        }
 
         if ($grupo_id > 0 && $numero_porciones > 0) {
             $stmtDetail->execute([
