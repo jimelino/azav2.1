@@ -61,11 +61,14 @@ const ModuleLayout = ({ children, showBackButton = true }) => {
   };
 
   const navItems = getNavItems();
+  const currentNavItem = navItems.find((item) => item.path === location.pathname);
+  const currentPageLabel = currentNavItem?.label || 'esta sección';
+  const headerSpeechText = `Azaria. Plataforma de Rehabilitación. Estás en ${currentPageLabel}. Sistema de Adherencia Terapéutica.`;
 
   return (
     <div className="module-layout">
       {/* Header institucional DGTIC */}
-      <InstitutionalHeader />
+      <InstitutionalHeader speechText={headerSpeechText} />
 
       {/* Botón flotante de volver al inicio */}
       {showBackButton && (

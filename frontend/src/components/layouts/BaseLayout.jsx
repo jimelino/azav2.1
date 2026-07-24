@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useAccessibility } from '../../context/AccessibilityContext';
 import { useVoice } from '../VoiceHelper';
 import AccessibilityPanel, { AccessibilityFAB } from '../accessibility/AccessibilityPanel';
+import TextToSpeechButton from '../accessibility/TextToSpeechButton';
 import LucideIcon from '../LucideIcon';
 import './layouts.css';
 
@@ -28,7 +29,7 @@ const BaseLayout = ({
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const { settings, togglePanel } = useAccessibility();
-  const { speak, isSpeaking, stop } = useVoice();
+  const { speak } = useVoice();
 
   const handleLogout = async () => {
     speak('Cerrando sesi贸n');
@@ -87,15 +88,13 @@ const BaseLayout = ({
 
         <div className="header-right">
           {headerActions}
-
-          {/* Bot贸n de voz r谩pida */}
-          <button
-            className={`header-btn voice-btn ${isSpeaking ? 'speaking' : ''}`}
-            onClick={() => isSpeaking ? stop() : speak(`Est谩s en ${title}. ${subtitle || ''}`)}
-            aria-label={isSpeaking ? 'Detener audio' : 'Escuchar descripci贸n de p谩gina'}
-          >
-            <LucideIcon name={isSpeaking ? 'stop' : 'volume'} size={20} />
-          </button>
+          {/* Boton de voz rapida */}
+          <TextToSpeechButton
+            text={`Est醩 en ${title}. ${subtitle || ''}`}
+            label="Escuchar descripci髇 de p醙ina"
+            stopLabel="Detener descripci髇 de p醙ina"
+            className="header-btn voice-btn"
+          />
 
           {/* Bot贸n de accesibilidad */}
           <button

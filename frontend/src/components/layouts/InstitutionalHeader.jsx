@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-
-const assetPath = (path) => encodeURI(`${process.env.PUBLIC_URL || ''}${path}`);
+import TextToSpeechButton from '../accessibility/TextToSpeechButton';
 
 const LogoImage = ({ src, alt, className, fallbackText }) => {
   const [hasError, setHasError] = useState(false);
@@ -28,9 +27,11 @@ const LogoImage = ({ src, alt, className, fallbackText }) => {
 /**
  * InstitutionalHeader - Cabecera institucional DGTIC UNAM
  * Color cabeza: #00589c | Color menu: #004179
- * Logos: ENES VECTOR ORO (fondo oscuro) + LOGO CIRCULO
+ * Logos: ENES VECTOR AZUL + LOGO CIRCULO desde public/assets/images
  */
-const InstitutionalHeader = () => {
+const InstitutionalHeader = ({
+  speechText = 'Azaria. Plataforma de Rehabilitación. Sistema de Adherencia Terapéutica.'
+}) => {
   return (
     <header className="institutional-header" role="banner">
       {/* Barra superior institucional (Cabeza) */}
@@ -38,14 +39,14 @@ const InstitutionalHeader = () => {
         <div className="institutional-bar-content">
           <div className="institutional-logos">
             <LogoImage
-              src={assetPath('/assets/images/ENES VECTOR ORO.png')}
+              src="/assets/images/ENES VECTOR AZUL.png"
               alt="ENES Logo"
               className="institutional-logo-enes"
               fallbackText="ENES UNAM"
             />
             <div className="institutional-divider" aria-hidden="true"></div>
             <LogoImage
-              src={assetPath('/assets/images/LOGO CIRCULO.png')}
+              src="/assets/images/LOGO CIRCULO.png"
               alt="Azaria Logo"
               className="institutional-logo-azaria"
               fallbackText="Azaria 2.0"
@@ -54,6 +55,15 @@ const InstitutionalHeader = () => {
           <div className="institutional-title-group">
             <span className="institutional-service-name">Azaria</span>
             <span className="institutional-service-desc">Plataforma de Rehabilitacion</span>
+          </div>
+          <div className="institutional-actions">
+            <TextToSpeechButton
+              text={speechText}
+              label="Leer encabezado de la página"
+              stopLabel="Detener lectura del encabezado"
+              variant="ghost"
+              size={20}
+            />
           </div>
         </div>
       </div>

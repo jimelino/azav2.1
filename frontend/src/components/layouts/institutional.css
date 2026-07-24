@@ -82,6 +82,13 @@
   gap: 0;
 }
 
+.institutional-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
 .institutional-service-name {
   font-family: 'Roboto', sans-serif;
   font-size: 22px;
@@ -237,6 +244,16 @@
 
   .institutional-service-desc {
     font-size: 11px;
+  }
+
+  .institutional-actions {
+    margin-left: auto;
+  }
+
+  .institutional-actions .tts-button {
+    width: 38px;
+    height: 38px;
+    flex-basis: 38px;
   }
 
   .institutional-menu-bar {

@@ -1,14 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { useAccessibility } from '../context/AccessibilityContext';
 import AccessibilityPanel, { AccessibilityFAB } from '../components/accessibility/AccessibilityPanel';
+import TextToSpeechButton from '../components/accessibility/TextToSpeechButton';
 import { perfilService } from '../services/perfilService';
 import LucideIcon from '../components/LucideIcon';
 import '../styles/Perfil.css';
 
 const Perfil = () => {
-  const { user, logout } = useAuth();
-  const { settings } = useAccessibility();
+  const { logout } = useAuth();
   const [perfil, setPerfil] = useState(null);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
@@ -31,6 +30,10 @@ const Perfil = () => {
       setLoading(false);
     }
   };
+
+  const nombrePerfil = perfil?.nombre_completo || 'Usuario';
+  const rolPerfil = perfil?.rol || 'usuario';
+  const resumenPerfil = `Mi Perfil. Usuario ${nombrePerfil}. Rol ${rolPerfil}. En esta pantalla puedes consultar y editar tu información personal, datos médicos, contacto de emergencia y opciones de seguridad.`;
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -77,13 +80,23 @@ const Perfil = () => {
   return (
     <div className="perfil-page">
       <header className="page-header">
-        <h1>Mi Perfil</h1>
-        <button
-          className="btn btn-secondary"
-          onClick={() => setEditing(!editing)}
-        >
-          {editing ? 'Cancelar' : 'Editar'}
-        </button>
+        <div>
+          <h1>Mi Perfil</h1>
+          <p>Gestiona tu información personal y preferencias de cuenta</p>
+        </div>
+        <div className="perfil-header-actions">
+          <TextToSpeechButton
+            text={resumenPerfil}
+            label="Leer resumen de mi perfil"
+            stopLabel="Detener resumen de mi perfil"
+          />
+          <button
+            className="btn btn-secondary"
+            onClick={() => setEditing(!editing)}
+          >
+            {editing ? 'Cancelar' : 'Editar'}
+          </button>
+        </div>
       </header>
 
       {error && <div className="alert alert-error">{error}</div>}
@@ -117,7 +130,16 @@ const Perfil = () => {
 
         <form className="perfil-form" onSubmit={handleSubmit}>
           <div className="form-section">
-            <h3>Información Personal</h3>
+            <div className="section-title-row">
+              <h3>Información Personal</h3>
+              <TextToSpeechButton
+                text={`Información personal. Nombre completo ${formData.nombre_completo || 'sin registrar'}. Correo electrónico ${formData.email || 'sin registrar'}. Teléfono ${formData.telefono || 'sin registrar'}. Fecha de nacimiento ${formData.fecha_nacimiento || 'sin registrar'}.`}
+                label="Leer información personal"
+                stopLabel="Detener información personal"
+                variant="compact"
+                size={18}
+              />
+            </div>
 
             <div className="form-group">
               <label>Nombre Completo</label>
@@ -172,7 +194,16 @@ const Perfil = () => {
 
           {perfil?.rol === 'paciente' && (
             <div className="form-section">
-              <h3>Información Médica</h3>
+              <div className="section-title-row">
+                <h3>Información Médica</h3>
+                <TextToSpeechButton
+                  text={`Información médica. Peso ${formData.peso || 'sin registrar'} kilogramos. Estatura ${formData.estatura || 'sin registrar'} centímetros. Tipo de sangre ${formData.tipo_sangre || 'sin registrar'}. Alergias ${formData.alergias || 'sin registrar'}.`}
+                  label="Leer información médica"
+                  stopLabel="Detener información médica"
+                  variant="compact"
+                  size={18}
+                />
+              </div>
 
               <div className="form-group">
                 <label>Peso (kg)</label>
@@ -236,7 +267,16 @@ const Perfil = () => {
           )}
 
           <div className="form-section">
-            <h3>Contacto de Emergencia</h3>
+            <div className="section-title-row">
+              <h3>Contacto de Emergencia</h3>
+              <TextToSpeechButton
+                text={`Contacto de emergencia. Nombre ${formData.contacto_emergencia_nombre || 'sin registrar'}. Teléfono ${formData.contacto_emergencia_telefono || 'sin registrar'}.`}
+                label="Leer contacto de emergencia"
+                stopLabel="Detener contacto de emergencia"
+                variant="compact"
+                size={18}
+              />
+            </div>
 
             <div className="form-group">
               <label>Nombre del Contacto</label>
@@ -273,7 +313,16 @@ const Perfil = () => {
         </form>
 
         <div className="security-section">
-          <h3>Seguridad</h3>
+          <div className="section-title-row">
+            <h3>Seguridad</h3>
+            <TextToSpeechButton
+              text="Seguridad. Puedes cambiar tu PIN, cambiar tu contraseña o administrar tus dispositivos vinculados."
+              label="Leer opciones de seguridad"
+              stopLabel="Detener opciones de seguridad"
+              variant="compact"
+              size={18}
+            />
+          </div>
           <div className="security-actions">
             <button
               className="btn btn-outline"
