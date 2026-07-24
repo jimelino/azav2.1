@@ -50,7 +50,6 @@ try {
     $observaciones   = isset($input['observaciones']) ? trim($input['observaciones']) : '';
     $recomendaciones = isset($input['recomendaciones']) ? trim($input['recomendaciones']) : '';
     
-    // Capturar fecha personalizada si el front-end la envía, de lo contrario usar la fecha actual
     $fechaActual     = isset($input['fecha_asignacion']) && !empty($input['fecha_asignacion']) 
                         ? trim($input['fecha_asignacion']) 
                         : date('Y-m-d');
@@ -61,12 +60,25 @@ try {
     $carbohidratos   = isset($input['carbohidratos']) ? floatval($input['carbohidratos']) : 0;
     $grasas          = isset($input['grasas']) ? floatval($input['grasas']) : 0;
 
-    $grupos          = isset($input['grupos']) && is_array($input['grupos']) ? $input['grupos'] : [];
+    $gruposRaw       = isset($input['grupos']) && is_array($input['grupos']) ? $input['grupos'] : [];
 
-    if ($paciente_id === 0 || empty($grupos)) {
+    if ($paciente_id === 0 || empty($gruposRaw)) {
         http_response_code(400);
         echo json_encode(["status" => "error", "message" => "Selecciona un paciente y al menos un grupo de alimento"]);
         exit();
+    }
+
+    // Filtrar grupos: asegurar IDs del 1 al 8 y eliminar duplicados en la misma petición (dejando el último)
+    $gruposUnicos = [];
+    foreach ($gruposRaw as $item) {
+        $grupo_id = intval($item['grupo_id'] ?? 0);
+        if ($grupo_id >= 1 && $grupo_id <= 8) {
+            $gruposUnicos[$grupo_id] = [
+                'grupo_id' => $grupo_id,
+                'numero_porciones' => floatval($item['numero_porciones'] ?? 0),
+                'opciones_sugeridas' => isset($item['opciones_sugeridas']) ? trim($item['opciones_sugeridas']) : ''
+            ];
+        }
     }
 
     $db->beginTransaction();
@@ -81,7 +93,6 @@ try {
     $existingPlan = $stmtCheck->fetch(\PDO::FETCH_ASSOC);
 
     if ($existingPlan) {
-        // Si ya existe, actualizamos la cabecera existente
         $porciones_diarias_id = $existingPlan['id'];
         
         $sqlCabecera = "
@@ -107,7 +118,6 @@ try {
             ':id'              => $porciones_diarias_id
         ]);
     } else {
-        // Si no existe, insertamos un registro nuevo con la fecha seleccionada
         $sqlCabecera = "
             INSERT INTO paciente_porciones_diarias 
             (paciente_id, especialista_id, fecha_asignacion, observaciones, calorias, proteinas, carbohidratos, grasas, recomendaciones)
@@ -130,33 +140,24 @@ try {
         $porciones_diarias_id = $db->lastInsertId();
     }
 
-    // 2. Limpiar detalle previo para asegurarnos de guardar la estructura limpia (evita duplicados)
-    $stmtClean = $db->prepare("DELETE FROM paciente_porciones_detalle WHERE porciones_diarias_id = :id");
+    // 2. Limpiar detalle previo usando el nombre correcto de la columna (paciente_porcion_id)
+    $stmtClean = $db->prepare("DELETE FROM paciente_porciones_detalle WHERE paciente_porcion_id = :id");
     $stmtClean->execute([':id' => $porciones_diarias_id]);
 
-    // 3. Insertar el nuevo detalle de porciones con validación de seguridad (IDs del 1 al 8)
+    // 3. Insertar los nuevos detalles limpios y sin duplicados
     $sqlDetalle = "
-        INSERT INTO paciente_porciones_detalle (porciones_diarias_id, grupo_id, numero_porciones, opciones_sugeridas)
+        INSERT INTO paciente_porciones_detalle (paciente_porcion_id, grupo_id, numero_porciones, opciones_sugeridas)
         VALUES (:porciones_id, :grupo_id, :porciones, :opciones)
     ";
     $stmtDetail = $db->prepare($sqlDetalle);
 
-    foreach ($grupos as $item) {
-        $grupo_id           = intval($item['grupo_id'] ?? 0);
-        $numero_porciones   = floatval($item['numero_porciones'] ?? 0);
-        $opciones_sugeridas = isset($item['opciones_sugeridas']) ? trim($item['opciones_sugeridas']) : '';
-
-        // VALIDACIÓN DE SEGURIDAD: Evita que un ID fuera del rango (como el 9) rompa la base de datos
-        if ($grupo_id < 1 || $grupo_id > 8) {
-            continue;
-        }
-
-        if ($grupo_id > 0 && $numero_porciones > 0) {
+    foreach ($gruposUnicos as $item) {
+        if ($item['grupo_id'] > 0 && $item['numero_porciones'] > 0) {
             $stmtDetail->execute([
                 ':porciones_id' => $porciones_diarias_id,
-                ':grupo_id'     => $grupo_id,
-                ':porciones'    => $numero_porciones,
-                ':opciones'     => $opciones_sugeridas
+                ':grupo_id'     => $item['grupo_id'],
+                ':porciones'    => $item['numero_porciones'],
+                ':opciones'     => $item['opciones_sugeridas']
             ]);
         }
     }
@@ -166,7 +167,7 @@ try {
     http_response_code(200);
     echo json_encode([
         "status" => "success",
-        "message" => "Plan de porciones guardado y estructura actualizada correctamente",
+        "message" => "Plan de porciones guardado correctamente",
         "porciones_diarias_id" => $porciones_diarias_id
     ]);
 
