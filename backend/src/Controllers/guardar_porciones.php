@@ -68,7 +68,7 @@ try {
         exit();
     }
 
-    // Filtrar grupos: asegurar IDs del 1 al 8 y eliminar duplicados en la misma petición (dejando el último)
+    // Filtrar grupos: asegurar IDs del 1 al 8 y eliminar duplicados en la misma petición
     $gruposUnicos = [];
     foreach ($gruposRaw as $item) {
         $grupo_id = intval($item['grupo_id'] ?? 0);
@@ -140,13 +140,13 @@ try {
         $porciones_diarias_id = $db->lastInsertId();
     }
 
-    // 2. Limpiar detalle previo usando el nombre correcto de la columna (paciente_porcion_id)
-    $stmtClean = $db->prepare("DELETE FROM paciente_porciones_detalle WHERE paciente_porcion_id = :id");
+    // 2. Limpiar detalle previo usando el nombre correcto de la columna: porciones_diarias_id
+    $stmtClean = $db->prepare("DELETE FROM paciente_porciones_detalle WHERE porciones_diarias_id = :id");
     $stmtClean->execute([':id' => $porciones_diarias_id]);
 
     // 3. Insertar los nuevos detalles limpios y sin duplicados
     $sqlDetalle = "
-        INSERT INTO paciente_porciones_detalle (paciente_porcion_id, grupo_id, numero_porciones, opciones_sugeridas)
+        INSERT INTO paciente_porciones_detalle (porciones_diarias_id, grupo_id, numero_porciones, opciones_sugeridas)
         VALUES (:porciones_id, :grupo_id, :porciones, :opciones)
     ";
     $stmtDetail = $db->prepare($sqlDetalle);
