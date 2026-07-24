@@ -347,6 +347,9 @@ const Nutricion = () => {
     return dias;
   };
 
+  // ---> CONSOLE.LOG AGREGADO AQUÍ PARA DEPURAR <---
+  console.log("ESTADO ACTUAL DE PLAN ASIGNADO EN NUTRICION:", planAsignado);
+
   return (
     <div className="nutricion-page" style={{ backgroundColor: '#ffffff' }}>
       <VoiceHelper currentModule="nutricion" />
