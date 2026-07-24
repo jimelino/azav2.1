@@ -1,6 +1,6 @@
 <?php
 // Limpiar cualquier búfer previo
-while (ob_get_level()) {
+while (op_get_level() ?? ob_get_level()) {
     ob_end_clean();
 }
 
@@ -50,6 +50,11 @@ try {
     $observaciones   = isset($input['observaciones']) ? trim($input['observaciones']) : '';
     $recomendaciones = isset($input['recomendaciones']) ? trim($input['recomendaciones']) : '';
     
+    // Capturar fecha personalizada si el front-end la envía, de lo contrario usar la fecha actual
+    $fechaActual     = isset($input['fecha_asignacion']) && !empty($input['fecha_asignacion']) 
+                        ? trim($input['fecha_asignacion']) 
+                        : date('Y-m-d');
+    
     // Macros
     $calorias        = isset($input['calorias']) ? floatval($input['calorias']) : 0;
     $proteinas       = isset($input['proteinas']) ? floatval($input['proteinas']) : 0;
@@ -64,11 +69,9 @@ try {
         exit();
     }
 
-    $fechaActual = date('Y-m-d');
-
     $db->beginTransaction();
 
-    // 1. Verificar si ya existe un registro para este paciente en la fecha actual (respetando la estructura relacional)
+    // 1. Verificar si ya existe un registro para este paciente en la fecha especificada
     $sqlCheck = "SELECT id FROM paciente_porciones_diarias WHERE paciente_id = :paciente_id AND fecha_asignacion = :fecha LIMIT 1";
     $stmtCheck = $db->prepare($sqlCheck);
     $stmtCheck->execute([
@@ -104,7 +107,7 @@ try {
             ':id'              => $porciones_diarias_id
         ]);
     } else {
-        // Si no existe, insertamos un registro nuevo
+        // Si no existe, insertamos un registro nuevo con la fecha seleccionada
         $sqlCabecera = "
             INSERT INTO paciente_porciones_diarias 
             (paciente_id, especialista_id, fecha_asignacion, observaciones, calorias, proteinas, carbohidratos, grasas, recomendaciones)
@@ -139,7 +142,7 @@ try {
     $stmtDetail = $db->prepare($sqlDetalle);
 
     foreach ($grupos as $item) {
-        $grupo_id           = intval($item['grupo_id'] ?? 0);
+        $grupo_id          = intval($item['grupo_id'] ?? 0);
         $numero_porciones   = floatval($item['numero_porciones']  ?? 0);
         $opciones_sugeridas = isset($item['opciones_sugeridas']) ? trim($item['opciones_sugeridas']) : '';
 
