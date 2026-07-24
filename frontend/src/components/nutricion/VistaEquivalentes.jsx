@@ -324,6 +324,9 @@ const VistaEquivalentes = ({ plan, contenido, compact = false, pacienteView = fa
     // Try parsing from texto_original
     return parsearTextoOriginal(contenido?.texto_original) || { tiempos: [], grupos: [] };
   }, [contenido]);
+  // ---> PEGA EL CONSOLE.LOG AQUÍ <---
+  console.log("CONTENIDO RECIBIDO EN REACT:", contenido);
+  console.log("CUADRO PARSED:", cuadroParsed);
 
   if (!contenido || (contenido.tipo !== 'equivalentes' && !cuadroParsed.grupos?.length)) return null;
 

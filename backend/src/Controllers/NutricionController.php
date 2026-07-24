@@ -213,7 +213,7 @@ class NutricionController
             'calorias' => 0,
             'carbohidratos' => 0,
             'proteinas' => 0,
-            'grasas' => 0
+            'grasas' => 0  
         ];
 
         // Organizar comidas por tipo
@@ -349,18 +349,32 @@ class NutricionController
     }
 
     public function obtenerPlanPaciente($id) 
-    {
-        try {
-            $plan = $this->db->query(
-                "SELECT * FROM paciente_porciones_diarias WHERE paciente_id = ? ORDER BY fecha_asignacion DESC LIMIT 1",
-                [$id]
-            )->fetch();
+{
+    try {
+        // 1. Obtener la cabecera del plan más reciente
+        $plan = $this->db->query(
+            "SELECT * FROM paciente_porciones_diarias WHERE paciente_id = ? ORDER BY fecha_asignacion DESC LIMIT 1",
+            [$id]
+        )->fetch();
 
-            return Response::success($plan ? $plan : null);
-        } catch (\Exception $e) {
-            return Response::error('Error al obtener el plan: ' . $e->getMessage(), 500);
+        if (!$plan) {
+            return Response::success(null);
         }
+
+        // 2. Obtener los detalles de los grupos de porciones correspondientes a este plan
+        $detalles = $this->db->query(
+            "SELECT * FROM paciente_porciones_detalle WHERE porciones_diarias_id = ?",
+            [$plan['id']]
+        )->fetchAll();
+
+        // 3. Adjuntar los detalles dentro del objeto del plan
+        $plan['detalles'] = $detalles; // O 'grupos' dependiendo de lo que espere tu frontend
+
+        return Response::success($plan);
+    } catch (\Exception $e) {
+        return Response::error('Error al obtener el plan: ' . $e->getMessage(), 500);
     }
+}
 
     // ALIMENTOS
     public function registrarAlimento($data)
