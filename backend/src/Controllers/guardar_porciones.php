@@ -1,6 +1,6 @@
 <?php
 // Limpiar cualquier búfer previo
-while (op_get_level() ?? ob_get_level()) {
+while (ob_get_level()) {
     ob_end_clean();
 }
 
