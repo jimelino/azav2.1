@@ -194,15 +194,15 @@ class NutricionController
     }
 
     // RESUMEN DEL DÍA - Actualizado con la tabla alimentos_opciones y el campo hidratos_carbono correcto
+   // RESUMEN DEL DÍA
     public function getResumenDia($pacienteId, $fecha)
     {
-        // Obtener comidas del día agrupadas por tipo usando alimentos_opciones
+        // Obtener comidas del día agrupadas por tipo usando directamente los campos de registro_comidas
         $comidas = $this->db->query(
-            "SELECT rc.*, tc.nombre as tipo_nombre, a.nombre as alimento_nombre,
-                    a.kcal as calorias, a.hidratos_carbono as carbohidratos, a.proteinas, a.lipidos as grasas
+            "SELECT rc.*, tc.nombre as tipo_nombre,
+                    rc.descripcion as alimento_nombre, rc.calorias, rc.carbohidratos, rc.proteinas, rc.grasas
              FROM registro_comidas rc
              LEFT JOIN tipos_comida tc ON rc.tipo_comida_id = tc.id
-             LEFT JOIN alimentos_opciones a ON rc.alimento_id = a.id
              WHERE rc.paciente_id = ? AND rc.fecha = ?
              ORDER BY rc.tipo_comida_id, rc.hora",
             [$pacienteId, $fecha]
