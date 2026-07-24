@@ -347,31 +347,20 @@ class NutricionController
 
         return Response::success(null, 'Registro de agua actualizado');
     }
-    public function obtenerPlanPaciente($id) {
-    try {
-        // Consulta a la base de datos para obtener el plan del paciente
-        $stmt = $this->db->prepare("SELECT * FROM paciente_porciones_diarias WHERE paciente_id = ? LIMIT 1");
-        $stmt->execute([$id]);
-        $plan = $stmt->fetch(\PDO::FETCH_ASSOC);
 
-        // Si prefieres usar la sintaxis de tus otros métodos con $this->db->query:
-        // $plan = $this->db->query("SELECT * FROM planes_nutricionales WHERE paciente_id = ?", [$id])->fetch();
+    public function obtenerPlanPaciente($id) 
+    {
+        try {
+            $plan = $this->db->query(
+                "SELECT * FROM paciente_porciones_diarias WHERE paciente_id = ? ORDER BY fecha_asignacion DESC LIMIT 1",
+                [$id]
+            )->fetch();
 
-        header('Content-Type: application/json');
-        echo json_encode([
-            'success' => true,
-            'data' => $plan ? $plan : null
-        ]);
-        exit;
-    } catch (\Exception $e) {
-        header('Content-Type: application/json');
-        echo json_encode([
-            'success' => false,
-            'message' => 'Error al obtener el plan: ' . $e->getMessage()
-        ]);
-        exit;
+            return Response::success($plan ? $plan : null);
+        } catch (\Exception $e) {
+            return Response::error('Error al obtener el plan: ' . $e->getMessage(), 500);
+        }
     }
-}
 
     // ALIMENTOS
     public function registrarAlimento($data)
@@ -397,7 +386,6 @@ class NutricionController
         ];
         $tipoId = $tiposMap[$tipoComida] ?? 2;
 
-        // Verificar si la tabla tiene las columnas de macros, si no usar una estructura alternativa
         try {
             $this->db->query(
                 "INSERT INTO registro_comidas (paciente_id, tipo_comida_id, descripcion, calorias, carbohidratos, proteinas, grasas, fecha, hora, created_at)
@@ -405,7 +393,6 @@ class NutricionController
                 [$pacienteId, $tipoId, $alimentoNombre, $calorias, $carbohidratos, $proteinas, $grasas, $fecha]
             );
         } catch (\Exception $e) {
-            // Fallback si las columnas de macros no existen
             $this->db->query(
                 "INSERT INTO registro_comidas (paciente_id, tipo_comida_id, descripcion, fecha, hora, created_at)
                  VALUES (?, ?, ?, ?, CURTIME(), NOW())",
