@@ -97,8 +97,13 @@ const Chat = () => {
       setEspecialistas(Array.isArray(especialistasData) ? especialistasData : []);
     } catch (err) {
       try {
-        const fallback = user?.rol_id === 3 || user?.rol === 'paciente'
-          ? await api.get(`/pacientes/${user?.paciente_id || user?.id}/especialistas`)
+        const esPaciente = user?.rol_id === 3 || user?.rol === 'paciente';
+        if (esPaciente && !user?.paciente_id) {
+          setEspecialistas([]);
+          return;
+        }
+        const fallback = esPaciente
+          ? await api.get(`/pacientes/${user.paciente_id}/especialistas`)
           : await api.get('/especialistas');
         const fallbackData = fallback?.data || fallback || [];
         const contactos = Array.isArray(fallbackData) ? fallbackData : [];

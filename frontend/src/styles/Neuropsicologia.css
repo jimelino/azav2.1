@@ -11,6 +11,81 @@
   color: var(--text-primary, #1A1A1A);
 }
 
+.neuro-external-context {
+  margin: 20px 24px 0;
+  padding: 18px;
+  background: var(--surface-primary, #FFFFFF);
+  border: 1px solid var(--border-primary, #E0E0E0);
+  border-radius: 14px;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.06);
+}
+
+.neuro-external-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  color: var(--color-neuropsicologia, #6A1B9A);
+}
+
+.neuro-external-heading h2 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.neuro-external-heading p,
+.neuro-external-status,
+.neuro-external-error {
+  margin: 5px 0 0;
+  color: var(--text-secondary, #6B6B6B);
+  font-size: 0.9rem;
+}
+
+.neuro-external-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.neuro-external-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  min-width: 0;
+  padding: 12px;
+  background: var(--surface-secondary, #F0F2ED);
+  border-radius: 10px;
+  color: var(--color-neuropsicologia, #6A1B9A);
+}
+
+.neuro-external-item span {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  color: var(--text-secondary, #6B6B6B);
+  overflow-wrap: anywhere;
+}
+
+.neuro-external-item strong {
+  color: var(--text-primary, #1A1A1A);
+}
+
+.neuro-external-error {
+  color: #B42318;
+}
+
+@media (max-width: 700px) {
+  .neuro-external-context {
+    margin: 16px 16px 0;
+  }
+
+  .neuro-external-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* Header del modulo */
 .neuropsicologia-page .page-header {
   background: linear-gradient(135deg, var(--color-neuropsicologia, #6A1B9A) 0%, #4A148C 100%);

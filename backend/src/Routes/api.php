@@ -25,6 +25,7 @@ use App\Middleware\AuthMiddleware;
 use App\Middleware\RoleMiddleware;
 use App\Middleware\RateLimitMiddleware;
 use App\Controllers\EquivalentesController;
+use App\Controllers\ExternalPatientController;
 
 // Función helper para rutas
 function route($method, $path, $callback, $middleware = []) {
@@ -116,6 +117,32 @@ route('PUT', '/api/perfil', function() {
     $user = AuthMiddleware::getCurrentUser();
     $controller = new PerfilController();
     $controller->updatePerfil($user['id'], json_decode(file_get_contents('php://input'), true));
+}, ['auth']);
+
+// Datos clínicos y de perfil consumidos desde la aplicación externa.
+route('GET', '/api/integracion/paciente/perfil', function() {
+    $controller = new ExternalPatientController();
+    $controller->getProfile(AuthMiddleware::getCurrentUser());
+}, ['auth']);
+
+route('PUT', '/api/integracion/paciente/perfil', function() {
+    $controller = new ExternalPatientController();
+    $controller->updateProfile(AuthMiddleware::getCurrentUser(), json_decode(file_get_contents('php://input'), true) ?? []);
+}, ['auth']);
+
+route('GET', '/api/integracion/neuro/citas', function() {
+    $controller = new ExternalPatientController();
+    $controller->getNeuroAppointments(AuthMiddleware::getCurrentUser());
+}, ['auth']);
+
+route('GET', '/api/integracion/neuro/documentos', function() {
+    $controller = new ExternalPatientController();
+    $controller->getNeuroDocuments(AuthMiddleware::getCurrentUser());
+}, ['auth']);
+
+route('GET', '/api/integracion/neuro/especialista', function() {
+    $controller = new ExternalPatientController();
+    $controller->getAssignedSpecialist(AuthMiddleware::getCurrentUser());
 }, ['auth']);
 
 // RUTA PARA OBTENER ESPECIALISTAS ASIGNADOS A UN PACIENTE
@@ -689,6 +716,55 @@ route('POST', '/api/citas', function() {
 }, ['auth']);
 
 // RUTAS DE CHAT
+route('GET', '/api/mensajes/conversaciones/(\d+)', function($usuarioId) {
+    $user = AuthMiddleware::getCurrentUser();
+    if ((int)$user['id'] !== (int)$usuarioId) {
+        \App\Utils\Response::error('No autorizado', 403);
+    }
+    (new MensajesController())->getConversaciones($usuarioId);
+}, ['auth']);
+
+route('GET', '/api/mensajes/contactos/(\d+)', function($usuarioId) {
+    $user = AuthMiddleware::getCurrentUser();
+    if ((int)$user['id'] !== (int)$usuarioId) {
+        \App\Utils\Response::error('No autorizado', 403);
+    }
+    (new MensajesController())->getContactos($usuarioId);
+}, ['auth']);
+
+route('GET', '/api/mensajes/conversacion/(\d+)/(\d+)', function($conversacionId, $usuarioId) {
+    $user = AuthMiddleware::getCurrentUser();
+    if ((int)$user['id'] !== (int)$usuarioId) {
+        \App\Utils\Response::error('No autorizado', 403);
+    }
+    (new MensajesController())->getMensajes($conversacionId, $usuarioId);
+}, ['auth']);
+
+route('POST', '/api/mensajes/iniciar/(\d+)/(\d+)', function($usuarioId, $otroUsuarioId) {
+    $user = AuthMiddleware::getCurrentUser();
+    if ((int)$user['id'] !== (int)$usuarioId) {
+        \App\Utils\Response::error('No autorizado', 403);
+    }
+    (new MensajesController())->iniciarConversacion($usuarioId, $otroUsuarioId);
+}, ['auth']);
+
+route('POST', '/api/mensajes/enviar', function() {
+    $data = json_decode(file_get_contents('php://input'), true) ?? [];
+    $user = AuthMiddleware::getCurrentUser();
+    if ((int)($data['emisor_id'] ?? 0) !== (int)$user['id']) {
+        \App\Utils\Response::error('No autorizado', 403);
+    }
+    (new MensajesController())->enviarMensaje($data);
+}, ['auth']);
+
+route('GET', '/api/mensajes/no-leidos/(\d+)', function($usuarioId) {
+    $user = AuthMiddleware::getCurrentUser();
+    if ((int)$user['id'] !== (int)$usuarioId) {
+        \App\Utils\Response::error('No autorizado', 403);
+    }
+    (new MensajesController())->getNoLeidos($usuarioId);
+}, ['auth']);
+
 route('GET', '/api/chat/conversaciones', function() {
     $user = AuthMiddleware::getCurrentUser();
     $controller = new ChatController();

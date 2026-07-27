@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import AccessibilityPanel, { AccessibilityFAB } from '../components/accessibility/AccessibilityPanel';
 import TextToSpeechButton from '../components/accessibility/TextToSpeechButton';
 import { perfilService } from '../services/perfilService';
+import externalHealthService from '../services/externalHealthService';
 import LucideIcon from '../components/LucideIcon';
 import '../styles/Perfil.css';
 
@@ -21,9 +22,10 @@ const Perfil = () => {
 
   const cargarPerfil = async () => {
     try {
-      const response = await perfilService.getPerfil();
-      setPerfil(response.data);
-      setFormData(response.data);
+      const response = await externalHealthService.fetchPatientProfile();
+      const profile = response?.data ?? response;
+      setPerfil(profile);
+      setFormData(profile);
     } catch (err) {
       setError('Error al cargar el perfil');
     } finally {
@@ -46,7 +48,7 @@ const Perfil = () => {
     setSuccess('');
 
     try {
-      await perfilService.updatePerfil(formData);
+      await externalHealthService.updatePatientProfile(formData);
       setPerfil(formData);
       setEditing(false);
       setSuccess('Perfil actualizado correctamente');

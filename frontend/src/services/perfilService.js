@@ -1,7 +1,8 @@
 import api from './api';
 
 export const perfilService = {
-  getPerfil: async () => await api.get('/perfil'),
-  updatePerfil: async (data) => await api.put('/perfil', data),
-  getEspecialistasAsignados: async (pacienteId) => await api.get(`/perfil/especialistas/${pacienteId}`)
+  // Perfil y datos personales vienen del sistema clínico externo a través del proxy seguro.
+  getPerfil: async () => await api.get('/integracion/paciente/perfil'),
+  updatePerfil: async (data) => await api.put('/integracion/paciente/perfil', data),
+  getEspecialistasAsignados: async (pacienteId) => await api.get(`/pacientes/${pacienteId}/especialistas`)
 };
