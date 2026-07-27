@@ -12,12 +12,12 @@ const InstitutionalFooter = () => {
         <div className="institutional-footer-content">
           <div className="institutional-footer-logos">
             <img
-              src={`${process.env.PUBLIC_URL}/assets/images/ENES VECTOR ORO.png`}
+              src="/assets/images/ENES VECTOR AZUL.png"
               alt="ENES Logo"
               className="institutional-footer-logo"
             />
             <img
-              src={`${process.env.PUBLIC_URL}/assets/images/LOGO CIRCULO.png`}
+              src="/icon-192.png"
               alt="Azaria Logo"
               className="institutional-footer-logo"
             />

@@ -726,6 +726,129 @@ class OrtesisController
         }
     }
 
+    private function usuarioActualId()
+    {
+        $user = \App\Middleware\AuthMiddleware::getCurrentUser();
+        $role = strtolower((string)($user['rol'] ?? $user['role'] ?? ''));
+        if ($role && !in_array($role, ['especialista', 'admin', 'administrador'], true)) {
+            Response::error('Solo un especialista puede gestionar este recurso', 403);
+        }
+        return (int)($user['id'] ?? 0);
+    }
+
+    public function getContenidoGestionEspecialista()
+    {
+        try {
+            $this->usuarioActualId();
+            $manuales = $this->db->query("SELECT id, categoria, titulo, subtitulo, contenido, objetivos, tipos_comunes, orden, activo, creado_por, created_at, updated_at FROM manual_informativo_ortesis ORDER BY categoria, orden, titulo")->fetchAll();
+            $videos = $this->db->query("SELECT id, titulo, descripcion, url_video, categoria, subcategoria, orden, activo, creado_por, created_at, updated_at FROM videotutoriales_cuidados ORDER BY categoria, orden, titulo")->fetchAll();
+            foreach ($manuales as &$manual) {
+                $manual['objetivos'] = !empty($manual['objetivos']) ? json_decode($manual['objetivos'], true) : [];
+                $manual['tipos_comunes'] = !empty($manual['tipos_comunes']) ? json_decode($manual['tipos_comunes'], true) : [];
+            }
+            return Response::success(['manuales' => $manuales, 'videos' => $videos]);
+        } catch (\Exception $e) {
+            error_log('Error getting specialist orthesis content: ' . $e->getMessage());
+            return Response::error('Error al obtener contenido educativo', 500);
+        }
+    }
+
+    public function crearManualEspecialista($data)
+    {
+        try {
+            $validator = new Validator($data);
+            $validator->required(['categoria', 'titulo', 'contenido']);
+            if (!$validator->passes() || !in_array($data['categoria'], ['ortesis', 'protesis', 'general'], true)) return Response::error($validator->errors() ?: 'Categoria no valida', 422);
+            $this->db->query("INSERT INTO manual_informativo_ortesis (categoria, titulo, subtitulo, contenido, objetivos, tipos_comunes, orden, activo, creado_por) VALUES (?, ?, ?, ?, ?, ?, ?, 1, ?)", [
+                $data['categoria'], trim($data['titulo']), $data['subtitulo'] ?? null, trim($data['contenido']),
+                json_encode($data['objetivos'] ?? [], JSON_UNESCAPED_UNICODE), json_encode($data['tipos_comunes'] ?? [], JSON_UNESCAPED_UNICODE),
+                (int)($data['orden'] ?? 0), $this->usuarioActualId()
+            ]);
+            return Response::success(['id' => $this->db->lastInsertId()], 'Manual creado', 201);
+        } catch (\Exception $e) { return Response::error('No se pudo crear el manual', 500); }
+    }
+
+    public function actualizarManualEspecialista($id, $data)
+    {
+        try {
+            $fields = [];
+            $values = [];
+            foreach (['categoria', 'titulo', 'subtitulo', 'contenido', 'orden', 'activo', 'objetivos', 'tipos_comunes'] as $field) {
+                if (!array_key_exists($field, $data)) continue;
+                $fields[] = "$field = ?";
+                $values[] = in_array($field, ['objetivos', 'tipos_comunes'], true) ? json_encode($data[$field], JSON_UNESCAPED_UNICODE) : (in_array($field, ['orden', 'activo'], true) ? (int)$data[$field] : $data[$field]);
+            }
+            if (!$fields) return Response::error('No hay campos para actualizar', 422);
+            $values[] = (int)$id;
+            $this->db->query("UPDATE manual_informativo_ortesis SET " . implode(', ', $fields) . " WHERE id = ?", $values);
+            return Response::success(null, 'Manual actualizado');
+        } catch (\Exception $e) { return Response::error('No se pudo actualizar el manual', 500); }
+    }
+
+    public function eliminarManualEspecialista($id)
+    {
+        $this->db->query("UPDATE manual_informativo_ortesis SET activo = 0 WHERE id = ?", [(int)$id]);
+        return Response::success(null, 'Manual eliminado');
+    }
+
+    public function crearVideoEspecialista($data)
+    {
+        try {
+            $validator = new Validator($data);
+            $validator->required(['titulo', 'descripcion', 'url_video', 'categoria']);
+            if (!$validator->passes() || !in_array($data['categoria'], ['ortesis', 'protesis'], true)) return Response::error($validator->errors() ?: 'Categoria no valida', 422);
+            $this->db->query("INSERT INTO videotutoriales_cuidados (titulo, descripcion, url_video, categoria, subcategoria, orden, activo, creado_por) VALUES (?, ?, ?, ?, ?, ?, 1, ?)", [
+                trim($data['titulo']), trim($data['descripcion']), trim($data['url_video']), $data['categoria'], $data['subcategoria'] ?? null, (int)($data['orden'] ?? 0), $this->usuarioActualId()
+            ]);
+            return Response::success(['id' => $this->db->lastInsertId()], 'Videotutorial creado', 201);
+        } catch (\Exception $e) { return Response::error('No se pudo crear el videotutorial', 500); }
+    }
+
+    public function actualizarVideoEspecialista($id, $data)
+    {
+        try {
+            $fields = [];
+            $values = [];
+            foreach (['titulo', 'descripcion', 'url_video', 'categoria', 'subcategoria', 'orden', 'activo'] as $field) {
+                if (!array_key_exists($field, $data)) continue;
+                $fields[] = "$field = ?";
+                $values[] = in_array($field, ['orden', 'activo'], true) ? (int)$data[$field] : $data[$field];
+            }
+            if (!$fields) return Response::error('No hay campos para actualizar', 422);
+            $values[] = (int)$id;
+            $this->db->query("UPDATE videotutoriales_cuidados SET " . implode(', ', $fields) . " WHERE id = ?", $values);
+            return Response::success(null, 'Videotutorial actualizado');
+        } catch (\Exception $e) { return Response::error('No se pudo actualizar el videotutorial', 500); }
+    }
+
+    public function eliminarVideoEspecialista($id)
+    {
+        $this->db->query("UPDATE videotutoriales_cuidados SET activo = 0 WHERE id = ?", [(int)$id]);
+        return Response::success(null, 'Videotutorial eliminado');
+    }
+
+    public function getReportesMolestiasEspecialista()
+    {
+        try {
+            $reportes = $this->db->query("SELECT rm.*, u.nombre_completo AS paciente_nombre, u.email AS paciente_email FROM reportes_molestias rm INNER JOIN pacientes p ON p.id = rm.paciente_id INNER JOIN usuarios u ON u.id = p.usuario_id WHERE rm.especialista_id = ? ORDER BY FIELD(rm.estado, 'pendiente', 'notificado', 'en_revision', 'resuelto', 'cancelado'), rm.fecha_reporte DESC", [$this->usuarioActualId()])->fetchAll();
+            $agrupados = [];
+            foreach ($reportes as $reporte) {
+                $key = (string)$reporte['paciente_id'];
+                if (!isset($agrupados[$key])) $agrupados[$key] = ['paciente_id' => $reporte['paciente_id'], 'paciente_nombre' => $reporte['paciente_nombre'], 'reportes' => []];
+                $agrupados[$key]['reportes'][] = $reporte;
+            }
+            return Response::success(array_values($agrupados));
+        } catch (\Exception $e) { return Response::error('Error al obtener alertas de molestias', 500); }
+    }
+
+    public function actualizarReporteMolestiaEspecialista($id, $data)
+    {
+        $estado = $data['estado'] ?? null;
+        if (!in_array($estado, ['pendiente', 'notificado', 'en_revision', 'resuelto', 'cancelado'], true)) return Response::error('Estado no valido', 422);
+        $this->db->query("UPDATE reportes_molestias SET estado = ?, notas_atencion = ?, fecha_atencion = CASE WHEN ? IN ('resuelto', 'cancelado') THEN NOW() ELSE fecha_atencion END WHERE id = ? AND especialista_id = ?", [$estado, $data['notas_atencion'] ?? null, $estado, (int)$id, $this->usuarioActualId()]);
+        return Response::success(null, 'Reporte actualizado');
+    }
+
     private function getEspecialistaOrtesisAsignado($pacienteId)
     {
         $especialista = $this->db->query(

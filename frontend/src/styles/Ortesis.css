@@ -780,6 +780,16 @@
 }
 
 .tipo-card {
+  min-height: 220px;
+  height: auto;
+  overflow: visible;
+  box-sizing: border-box;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.7rem;
   background: var(--bg-secondary, #FFFFFF);
   border-radius: 12px;
   padding: 1.25rem;
@@ -793,12 +803,18 @@
 }
 
 .tipo-card h4 {
+  margin: 0;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
   color: var(--text-primary, #1A1A1A);
   margin: 0 0 0.5rem;
   font-size: 1rem;
 }
 
 .tipo-card p {
+  margin: 0;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
   color: var(--text-secondary, #6B6B6B);
   margin: 0 0 0.75rem;
   font-size: 0.85rem;

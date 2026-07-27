@@ -1475,3 +1475,9 @@
     justify-content: flex-end;
   }
 }
+.neuro-alert-list { display: grid; gap: 0.75rem; }
+.neuro-alert-item { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 1rem; border: 1px solid #eadff0; border-left: 5px solid #6a1b9a; border-radius: 10px; background: #fff; }
+.neuro-alert-item.severity-alta { border-left-color: #c62828; background: #fff7f7; }
+.neuro-alert-item p { margin: .35rem 0; font-weight: 700; }
+.neuro-alert-item span { color: #5f6974; }
+@media (max-width: 640px) { .neuro-alert-item { align-items: flex-start; flex-direction: column; } }

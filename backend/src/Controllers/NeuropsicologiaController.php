@@ -26,7 +26,14 @@ class NeuropsicologiaController
         'ansioso' => ANIMO_MAL,
         'triste' => ANIMO_MAL,
         'frustrado' => ANIMO_MAL,
-        'enojado' => ANIMO_MUY_MAL
+        'enojado' => ANIMO_MUY_MAL,
+        'enojo' => ANIMO_MUY_MAL,
+        'tristeza' => ANIMO_MAL,
+        'miedo' => ANIMO_MAL,
+        'desprecio' => ANIMO_MUY_MAL,
+        'asco' => ANIMO_MAL,
+        'sorpresa' => ANIMO_NEUTRAL,
+        'disfrute' => ANIMO_BIEN
     ];
 
     // REGISTRO DE ESTADO DE ÁNIMO
@@ -57,6 +64,10 @@ class NeuropsicologiaController
         if ($result) {
             // Verificar si requiere alerta psicológica
             $this->checkAlertaPsicologica($data['paciente_id'], $data['nivel_animo']);
+
+            if ((int)$data['nivel_animo'] === ANIMO_MUY_MAL) {
+                EstadoAnimo::crearAlertaCritica($data['paciente_id']);
+            }
 
             return Response::success($result, 'Estado de ánimo registrado', 201);
         }
@@ -156,6 +167,14 @@ class NeuropsicologiaController
     // ALERTAS PSICOLÓGICAS
     public function getAlertas($especialistaId = null)
     {
+        $currentUser = \App\Middleware\AuthMiddleware::getCurrentUser();
+        $role = strtolower((string)($currentUser['rol'] ?? $currentUser['role'] ?? ''));
+        if ($role && !in_array($role, ['especialista', 'admin', 'administrador'], true)) {
+            return Response::error('Solo un especialista puede consultar alertas', 403);
+        }
+        if (!$especialistaId) {
+            $especialistaId = $currentUser['id'] ?? null;
+        }
         $alertas = EstadoAnimo::getAlertas($especialistaId);
         return Response::success($alertas);
     }

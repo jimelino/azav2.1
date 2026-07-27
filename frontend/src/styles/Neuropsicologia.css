@@ -2465,3 +2465,8 @@
     transition: none;
   }
 }
+.neuro-documents-section { margin-bottom: 1.25rem; padding: 1rem; background: var(--surface-primary, #fff); border: 1px solid var(--border-color, #e1e5ea); border-radius: 12px; }
+.neuro-documents-heading { display: flex; align-items: center; gap: .6rem; color: #6a1b9a; }
+.neuro-documents-heading h3 { margin: 0; }
+.neuro-documents-list { display: grid; gap: .5rem; margin-top: .75rem; }
+.neuro-document-link { display: flex; align-items: center; gap: .5rem; padding: .65rem .75rem; border-radius: 8px; background: #f7f5fa; color: #4b2472; text-decoration: none; }

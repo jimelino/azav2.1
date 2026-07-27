@@ -525,10 +525,6 @@ const Neuropsicologia = () => {
               <span><strong>Citas</strong>{externalContext.appointments.length} registradas</span>
             </div>
             <div className="neuro-external-item">
-              <LucideIcon name="file-text" size={20} />
-              <span><strong>Documentos</strong>{externalContext.documents.length} disponibles</span>
-            </div>
-            <div className="neuro-external-item">
               <LucideIcon name="user" size={20} />
               <span><strong>Especialista asignado</strong>{externalContext.specialist?.nombre_completo || externalContext.specialist?.name || 'Pendiente de asignación'}</span>
             </div>
@@ -744,6 +740,18 @@ const Neuropsicologia = () => {
           {/* ===== TAB: HERRAMIENTAS ACT ===== */}
           {activeTab === 'ejercicios' && (
             <div className="ejercicios-section">
+              <section className="neuro-documents-section" aria-labelledby="neuro-documents-heading">
+                <div className="neuro-documents-heading"><LucideIcon name="file-text" size={20} /><h3 id="neuro-documents-heading">Documentos clínicos</h3></div>
+                {externalContext.documents.length === 0 ? <p className="help-text">No hay documentos disponibles.</p> : (
+                  <div className="neuro-documents-list">
+                    {externalContext.documents.map((documento, index) => (
+                      <a key={documento.id || index} href={documento.url || documento.enlace || '#'} target="_blank" rel="noreferrer" className="neuro-document-link">
+                        <LucideIcon name="file-text" size={18} /><span>{documento.titulo || documento.nombre || `Documento ${index + 1}`}</span>
+                      </a>
+                    ))}
+                  </div>
+                )}
+              </section>
               {/* Asignaciones pendientes del especialista */}
               {!categoriaSeleccionada && asignacionesACT.length > 0 && (
                 <div className="asignaciones-pendientes" style={{ marginBottom: '24px' }}>

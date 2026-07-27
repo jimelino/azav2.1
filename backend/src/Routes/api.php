@@ -397,6 +397,16 @@ route('POST', '/api/neuropsicologia/estados-animo', function() {
     $controller->registrarEstadoAnimo(json_decode(file_get_contents('php://input'), true));
 }, ['auth']);
 
+route('GET', '/api/neuropsicologia/alertas', function() {
+    $controller = new NeuropsicologiaController();
+    $controller->getAlertas();
+}, ['auth']);
+
+route('PUT', '/api/neuropsicologia/alertas/(\d+)/atendida', function($alertaId) {
+    $controller = new NeuropsicologiaController();
+    $controller->marcarAlertaAtendida($alertaId);
+}, ['auth']);
+
 route('GET', '/api/neuropsicologia/ejercicios', function() {
     $controller = new NeuropsicologiaController();
     $controller->getEjercicios();
@@ -608,6 +618,51 @@ route('GET', '/api/ortesis/videotutoriales-cuidados', function() {
     $categoria = $_GET['categoria'] ?? null;
     $controller = new OrtesisController();
     $controller->getVideotutorialesCuidados($categoria);
+}, ['auth']);
+
+route('GET', '/api/ortesis/especialista/contenido', function() {
+    $controller = new OrtesisController();
+    $controller->getContenidoGestionEspecialista();
+}, ['auth']);
+
+route('POST', '/api/ortesis/especialista/manuales', function() {
+    $controller = new OrtesisController();
+    $controller->crearManualEspecialista(json_decode(file_get_contents('php://input'), true));
+}, ['auth']);
+
+route('PUT', '/api/ortesis/especialista/manuales/(\d+)', function($id) {
+    $controller = new OrtesisController();
+    $controller->actualizarManualEspecialista($id, json_decode(file_get_contents('php://input'), true));
+}, ['auth']);
+
+route('DELETE', '/api/ortesis/especialista/manuales/(\d+)', function($id) {
+    $controller = new OrtesisController();
+    $controller->eliminarManualEspecialista($id);
+}, ['auth']);
+
+route('POST', '/api/ortesis/especialista/videos', function() {
+    $controller = new OrtesisController();
+    $controller->crearVideoEspecialista(json_decode(file_get_contents('php://input'), true));
+}, ['auth']);
+
+route('PUT', '/api/ortesis/especialista/videos/(\d+)', function($id) {
+    $controller = new OrtesisController();
+    $controller->actualizarVideoEspecialista($id, json_decode(file_get_contents('php://input'), true));
+}, ['auth']);
+
+route('DELETE', '/api/ortesis/especialista/videos/(\d+)', function($id) {
+    $controller = new OrtesisController();
+    $controller->eliminarVideoEspecialista($id);
+}, ['auth']);
+
+route('GET', '/api/ortesis/especialista/reportes-molestias', function() {
+    $controller = new OrtesisController();
+    $controller->getReportesMolestiasEspecialista();
+}, ['auth']);
+
+route('PUT', '/api/ortesis/especialista/reportes-molestias/(\d+)', function($id) {
+    $controller = new OrtesisController();
+    $controller->actualizarReporteMolestiaEspecialista($id, json_decode(file_get_contents('php://input'), true));
 }, ['auth']);
 
 // Dispositivo del paciente
