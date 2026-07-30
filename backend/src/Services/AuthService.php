@@ -38,53 +38,72 @@ class AuthService
         ];
     }
 
-    public function login($email, $credential, $remember = false)
-    {
-        $user = User::findByEmail($email);
-        error_log("========== LOGIN ==========");
-error_log(print_r($user, true));
-error_log("PASSWORD RECIBIDO: ".$credential);
-error_log("HASH BD: ".$user['password_hash']);
-error_log("VERIFY: ".(password_verify($credential,$user['password_hash']) ? "SI" : "NO"));
+  public function login($email, $credential, $remember = false)
+{
+    $user = User::findByEmail($email);
 
-        if (!$user) {
-            return ['success' => false];
-        }
+    error_log("========== LOGIN ==========");
+    error_log("EMAIL: " . $email);
 
-        // Verificar si el usuario está activo
-        if (!$user['activo']) {
-            return ['success' => false, 'reason' => 'inactive'];
-        }
-
-        // Intentar con contraseña (password_hash es el nombre de la columna)
-        $passwordField = $user['password_hash'] ?? $user['password'] ?? null;
-
-        if ($passwordField && password_verify($credential, $passwordField)) {
-            $this->resetFailedAttempts($email);
-            $this->logAccess($user['id'], $email, 'login_exitoso');
-            $this->updateLastAccess($user['id']);
-
-            return [
-                'success' => true,
-                'user' => $this->sanitizeUser($user)
-            ];
-        }
-
-        // Intentar con PIN si está habilitado
-        $pinField = $user['pin_hash'] ?? $user['pin'] ?? null;
-        if ($pinField && $user['usar_pin'] && password_verify($credential, $pinField)) {
-            $this->resetFailedAttempts($email);
-            $this->logAccess($user['id'], $email, 'login_exitoso');
-            $this->updateLastAccess($user['id']);
-
-            return [
-                'success' => true,
-                'user' => $this->sanitizeUser($user)
-            ];
-        }
-
+    if (!$user) {
+        error_log("USUARIO NO ENCONTRADO");
         return ['success' => false];
     }
+
+    error_log("USUARIO ENCONTRADO:");
+    error_log(print_r($user, true));
+
+    error_log("PASSWORD RECIBIDO:");
+    error_log($credential);
+
+    $passwordField = $user['password_hash'] ?? null;
+
+    error_log("HASH BD:");
+    error_log($passwordField);
+
+    if (!$passwordField) {
+        error_log("NO EXISTE password_hash");
+        return ['success' => false];
+    }
+
+    $verify = password_verify($credential, $passwordField);
+
+    error_log("RESULTADO PASSWORD_VERIFY:");
+    error_log($verify ? "SI" : "NO");
+
+    if ($verify) {
+
+        $this->resetFailedAttempts($email);
+        $this->logAccess($user['id'], $email, 'login_exitoso');
+        $this->updateLastAccess($user['id']);
+
+        return [
+            'success' => true,
+            'user' => $this->sanitizeUser($user)
+        ];
+    }
+
+    // Intentar con PIN
+    if (
+        !empty($user['usar_pin']) &&
+        !empty($user['pin_hash']) &&
+        password_verify($credential, $user['pin_hash'])
+    ) {
+
+        $this->resetFailedAttempts($email);
+        $this->logAccess($user['id'], $email, 'login_exitoso');
+        $this->updateLastAccess($user['id']);
+
+        return [
+            'success' => true,
+            'user' => $this->sanitizeUser($user)
+        ];
+    }
+
+    error_log("LOGIN FALLIDO");
+
+    return ['success' => false];
+}
 
     public function isLocked($email)
     {
