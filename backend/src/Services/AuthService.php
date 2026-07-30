@@ -41,6 +41,11 @@ class AuthService
     public function login($email, $credential, $remember = false)
     {
         $user = User::findByEmail($email);
+        error_log("========== LOGIN ==========");
+error_log(print_r($user, true));
+error_log("PASSWORD RECIBIDO: ".$credential);
+error_log("HASH BD: ".$user['password_hash']);
+error_log("VERIFY: ".(password_verify($credential,$user['password_hash']) ? "SI" : "NO"));
 
         if (!$user) {
             return ['success' => false];

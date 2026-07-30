@@ -10,6 +10,7 @@ import VistaPlan from '../components/nutricion/VistaPlan';
 import SeguimientoPeso from '../components/nutricion/SeguimientoPeso';
 import '../styles/Nutricion.css';
 
+
 const Nutricion = () => {
   const { user } = useAuth();
   const { settings } = useAccessibility();
