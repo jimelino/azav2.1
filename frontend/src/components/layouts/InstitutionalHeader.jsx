@@ -27,7 +27,7 @@ const LogoImage = ({ src, alt, className, fallbackText }) => {
 /**
  * InstitutionalHeader - Cabecera institucional DGTIC UNAM
  * Color cabeza: #00589c | Color menu: #004179
- * Logos: ENES VECTOR AZUL + LOGO CIRCULO desde public/assets/images
+ * Logos: ENES VECTOR AZUL desde public/assets/images + icon-192 desde public
  */
 const InstitutionalHeader = ({
   speechText = 'Azaria. Plataforma de Rehabilitación. Sistema de Adherencia Terapéutica.'
@@ -46,7 +46,7 @@ const InstitutionalHeader = ({
             />
             <div className="institutional-divider" aria-hidden="true"></div>
             <LogoImage
-              src="/assets/images/LOGO CIRCULO.png"
+              src="/icon-192.png"
               alt="Azaria Logo"
               className="institutional-logo-azaria"
               fallbackText="Azaria 2.0"

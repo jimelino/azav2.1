@@ -178,17 +178,36 @@ class EstadoAnimo {
 
         $params = [];
 
+        if ($especialistaId) {
+            $sql .= " AND EXISTS (
+                SELECT 1 FROM asignaciones_especialista ae
+                JOIN areas_medicas am ON am.id = ae.area_medica_id
+                WHERE ae.paciente_id = a.paciente_id AND ae.especialista_id = ? AND ae.activo = 1
+                  AND (LOWER(am.nombre) LIKE '%neuro%' OR LOWER(am.nombre) LIKE '%psic%')
+            )";
+            $params[] = $especialistaId;
+        }
+
         $sql .= " ORDER BY a.created_at DESC";
 
         return $db->query($sql, $params)->fetchAll();
     }
 
-    public static function crearAlerta($pacienteId) {
+    public static function crearAlerta($pacienteId, $severidad = 'media', $mensaje = null) {
         $db = DatabaseService::getInstance();
 
         return $db->query(
             "INSERT INTO alertas_medicas (paciente_id, tipo, severidad, mensaje, atendida, created_at)
              VALUES (?, 'patron_olvido', 'media', 'El paciente ha registrado 3 o más estados de ánimo negativos consecutivos', 0, NOW())",
+            [$pacienteId]
+        );
+    }
+
+    public static function crearAlertaCritica($pacienteId) {
+        $db = DatabaseService::getInstance();
+        return $db->query(
+            "INSERT INTO alertas_medicas (paciente_id, tipo, severidad, mensaje, atendida, created_at)
+             VALUES (?, 'patron_olvido', 'alta', 'Alerta urgente: el paciente registro un estado de animo critico.', 0, NOW())",
             [$pacienteId]
         );
     }

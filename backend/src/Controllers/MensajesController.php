@@ -49,6 +49,29 @@ class MensajesController
         return $paciente['id'] ?? null;
     }
 
+    private function pacientePuedeContactarEspecialista($pacienteUsuarioId, $especialistaUsuarioId)
+    {
+        $pacienteId = $this->getPacienteIdPorUsuario($pacienteUsuarioId);
+        if (!$pacienteId) {
+            return false;
+        }
+
+        $asignacion = $this->db->query(
+            "SELECT ae.id
+             FROM asignaciones_especialista ae
+             INNER JOIN usuarios especialista ON especialista.id = ae.especialista_id
+             WHERE ae.paciente_id = ?
+               AND ae.especialista_id = ?
+               AND ae.activo = 1
+               AND especialista.rol_id = 2
+               AND especialista.activo = 1
+             LIMIT 1",
+            [$pacienteId, $especialistaUsuarioId]
+        )->fetch();
+
+        return (bool)$asignacion;
+    }
+
     private function getTipoConversacion($usuarioA, $usuarioB)
     {
         $roles = [(int)$usuarioA['rol_id'], (int)$usuarioB['rol_id']];
@@ -231,6 +254,11 @@ class MensajesController
 
         if (!$usuario || !$otroUsuario) {
             return Response::error('Usuario no encontrado', 404);
+        }
+
+        if ((int)$usuario['rol_id'] === 3 && (int)$otroUsuario['rol_id'] === 2
+            && !$this->pacientePuedeContactarEspecialista($usuarioId, $otroUsuarioId)) {
+            return Response::error('Solo puedes contactar a especialistas asignados a tu atención', 403);
         }
 
         $tipo = $this->getTipoConversacion($usuario, $otroUsuario);
@@ -474,6 +502,11 @@ class MensajesController
             return Response::error('Usuario no encontrado', 404);
         }
 
+        if ((int)$emisor['rol_id'] === 3 && (int)$receptor['rol_id'] === 2
+            && !$this->pacientePuedeContactarEspecialista($emisor['id'], $receptor['id'])) {
+            return Response::error('Solo puedes contactar a especialistas asignados a tu atención', 403);
+        }
+
         $pacienteId = null;
         $especialistaId = null;
 
@@ -547,6 +580,11 @@ class MensajesController
 
         if (!$otroUsuario || !$usuario) {
             return Response::error('Usuario no encontrado', 404);
+        }
+
+        if ((int)$usuario['rol_id'] === 3 && (int)$otroUsuario['rol_id'] === 2
+            && !$this->pacientePuedeContactarEspecialista($usuarioId, $otroUsuarioId)) {
+            return Response::error('Solo puedes contactar a especialistas asignados a tu atención', 403);
         }
 
         $pacienteId = null;

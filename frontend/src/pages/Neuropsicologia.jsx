@@ -9,6 +9,7 @@ import { CUESTIONARIOS, ACT_CATEGORIAS, ACT_HERRAMIENTAS, getHerramientasByCateg
 import { Bar, Line } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, PointElement, LineElement, Filler, Title, Tooltip, Legend } from 'chart.js';
 import api from '../services/api';
+import externalHealthService from '../services/externalHealthService';
 import LucideIcon from '../components/LucideIcon';
 import '../styles/Neuropsicologia.css';
 
@@ -20,6 +21,9 @@ const Neuropsicologia = () => {
   const [activeTab, setActiveTab] = useState('animo');
   const [estadosAnimo, setEstadosAnimo] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [externalLoading, setExternalLoading] = useState(true);
+  const [externalError, setExternalError] = useState('');
+  const [externalContext, setExternalContext] = useState({ appointments: [], documents: [], specialist: null });
   const [showModal, setShowModal] = useState(false);
 
   // Estado de ánimo
@@ -100,6 +104,43 @@ const Neuropsicologia = () => {
   useEffect(() => {
     cargarDatos();
   }, [activeTab]);
+
+  useEffect(() => {
+    let mounted = true;
+
+    const cargarContextoExterno = async () => {
+      setExternalLoading(true);
+      setExternalError('');
+      const results = await Promise.allSettled([
+        externalHealthService.fetchNeuroAppointments(),
+        externalHealthService.fetchNeuroDocuments(),
+        externalHealthService.fetchAssignedSpecialist()
+      ]);
+
+      if (!mounted) return;
+
+      const [appointments, documents, specialist] = results;
+      const rejected = results.some(result => result.status === 'rejected');
+      setExternalContext({
+        appointments: appointments.status === 'fulfilled'
+          ? (Array.isArray(appointments.value) ? appointments.value : appointments.value?.items || [])
+          : [],
+        documents: documents.status === 'fulfilled'
+          ? (Array.isArray(documents.value) ? documents.value : documents.value?.items || [])
+          : [],
+        specialist: specialist.status === 'fulfilled'
+          ? (specialist.value?.specialist || specialist.value || null)
+          : null
+      });
+      if (rejected) {
+        setExternalError('No se pudo consultar toda la información del sistema clínico externo.');
+      }
+      setExternalLoading(false);
+    };
+
+    if (user?.id) cargarContextoExterno();
+    return () => { mounted = false; };
+  }, [user?.id]);
 
   const cargarDatos = async () => {
     setLoading(true);
@@ -467,6 +508,31 @@ const Neuropsicologia = () => {
         <p className="subtitle">Cuida tu bienestar emocional y mental</p>
       </header>
 
+      <section className="neuro-external-context" aria-label="Información clínica externa">
+        <div className="neuro-external-heading">
+          <div>
+            <h2>Información clínica</h2>
+            <p>Datos sincronizados con tu sistema clínico externo.</p>
+          </div>
+          <LucideIcon name="cloud" size={22} />
+        </div>
+        {externalLoading ? (
+          <p className="neuro-external-status">Cargando información clínica...</p>
+        ) : (
+          <div className="neuro-external-grid">
+            <div className="neuro-external-item">
+              <LucideIcon name="calendar" size={20} />
+              <span><strong>Citas</strong>{externalContext.appointments.length} registradas</span>
+            </div>
+            <div className="neuro-external-item">
+              <LucideIcon name="user" size={20} />
+              <span><strong>Especialista asignado</strong>{externalContext.specialist?.nombre_completo || externalContext.specialist?.name || 'Pendiente de asignación'}</span>
+            </div>
+          </div>
+        )}
+        {externalError && <p className="neuro-external-error" role="alert">{externalError}</p>}
+      </section>
+
       <div className="tabs">
         <button className={`tab ${activeTab === 'animo' ? 'active' : ''}`} onClick={() => setActiveTab('animo')}>
           Estado de Animo
@@ -674,6 +740,18 @@ const Neuropsicologia = () => {
           {/* ===== TAB: HERRAMIENTAS ACT ===== */}
           {activeTab === 'ejercicios' && (
             <div className="ejercicios-section">
+              <section className="neuro-documents-section" aria-labelledby="neuro-documents-heading">
+                <div className="neuro-documents-heading"><LucideIcon name="file-text" size={20} /><h3 id="neuro-documents-heading">Documentos clínicos</h3></div>
+                {externalContext.documents.length === 0 ? <p className="help-text">No hay documentos disponibles.</p> : (
+                  <div className="neuro-documents-list">
+                    {externalContext.documents.map((documento, index) => (
+                      <a key={documento.id || index} href={documento.url || documento.enlace || '#'} target="_blank" rel="noreferrer" className="neuro-document-link">
+                        <LucideIcon name="file-text" size={18} /><span>{documento.titulo || documento.nombre || `Documento ${index + 1}`}</span>
+                      </a>
+                    ))}
+                  </div>
+                )}
+              </section>
               {/* Asignaciones pendientes del especialista */}
               {!categoriaSeleccionada && asignacionesACT.length > 0 && (
                 <div className="asignaciones-pendientes" style={{ marginBottom: '24px' }}>

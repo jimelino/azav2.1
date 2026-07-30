@@ -25,6 +25,8 @@ import EstadoEmocionalPaciente from '../../components/neuropsicologia/EstadoEmoc
 import ActividadACTPaciente from '../../components/neuropsicologia/ActividadACTPaciente';
 import CuestionariosHistorial from '../../components/neuropsicologia/CuestionariosHistorial';
 import DispositivosPacientes from '../../components/ortesis/DispositivosPacientes';
+import EspecialistaOrtesisPanel from '../../components/ortesis/EspecialistaOrtesisPanel';
+import EspecialistaAlertasAnimo from '../../components/neuropsicologia/EspecialistaAlertasAnimo';
 import SeguimientoAdaptacion from '../../components/ortesis/SeguimientoAdaptacion';
 import MantenimientoAjustes from '../../components/ortesis/MantenimientoAjustes';
 import MedicionesMunon from '../../components/ortesis/MedicionesMunon';
@@ -117,6 +119,7 @@ const AREAS_CONFIG = {
       { id: 'evaluaciones-neuro', nombre: 'Evaluaciones Neuropsicológicas', icon: 'target', descripcion: 'Evaluaciones y cuestionarios', view: 'mod-evaluaciones-neuro' },
       { id: 'herramientas-act', nombre: 'Herramientas ACT', icon: 'sparkles', descripcion: 'Ver actividades de usuarios', view: 'mod-herramientas-act' },
       { id: 'emocional', nombre: 'Estado Emocional', icon: 'smile', descripcion: 'Ver evaluación emocional', view: 'mod-emocional' },
+      { id: 'alertas-animo', nombre: 'Alertas de ánimo', icon: 'bell-ring', descripcion: 'Atender alertas urgentes', view: 'mod-alertas-animo' },
     ],
     herramientas: []
   },
@@ -129,6 +132,7 @@ const AREAS_CONFIG = {
       { id: 'adaptacion', nombre: 'Adaptación', icon: 'wrench', descripcion: 'Ver seguimiento de adaptación', view: 'mod-adaptacion' },
       { id: 'mantenimiento', nombre: 'Mantenimiento y Ajustes', icon: 'hammer', descripcion: 'Historial de mantenimiento y ajustes', view: 'mod-mantenimiento' },
       { id: 'mediciones', nombre: 'Mediciones del Muñón', icon: 'ruler', descripcion: 'Registro de medidas del muñón', view: 'mod-mediciones-munon' },
+      { id: 'gestion-contenido', nombre: 'Alertas y contenido', icon: 'book-open', descripcion: 'Reportes y material educativo', view: 'mod-gestion-ortesis' },
     ],
     herramientas: []
   },
@@ -2189,6 +2193,10 @@ const EspecialistaDashboard = () => {
       case 'mod-emocional':
         if (!selectedPaciente) return renderPatientSelector('Estado Emocional', 'heart');
         return <EstadoEmocionalPaciente pacienteId={selectedPaciente.id} onBack={handleBackToPatientList} />;
+      case 'mod-alertas-animo':
+        return <EspecialistaAlertasAnimo />;
+      case 'mod-gestion-ortesis':
+        return <EspecialistaOrtesisPanel />;
       case 'mod-dispositivos':
         if (!selectedPaciente) return renderPatientSelector('Dispositivos', 'accessibility');
         return <DispositivosPacientes pacienteId={selectedPaciente.id} onBack={handleBackToPatientList} />;

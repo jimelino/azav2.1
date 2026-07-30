@@ -25,6 +25,7 @@ use App\Middleware\AuthMiddleware;
 use App\Middleware\RoleMiddleware;
 use App\Middleware\RateLimitMiddleware;
 use App\Controllers\EquivalentesController;
+use App\Controllers\ExternalPatientController;
 
 // Función helper para rutas
 function route($method, $path, $callback, $middleware = []) {
@@ -116,6 +117,32 @@ route('PUT', '/api/perfil', function() {
     $user = AuthMiddleware::getCurrentUser();
     $controller = new PerfilController();
     $controller->updatePerfil($user['id'], json_decode(file_get_contents('php://input'), true));
+}, ['auth']);
+
+// Datos clínicos y de perfil consumidos desde la aplicación externa.
+route('GET', '/api/integracion/paciente/perfil', function() {
+    $controller = new ExternalPatientController();
+    $controller->getProfile(AuthMiddleware::getCurrentUser());
+}, ['auth']);
+
+route('PUT', '/api/integracion/paciente/perfil', function() {
+    $controller = new ExternalPatientController();
+    $controller->updateProfile(AuthMiddleware::getCurrentUser(), json_decode(file_get_contents('php://input'), true) ?? []);
+}, ['auth']);
+
+route('GET', '/api/integracion/neuro/citas', function() {
+    $controller = new ExternalPatientController();
+    $controller->getNeuroAppointments(AuthMiddleware::getCurrentUser());
+}, ['auth']);
+
+route('GET', '/api/integracion/neuro/documentos', function() {
+    $controller = new ExternalPatientController();
+    $controller->getNeuroDocuments(AuthMiddleware::getCurrentUser());
+}, ['auth']);
+
+route('GET', '/api/integracion/neuro/especialista', function() {
+    $controller = new ExternalPatientController();
+    $controller->getAssignedSpecialist(AuthMiddleware::getCurrentUser());
 }, ['auth']);
 
 // RUTA PARA OBTENER ESPECIALISTAS ASIGNADOS A UN PACIENTE
@@ -370,6 +397,16 @@ route('POST', '/api/neuropsicologia/estados-animo', function() {
     $controller->registrarEstadoAnimo(json_decode(file_get_contents('php://input'), true));
 }, ['auth']);
 
+route('GET', '/api/neuropsicologia/alertas', function() {
+    $controller = new NeuropsicologiaController();
+    $controller->getAlertas();
+}, ['auth']);
+
+route('PUT', '/api/neuropsicologia/alertas/(\d+)/atendida', function($alertaId) {
+    $controller = new NeuropsicologiaController();
+    $controller->marcarAlertaAtendida($alertaId);
+}, ['auth']);
+
 route('GET', '/api/neuropsicologia/ejercicios', function() {
     $controller = new NeuropsicologiaController();
     $controller->getEjercicios();
@@ -583,6 +620,51 @@ route('GET', '/api/ortesis/videotutoriales-cuidados', function() {
     $controller->getVideotutorialesCuidados($categoria);
 }, ['auth']);
 
+route('GET', '/api/ortesis/especialista/contenido', function() {
+    $controller = new OrtesisController();
+    $controller->getContenidoGestionEspecialista();
+}, ['auth']);
+
+route('POST', '/api/ortesis/especialista/manuales', function() {
+    $controller = new OrtesisController();
+    $controller->crearManualEspecialista(json_decode(file_get_contents('php://input'), true));
+}, ['auth']);
+
+route('PUT', '/api/ortesis/especialista/manuales/(\d+)', function($id) {
+    $controller = new OrtesisController();
+    $controller->actualizarManualEspecialista($id, json_decode(file_get_contents('php://input'), true));
+}, ['auth']);
+
+route('DELETE', '/api/ortesis/especialista/manuales/(\d+)', function($id) {
+    $controller = new OrtesisController();
+    $controller->eliminarManualEspecialista($id);
+}, ['auth']);
+
+route('POST', '/api/ortesis/especialista/videos', function() {
+    $controller = new OrtesisController();
+    $controller->crearVideoEspecialista(json_decode(file_get_contents('php://input'), true));
+}, ['auth']);
+
+route('PUT', '/api/ortesis/especialista/videos/(\d+)', function($id) {
+    $controller = new OrtesisController();
+    $controller->actualizarVideoEspecialista($id, json_decode(file_get_contents('php://input'), true));
+}, ['auth']);
+
+route('DELETE', '/api/ortesis/especialista/videos/(\d+)', function($id) {
+    $controller = new OrtesisController();
+    $controller->eliminarVideoEspecialista($id);
+}, ['auth']);
+
+route('GET', '/api/ortesis/especialista/reportes-molestias', function() {
+    $controller = new OrtesisController();
+    $controller->getReportesMolestiasEspecialista();
+}, ['auth']);
+
+route('PUT', '/api/ortesis/especialista/reportes-molestias/(\d+)', function($id) {
+    $controller = new OrtesisController();
+    $controller->actualizarReporteMolestiaEspecialista($id, json_decode(file_get_contents('php://input'), true));
+}, ['auth']);
+
 // Dispositivo del paciente
 route('GET', '/api/ortesis/dispositivo/(\d+)', function($pacienteId) {
     $controller = new OrtesisController();
@@ -689,6 +771,55 @@ route('POST', '/api/citas', function() {
 }, ['auth']);
 
 // RUTAS DE CHAT
+route('GET', '/api/mensajes/conversaciones/(\d+)', function($usuarioId) {
+    $user = AuthMiddleware::getCurrentUser();
+    if ((int)$user['id'] !== (int)$usuarioId) {
+        \App\Utils\Response::error('No autorizado', 403);
+    }
+    (new MensajesController())->getConversaciones($usuarioId);
+}, ['auth']);
+
+route('GET', '/api/mensajes/contactos/(\d+)', function($usuarioId) {
+    $user = AuthMiddleware::getCurrentUser();
+    if ((int)$user['id'] !== (int)$usuarioId) {
+        \App\Utils\Response::error('No autorizado', 403);
+    }
+    (new MensajesController())->getContactos($usuarioId);
+}, ['auth']);
+
+route('GET', '/api/mensajes/conversacion/(\d+)/(\d+)', function($conversacionId, $usuarioId) {
+    $user = AuthMiddleware::getCurrentUser();
+    if ((int)$user['id'] !== (int)$usuarioId) {
+        \App\Utils\Response::error('No autorizado', 403);
+    }
+    (new MensajesController())->getMensajes($conversacionId, $usuarioId);
+}, ['auth']);
+
+route('POST', '/api/mensajes/iniciar/(\d+)/(\d+)', function($usuarioId, $otroUsuarioId) {
+    $user = AuthMiddleware::getCurrentUser();
+    if ((int)$user['id'] !== (int)$usuarioId) {
+        \App\Utils\Response::error('No autorizado', 403);
+    }
+    (new MensajesController())->iniciarConversacion($usuarioId, $otroUsuarioId);
+}, ['auth']);
+
+route('POST', '/api/mensajes/enviar', function() {
+    $data = json_decode(file_get_contents('php://input'), true) ?? [];
+    $user = AuthMiddleware::getCurrentUser();
+    if ((int)($data['emisor_id'] ?? 0) !== (int)$user['id']) {
+        \App\Utils\Response::error('No autorizado', 403);
+    }
+    (new MensajesController())->enviarMensaje($data);
+}, ['auth']);
+
+route('GET', '/api/mensajes/no-leidos/(\d+)', function($usuarioId) {
+    $user = AuthMiddleware::getCurrentUser();
+    if ((int)$user['id'] !== (int)$usuarioId) {
+        \App\Utils\Response::error('No autorizado', 403);
+    }
+    (new MensajesController())->getNoLeidos($usuarioId);
+}, ['auth']);
+
 route('GET', '/api/chat/conversaciones', function() {
     $user = AuthMiddleware::getCurrentUser();
     $controller = new ChatController();

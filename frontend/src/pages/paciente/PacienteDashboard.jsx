@@ -36,6 +36,36 @@ const ACCESOS_RAPIDOS = [
   { id: 'comunidad', nombre: 'Comunidad', icon: 'users', color: '#F06292', ruta: '/comunidad', desc: 'Conecta con otros' },
 ];
 
+const PROGRESS_STEPS = [
+  { label: 'Inicio', phase: 1 },
+  { label: 'Evaluacion', phase: 1 },
+  { label: 'Tratamiento', phase: 2 },
+  { label: 'Rehabilitacion', phase: 3 },
+  { label: 'Meta', phase: 4 },
+];
+
+const ProgressRouteMap = ({ progress = 0 }) => {
+  const normalizedProgress = Math.max(0, Math.min(100, Number(progress) || 0));
+  const currentStep = Math.max(0, Math.min(PROGRESS_STEPS.length - 1, Math.round((normalizedProgress / 100) * (PROGRESS_STEPS.length - 1))));
+
+  return (
+    <div className="progress-route-map" role="img" aria-label={`Mapa de progreso: ${normalizedProgress}% completado`}>
+      <svg className="progress-route-svg" viewBox="0 0 900 260" aria-hidden="true" preserveAspectRatio="none">
+        <path className="progress-route-track" d="M55 166 C190 238 282 228 410 150 S650 48 845 128" />
+        <path className="progress-route-active" d="M55 166 C190 238 282 228 410 150 S650 48 845 128" pathLength="100" style={{ strokeDashoffset: 100 - normalizedProgress }} />
+      </svg>
+      <div className="progress-route-points">
+        {PROGRESS_STEPS.map((step, index) => (
+          <div key={step.label} className={`progress-route-point point-${index} ${index <= currentStep ? 'is-complete' : ''}`}>
+            <span className="progress-route-dot">{index === currentStep ? <LucideIcon name="smile" size={18} /> : index + 1}</span>
+            <span className="progress-route-label">{step.label}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
 const PacienteDashboard = () => {
   const { user } = useAuth();
   const { settings, togglePanel } = useAccessibility();
@@ -178,12 +208,12 @@ const PacienteDashboard = () => {
         {/* Sección de Bienvenida */}
         <section className="welcome-section" aria-labelledby="welcome-heading">
           <div className="welcome-text">
-            <h1 id="welcome-heading">{getSaludo()},</h1>
-            <p className="user-name">{user?.nombre?.split(' ')[0] || 'Usuario'}</p>
+            <p className="welcome-greeting">{getSaludo()},</p>
+            <h1 id="welcome-heading">Bienvenido, {user?.nombre?.split(' ')[0] || 'Usuario'}</h1>
             <p className="welcome-subtitle">¿Cómo te sientes hoy?</p>
           </div>
-          <div className="welcome-illustration" aria-hidden="true">
-            <LucideIcon name="stethoscope" size={32} />
+          <div className="welcome-avatar" aria-hidden="true">
+            {user?.avatar_url ? <img src={user.avatar_url} alt="" /> : <span>{user?.nombre?.charAt(0) || 'U'}</span>}
           </div>
         </section>
 
@@ -214,6 +244,27 @@ const PacienteDashboard = () => {
         )}
 
         {/* Categorías de Especialidades */}
+        {faseActual && (
+          <section className="progress-section" aria-labelledby="progress-heading-top">
+            <div className="section-heading-row">
+              <h2 id="progress-heading-top" className="section-title">Mi Progreso</h2>
+              <span className="progress-percentage">{faseActual.progreso}%</span>
+            </div>
+            <Link to="/fases" className="progress-card" style={{ textDecoration: 'none', color: 'inherit' }}>
+              <div className="progress-header">
+                <div className="progress-phase-info">
+                  <span className="progress-motivational-icon" aria-hidden="true">
+                    <LucideIcon name={faseActual.progreso >= 75 ? 'trophy' : faseActual.progreso >= 50 ? 'zap' : faseActual.progreso >= 25 ? 'sprout' : 'rocket'} size={24} />
+                  </span>
+                  <span className="progress-phase">{faseActual.nombre || getFaseNombre(faseActual.fase)}</span>
+                </div>
+              </div>
+              <ProgressRouteMap progress={faseActual.progreso} />
+              <p className="progress-message">{faseActual.progreso >= 50 ? 'Excelente progreso. Sigue avanzando.' : 'Tu camino comienza aqui. Cada paso cuenta.'}</p>
+            </Link>
+          </section>
+        )}
+
         <section className="categories-section" aria-labelledby="categories-heading">
           <h2 id="categories-heading" className="section-title">Categorías</h2>
           <div className="categories-grid" role="list">
@@ -265,46 +316,6 @@ const PacienteDashboard = () => {
             </Link>
           </div>
         </section>
-
-        {/* Mi Progreso */}
-        {faseActual && (
-          <section className="progress-section" aria-labelledby="progress-heading">
-            <h2 id="progress-heading" className="section-title">Mi Progreso</h2>
-            <Link to="/fases" className="progress-card" style={{ textDecoration: 'none', color: 'inherit' }}>
-              <div className="progress-header">
-                <div className="progress-phase-info">
-                  <span className="progress-motivational-icon" aria-hidden="true">
-                    <LucideIcon name={faseActual.progreso >= 75 ? 'trophy' : faseActual.progreso >= 50 ? 'zap' : faseActual.progreso >= 25 ? 'sprout' : 'rocket'} size={24} />
-                  </span>
-                  <span className="progress-phase">{faseActual.nombre || getFaseNombre(faseActual.fase)}</span>
-                </div>
-                <span className="progress-percentage">{faseActual.progreso}%</span>
-              </div>
-              <div
-                className="progress-bar"
-                role="progressbar"
-                aria-valuenow={faseActual.progreso}
-                aria-valuemin="0"
-                aria-valuemax="100"
-                aria-label={`Progreso: ${faseActual.progreso}%`}
-              >
-                <div
-                  className="progress-fill"
-                  style={{ width: `${faseActual.progreso}%` }}
-                ></div>
-              </div>
-              <p className="progress-message">
-                {faseActual.progreso >= 75
-                  ? '¡Increíble! Estás muy cerca de tu meta.'
-                  : faseActual.progreso >= 50
-                  ? '¡Excelente progreso! Ya casi llegas.'
-                  : faseActual.progreso >= 25
-                  ? '¡Sigue así! Vas por buen camino.'
-                  : '¡Tu camino comienza aquí! Cada paso cuenta.'}
-              </p>
-            </Link>
-          </section>
-        )}
 
         {/* Accesos Rápidos */}
         <section className="quick-access-section" aria-labelledby="quick-access-heading">
