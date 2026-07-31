@@ -4,13 +4,11 @@ import LucideIcon from '../LucideIcon';
 
 const IndicacionesMedicas = ({
     especialistaId,
-    pacientes,
     onBack
 }) => {
 
-    console.log("PACIENTES:", pacientes);
-
     const [pacienteId, setPacienteId] = useState('');
+    const [pacientes, setPacientes] = useState([]);
     const [indicaciones, setIndicaciones] = useState([]);
 
     const [form, setForm] = useState({
@@ -41,11 +39,38 @@ const IndicacionesMedicas = ({
 
     };
 
-    useEffect(() => {
+   useEffect(() => {
 
-        cargarIndicaciones(pacienteId);
+    cargarPacientes();
 
-    }, [pacienteId]);
+}, []);
+
+useEffect(() => {
+
+    cargarIndicaciones(pacienteId);
+
+}, [pacienteId]);
+    //nueva
+    const cargarPacientes = async () => {
+
+    try {
+
+        const res = await api.get('/indicaciones/pacientes');
+
+        if (res.success) {
+
+            setPacientes(res.data);
+
+        }
+
+    } catch (error) {
+
+        console.error("Error cargando pacientes:", error);
+
+    }
+
+};
+//
 
 
 
