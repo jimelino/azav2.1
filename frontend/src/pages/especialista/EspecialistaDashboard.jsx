@@ -1720,17 +1720,7 @@ const EspecialistaDashboard = () => {
               </div>
             </div>
 
-            {/* Tarjeta para agregar al grid de Módulos de Medicina General */}
-<div className="card-modulo" onClick={() => abrirModuloIndicaciones()}>
-  <div className="card-icon" style={{ backgroundColor: '#eef2ff', color: '#4f46e5' }}>
-    <LucideIcon name="clipboard-check" size={24} />
-  </div>
-  <div className="card-content">
-    <h3>Indicaciones Médicas</h3>
-    <p>Asignar cuidados y restricciones al paciente</p>
-  </div>
-</div>
-
+            
 
             {/* Tabs de gráficas */}
             <div className="signos-tabs">
