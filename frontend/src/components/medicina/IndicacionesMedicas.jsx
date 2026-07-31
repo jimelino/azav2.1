@@ -8,6 +8,8 @@ const IndicacionesMedicas = ({
     onBack
 }) => {
 
+    console.log("PACIENTES:", pacientes);
+
     const [pacienteId, setPacienteId] = useState('');
     const [indicaciones, setIndicaciones] = useState([]);
 
