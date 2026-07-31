@@ -38,7 +38,7 @@ import api from '../../services/api';
 import '../../components/layouts/institutional.css';
 import './EspecialistaDashboard.css';
 import PorcionesNutricionales from './PorcionesNutricionales';
-
+import IndicacionesMedicas from '../../components/medicina/IndicacionesMedicas';
 
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Filler, Title, Tooltip, Legend);
@@ -104,6 +104,7 @@ const AREAS_CONFIG = {
       { id: 'signos-vitales', nombre: 'Signos Vitales', icon: 'heart-pulse', descripcion: 'Ver signos vitales de usuarios', view: 'mod-signos-vitales' },
       { id: 'estudios', nombre: 'Estudios Clínicos', icon: 'microscope', descripcion: 'Ver estudios de usuarios', view: 'mod-estudios' },
       { id: 'recetas-medicas', nombre: 'Recetas Médicas', icon: 'pill', descripcion: 'Generar recetas para usuarios', view: 'mod-recetas' },
+      { id: 'indicaciones', nombre: 'Indicaciones Médicas', icon: 'clipboard', descripcion: 'Registrar indicaciones para los usuarios', view: 'mod-indicaciones'},
     ],
     herramientas: [
       { nombre: 'Calculadora de Dosis', icon: 'syringe' },
@@ -2101,6 +2102,16 @@ const EspecialistaDashboard = () => {
       expedienteLink={`/especialista/pacientes/${selectedPaciente.id}/expediente`}
     />;
   };
+  // Vista: Indicaciones Médicas
+const renderModIndicaciones = () => {
+    return (
+        <IndicacionesMedicas
+            especialistaId={user?.especialista_id || user?.id}
+            pacientes={dashboardData.pacientes}
+            onBack={() => setActiveView('inicio')}
+        />
+    );
+};
 
   // Vista genérica para módulos en desarrollo
   // Vista: Planes Nutricionales (Nutrición)
@@ -2148,6 +2159,7 @@ const EspecialistaDashboard = () => {
       case 'mod-estudios': return renderModEstudios();
       case 'mod-recetas': return renderModRecetas();
       case 'mod-porciones-nutricionales':return renderPorcionesNutricionales();
+      case 'mod-indicaciones': return renderModIndicaciones();
 
       // Módulos de Fisioterapia
       case 'mod-ejercicios':

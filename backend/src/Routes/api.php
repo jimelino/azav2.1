@@ -26,6 +26,7 @@ use App\Middleware\RoleMiddleware;
 use App\Middleware\RateLimitMiddleware;
 use App\Controllers\EquivalentesController;
 use App\Controllers\ExternalPatientController;
+use App\Controllers\IndicacionesController;
 
 // Función helper para rutas
 function route($method, $path, $callback, $middleware = []) {
@@ -284,6 +285,28 @@ route('PUT', '/api/medicina/medicamentos/(\d+)', function($id) {
 route('DELETE', '/api/medicina/medicamentos/(\d+)', function($id) {
     $controller = new MedicinaController();
     $controller->eliminarMedicamento($id);
+}, ['auth']);
+
+//nuevas rutas para indicaciones medicas
+
+// Obtener pacientes registrados
+route('GET', '/api/indicaciones/pacientes', function () {
+    $controller = new IndicacionesController();
+    $controller->obtenerPacientes();
+}, ['auth']);
+
+
+// Guardar una indicación
+route('POST', '/api/indicaciones', function () {
+    $controller = new IndicacionesController();
+    $controller->guardar(json_decode(file_get_contents('php://input'), true));
+}, ['auth']);
+
+
+// Obtener indicaciones de un paciente
+route('GET', '/api/indicaciones/paciente/(\d+)', function ($pacienteId) {
+    $controller = new IndicacionesController();
+    $controller->obtenerPorPaciente($pacienteId);
 }, ['auth']);
 
 // RUTAS DE FISIOTERAPIA
