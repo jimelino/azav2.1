@@ -309,6 +309,38 @@ route('GET', '/api/indicaciones/paciente/(\d+)', function ($pacienteId) {
     $controller->obtenerPorPaciente($pacienteId);
 }, ['auth']);
 
+// =============================
+// RUTAS DE ESPECIALISTAS
+// =============================
+
+route('GET', '/api/especialistas/(\d+)/citas-hoy', function($especialistaId) {
+    $controller = new EspecialistaController();
+    $controller->getCitasHoy($especialistaId);
+}, ['auth']);
+
+route('GET', '/api/especialistas/(\d+)/pacientes', function($especialistaId) {
+    $controller = new EspecialistaController();
+    $controller->getPacientes($especialistaId);
+}, ['auth']);
+
+route('GET', '/api/especialistas/(\d+)/pacientes/(\d+)', function($especialistaId, $pacienteId) {
+    $controller = new EspecialistaController();
+    $controller->getPacienteDetalle($especialistaId, $pacienteId);
+}, ['auth']);
+
+route('PUT', '/api/especialistas/(\d+)/pacientes/(\d+)/seguimiento', function($especialistaId, $pacienteId) {
+    $controller = new EspecialistaController();
+    $controller->actualizarSeguimiento(
+        $especialistaId,
+        $pacienteId,
+        json_decode(file_get_contents('php://input'), true)
+    );
+}, ['auth']);
+
+route('GET', '/api/especialistas/activos', function() {
+    $controller = new EspecialistaController();
+    $controller->getEspecialistasActivos();
+}, ['auth']);
 // RUTAS DE FISIOTERAPIA
 route('GET', '/api/fisioterapia/videos', function() {
     $controller = new FisioterapiaController();
