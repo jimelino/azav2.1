@@ -653,6 +653,7 @@ const EspecialistaDashboard = () => {
   const loadPacienteData = async (pacienteId) => {
     setLoadingPacienteData(true);
     try {
+      console.log(user);
       const especialistaId = user?.especialista_id || user?.id;
       const response = await api.get(`/especialistas/${especialistaId}/pacientes/${pacienteId}`);
       setPacienteData(response.data);
