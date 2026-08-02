@@ -2,98 +2,90 @@
 
 namespace App\Controllers;
 
-use App\Models\Indicacion;
 use App\Services\DatabaseService;
-use App\Utils\Response;
-use App\Middleware\AuthMiddleware;
 
 class IndicacionesController
 {
     /**
-     * Obtener pacientes para el selector del especialista
+     * Obtener todos los pacientes registrados
      */
-    public function getPacientes()
+    public function obtenerPacientes()
     {
         $db = DatabaseService::getInstance();
 
-        $pacientes = $db->query(
-            "SELECT
+        $pacientes = $db->query("
+            SELECT
                 p.id,
                 u.nombre_completo
             FROM pacientes p
             INNER JOIN usuarios u
-                ON p.usuario_id = u.id
-            WHERE u.activo = 1
-            ORDER BY u.nombre_completo"
-        )->fetchAll();
+                ON u.id = p.usuario_id
+            WHERE u.rol_id = 3
+            ORDER BY u.nombre_completo
+        ")->fetchAll();
 
-        return Response::success($pacientes);
+        echo json_encode([
+            "success" => true,
+            "data" => $pacientes
+        ]);
+    }
+
+    /**
+     * Guardar indicación
+     */
+    public function guardar($data)
+    {
+        $db = DatabaseService::getInstance();
+
+        $db->query("
+            INSERT INTO indicaciones
+            (
+                paciente_id,
+                especialista_id,
+                titulo,
+                descripcion,
+                prioridad,
+                visible_paciente,
+                created_at
+            )
+            VALUES
+            (?, ?, ?, ?, ?, ?, NOW())
+        ", [
+            $data["paciente_id"],
+            $data["especialista_id"],
+            $data["titulo"],
+            $data["descripcion"],
+            $data["prioridad"],
+            1
+        ]);
+
+        echo json_encode([
+            "success" => true,
+            "message" => "Indicación guardada correctamente."
+        ]);
     }
 
     /**
      * Obtener indicaciones de un paciente
      */
-    public function getIndicaciones($pacienteId)
+    public function obtenerPorPaciente($pacienteId)
     {
-        return Response::success(
-            Indicacion::getByPaciente($pacienteId)
-        );
-    }
+        $db = DatabaseService::getInstance();
 
-    /**
-     * Crear indicación
-     */
-    public function crearIndicacion($data)
-    {
-        $usuario = AuthMiddleware::getCurrentUser();
+        $indicaciones = $db->query("
+            SELECT
+                i.*,
+                u.nombre_completo AS especialista
+            FROM indicaciones i
+            INNER JOIN usuarios u
+                ON u.id = i.especialista_id
+            WHERE i.paciente_id = ?
+            ORDER BY i.created_at DESC
+        ", [$pacienteId])->fetchAll();
 
-        if (!$usuario) {
-            return Response::error("No autorizado",401);
-        }
-
-        if (
-            empty($data["paciente_id"]) ||
-            empty($data["descripcion"])
-        ) {
-            return Response::error(
-                "Faltan datos obligatorios",
-                422
-            );
-        }
-
-        $id = Indicacion::crear([
-
-            "paciente_id"=>$data["paciente_id"],
-
-            "especialista_id"=>$usuario["id"],
-
-            "titulo"=>$data["titulo"] ?? null,
-
-            "descripcion"=>$data["descripcion"],
-
-            "prioridad"=>$data["prioridad"] ?? "media",
-
-            "visible_paciente"=>$data["visible_paciente"] ?? 1,
-
+        echo json_encode([
+            "success" => true,
+            "data" => $indicaciones
         ]);
-
-        return Response::success(
-            ["id"=>$id],
-            "Indicación registrada",
-            201
-        );
-    }
-
-    /**
-     * Eliminar
-     */
-    public function eliminarIndicacion($id)
-    {
-        Indicacion::eliminar($id);
-
-        return Response::success(
-            null,
-            "Indicación eliminada"
-        );
     }
 }
