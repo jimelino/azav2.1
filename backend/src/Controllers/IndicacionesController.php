@@ -2,94 +2,98 @@
 
 namespace App\Controllers;
 
+use App\Models\Indicacion;
 use App\Services\DatabaseService;
+use App\Utils\Response;
+use App\Middleware\AuthMiddleware;
 
 class IndicacionesController
 {
     /**
-     * Obtener todos los pacientes registrados
+     * Obtener pacientes para el selector del especialista
      */
-    public function obtenerPacientes()
+    public function getPacientes()
     {
         $db = DatabaseService::getInstance();
 
-        $pacientes = $db->query("
-            SELECT
+        $pacientes = $db->query(
+            "SELECT
                 p.id,
                 u.nombre_completo
             FROM pacientes p
             INNER JOIN usuarios u
-                ON u.id = p.usuario_id
-            WHERE u.rol_id = 3
-            ORDER BY u.nombre_completo
-        ")->fetchAll();
+                ON p.usuario_id = u.id
+            WHERE u.activo = 1
+            ORDER BY u.nombre_completo"
+        )->fetchAll();
 
-        echo json_encode([
-            "success" => true,
-            "data" => $pacientes
-        ]);
-    }
-
-    /**
-     * Guardar indicación
-     */
-    public function guardar($data)
-    {
-        $db = DatabaseService::getInstance();
-
-        $db->query("
-            INSERT INTO indicaciones
-            (
-                paciente_id,
-                especialista_id,
-                titulo,
-                descripcion,
-                prioridad,
-                visible_paciente,
-                fecha_vencimiento,
-                created_at
-            )
-            VALUES
-            (?, ?, ?, ?, ?, ?, ?, NOW())
-        ", [
-
-            $data["paciente_id"],
-            $data["especialista_id"],
-            $data["titulo"],
-            $data["descripcion"],
-            $data["prioridad"],
-            1,
-            $data["fecha_vencimiento"]
-
-        ]);
-
-        echo json_encode([
-            "success" => true,
-            "message" => "Indicación guardada correctamente."
-        ]);
+        return Response::success($pacientes);
     }
 
     /**
      * Obtener indicaciones de un paciente
      */
-    public function obtenerPorPaciente($pacienteId)
+    public function getIndicaciones($pacienteId)
     {
-        $db = DatabaseService::getInstance();
+        return Response::success(
+            Indicacion::getByPaciente($pacienteId)
+        );
+    }
 
-        $indicaciones = $db->query("
-            SELECT
-                i.*,
-                u.nombre_completo AS especialista
-            FROM indicaciones i
-            INNER JOIN usuarios u
-                ON u.id = i.especialista_id
-            WHERE i.paciente_id = ?
-            ORDER BY i.created_at DESC
-        ", [$pacienteId])->fetchAll();
+    /**
+     * Crear indicación
+     */
+    public function crearIndicacion($data)
+    {
+        $usuario = AuthMiddleware::getCurrentUser();
 
-        echo json_encode([
-            "success" => true,
-            "data" => $indicaciones
+        if (!$usuario) {
+            return Response::error("No autorizado",401);
+        }
+
+        if (
+            empty($data["paciente_id"]) ||
+            empty($data["descripcion"])
+        ) {
+            return Response::error(
+                "Faltan datos obligatorios",
+                422
+            );
+        }
+
+        $id = Indicacion::crear([
+
+            "paciente_id"=>$data["paciente_id"],
+
+            "especialista_id"=>$usuario["id"],
+
+            "titulo"=>$data["titulo"] ?? null,
+
+            "descripcion"=>$data["descripcion"],
+
+            "prioridad"=>$data["prioridad"] ?? "media",
+
+            "visible_paciente"=>$data["visible_paciente"] ?? 1,
+
         ]);
+
+        return Response::success(
+            ["id"=>$id],
+            "Indicación registrada",
+            201
+        );
+    }
+
+    /**
+     * Eliminar
+     */
+    public function eliminarIndicacion($id)
+    {
+        Indicacion::eliminar($id);
+
+        return Response::success(
+            null,
+            "Indicación eliminada"
+        );
     }
 }
