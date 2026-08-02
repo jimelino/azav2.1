@@ -117,7 +117,8 @@ useEffect(() => {
                     titulo: '',
                     descripcion: '',
                     prioridad: 'media',
-                 
+                    fecha_vencimiento: ''
+
                 });
 
                 cargarIndicaciones(pacienteId);
@@ -271,7 +272,27 @@ useEffect(() => {
 
                     <div className="form-group">
 
-                
+                        <label>Fecha límite</label>
+
+                        <input
+
+                            type="date"
+
+                            className="form-input"
+
+                            value={form.fecha_vencimiento}
+
+                            onChange={(e)=>setForm({
+
+                                ...form,
+
+                                fecha_vencimiento:e.target.value
+
+                            })}
+
+                        />
+
+                    </div>
 
                     <button
 
