@@ -370,7 +370,9 @@ useEffect(() => {
     hba1c: { icon: 'droplet', label: 'HbA1c', color: '#FF6F00' },
     medicamentos: { icon: 'pill', label: 'Medicamentos', color: '#7B1FA2' }
   };
-  console.log(indicaciones);
+  console.log("pacienteId:", pacienteId);
+console.log("indicaciones state:", indicaciones);
+console.log("cantidad:", indicaciones.length);
   return (
     <div
       className="medicina-page"
@@ -500,7 +502,9 @@ useEffect(() => {
   <div className="stat-card-new">
     <div className="stat-content">
 
-      <h3>Indicaciones Médicas</h3>
+      <h3 style={{ color: "red", fontSize: "30px" }}>
+  HOLA SOY MEDICINA.JSX
+</h3>
 
       {indicaciones.length === 0 ? (
         <p>No tienes indicaciones registradas.</p>
