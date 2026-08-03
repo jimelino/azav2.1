@@ -11,17 +11,11 @@ if ($uri === '/run-my-migrations') {
     echo "=== PROCESO DE SINCRONIZACIÓN INICIADO ===\n";
 
     try {
-        $host = getenv('DB_HOST') ?: 'localhost';
-        $db   = getenv('DB_NAME') ?: 'railway';
-        $user = getenv('DB_USER') ?: 'root';
-        $pass = getenv('DB_PASS') ?: '';
-        $port = getenv('DB_PORT') ?: '3306';
-
-        $pdo = new PDO("mysql:host=$host;port=$port;dbname=$db;charset=utf8mb4", $user, $pass, [
-            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
-        ]);
+        $config = require __DIR__ . '/../config/database.php';
+        $dsn = "{$config['driver']}:host={$config['host']};port={$config['port']};dbname={$config['database']};charset={$config['charset']}";
+        $pdo = new PDO($dsn, $config['username'], $config['password'], $config['options']);
         
-        echo " - Conectado a: $db ✅\n";
+        echo " - Conectado a: {$config['database']} ✅\n";
 
         $archivoSql = __DIR__ . '/migrations/001_azaria_full_schema.sql';
         

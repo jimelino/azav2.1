@@ -21,6 +21,8 @@ const Chat = () => {
   const [contactosSearchEmail, setContactosSearchEmail] = useState('');
   const [loadingContactos, setLoadingContactos] = useState(false);
   const mensajesRef = useRef(null);
+  const ultimoMensajeIdRef = useRef(0); // id del mensaje más reciente ya cargado (para el polling incremental)
+  const pestanaVisibleRef = useRef(true); // pausa el polling cuando el usuario cambia de pestaña
   const puedeIniciarConversacion = user?.rol_id === 3 || user?.rol === 'paciente' || user?.rol_id === 2 || user?.rol === 'especialista';
 
   useEffect(() => {
@@ -41,15 +43,45 @@ const Chat = () => {
   }, [showNuevaConversacion, contactosSearchEmail, puedeIniciarConversacion]);
 
   useEffect(() => {
+    const alCambiarVisibilidad = () => {
+      pestanaVisibleRef.current = document.visibilityState === 'visible';
+      // Al volver a la pestaña, trae de inmediato lo que se haya perdido
+      if (pestanaVisibleRef.current && conversacionActiva) {
+        pollMensajesNuevos(conversacionActiva.id);
+      }
+    };
+    document.addEventListener('visibilitychange', alCambiarVisibilidad);
+    return () => document.removeEventListener('visibilitychange', alCambiarVisibilidad);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [conversacionActiva]);
+
+  useEffect(() => {
     if (conversacionActiva) {
       cargarMensajes(conversacionActiva.id);
-      // Polling para mensajes nuevos
+      // Polling corto: cada 3s pide solo los mensajes nuevos (no toda la
+      // conversación), y se pausa si la pestaña no está visible.
       const interval = setInterval(() => {
-        cargarMensajes(conversacionActiva.id, true);
-      }, 5000);
+        if (pestanaVisibleRef.current) {
+          pollMensajesNuevos(conversacionActiva.id);
+        }
+      }, 3000);
       return () => clearInterval(interval);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [conversacionActiva]);
+
+  useEffect(() => {
+    if (!user?.id) return;
+    // Refresca la lista de conversaciones (últimos mensajes, no leídos,
+    // conversaciones nuevas) sin necesidad de recargar la página.
+    const interval = setInterval(() => {
+      if (pestanaVisibleRef.current) {
+        cargarConversaciones(true);
+      }
+    }, 8000);
+    return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
 
   useEffect(() => {
     // Scroll al último mensaje
@@ -58,7 +90,7 @@ const Chat = () => {
     }
   }, [mensajes]);
 
-  const cargarConversaciones = async () => {
+  const cargarConversaciones = async (silencioso = false) => {
     try {
       const userId = user?.id;
       const response = await api.get(`/mensajes/conversaciones/${userId}`);
@@ -66,6 +98,12 @@ const Chat = () => {
       // Backend retorna: { success, data: { conversaciones: [...] } }
       const convs = response?.data?.conversaciones || response?.conversaciones || [];
       setConversaciones(convs);
+
+      if (silencioso) {
+        // Refresco de fondo: solo actualiza la lista (últimos mensajes,
+        // badges de no leídos). No toca cuál conversación está activa.
+        return;
+      }
 
       // Si hay un ID de conversación en la URL, seleccionar esa
       if (conversacionId && convs.length > 0) {
@@ -81,10 +119,12 @@ const Chat = () => {
         setConversacionActiva(convs[0]);
       }
     } catch (err) {
-      console.error('Error al cargar conversaciones:', err);
-      setConversaciones([]);
+      if (!silencioso) {
+        console.error('Error al cargar conversaciones:', err);
+        setConversaciones([]);
+      }
     } finally {
-      setLoading(false);
+      if (!silencioso) setLoading(false);
     }
   };
 
@@ -126,12 +166,42 @@ const Chat = () => {
       const response = await api.get(`/mensajes/conversacion/${conversacionId}/${userId}`);
       // response ya es response.data por el interceptor
       const data = response?.data || response;
-      setMensajes(data?.mensajes || []);
+      const mensajesCargados = data?.mensajes || [];
+      setMensajes(mensajesCargados);
       setOtroUsuario(data?.otro_usuario || null);
+
+      // Recuerda el id más alto para que el polling solo pida "lo nuevo"
+      const maxId = mensajesCargados.reduce((max, m) => Math.max(max, Number(m.id) || 0), 0);
+      ultimoMensajeIdRef.current = maxId;
     } catch (err) {
       if (!silencioso) {
         console.error('Error al cargar mensajes:', err);
       }
+    }
+  };
+
+  // Polling corto: solo trae mensajes con id mayor al último ya visto y
+  // los agrega al final, sin re-renderizar/reemplazar toda la conversación.
+  const pollMensajesNuevos = async (conversacionIdActivo) => {
+    try {
+      const userId = user?.id;
+      const response = await api.get(
+        `/mensajes/conversacion/${conversacionIdActivo}/${userId}/nuevos/${ultimoMensajeIdRef.current}`
+      );
+      const data = response?.data || response;
+      const nuevos = data?.mensajes || [];
+      if (nuevos.length === 0) return;
+
+      setMensajes(prev => {
+        const idsExistentes = new Set(prev.map(m => m.id));
+        const soloNuevos = nuevos.filter(m => !idsExistentes.has(m.id));
+        return soloNuevos.length > 0 ? [...prev, ...soloNuevos] : prev;
+      });
+
+      const maxId = nuevos.reduce((max, m) => Math.max(max, Number(m.id) || 0), ultimoMensajeIdRef.current);
+      ultimoMensajeIdRef.current = maxId;
+    } catch (err) {
+      // Silencioso a propósito: es polling de fondo, no debe interrumpir al usuario.
     }
   };
 
@@ -141,20 +211,28 @@ const Chat = () => {
 
     setEnviando(true);
     try {
-      await api.post('/mensajes/enviar', {
+      const response = await api.post('/mensajes/enviar', {
         emisor_id: user.id,
         receptor_id: conversacionActiva.otro_usuario_id,
         mensaje: nuevoMensaje.trim()
       });
 
+      const data = response?.data || response;
+      const mensajeId = data?.id || Date.now();
+
       // Agregar mensaje localmente para respuesta inmediata
       setMensajes(prev => [...prev, {
-        id: Date.now(),
+        id: mensajeId,
         emisor_id: user.id,
         mensaje: nuevoMensaje.trim(),
         created_at: new Date().toISOString(),
         emisor_nombre: user?.nombre_completo || user?.nombre || 'Yo'
       }]);
+
+      // Evita que el próximo poll vuelva a traer este mismo mensaje y lo duplique
+      if (data?.id) {
+        ultimoMensajeIdRef.current = Math.max(ultimoMensajeIdRef.current, Number(data.id));
+      }
 
       setNuevoMensaje('');
     } catch (err) {
