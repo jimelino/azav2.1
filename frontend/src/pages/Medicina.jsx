@@ -105,7 +105,9 @@ const Medicina = () => {
   const cargarIndicaciones = async () => {
   try {
     const res = await api.get(`/indicaciones/paciente/${pacienteId}`);
-    console.log("Indicaciones:", res.data.data);
+    console.log("RES COMPLETO:", res);
+    console.log("res.data:", res.data);
+    console.log("res.data.data:", res.data?.data);
 
     if (res.data.success) {
       setIndicaciones(res.data.data);
