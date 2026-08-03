@@ -850,6 +850,16 @@ route('GET', '/api/mensajes/conversacion/(\d+)/(\d+)', function($conversacionId,
     (new MensajesController())->getMensajes($conversacionId, $usuarioId);
 }, ['auth']);
 
+// Polling corto: solo mensajes con id mayor al último que ya tiene el
+// frontend, en vez de volver a traer toda la conversación cada vez.
+route('GET', '/api/mensajes/conversacion/(\d+)/(\d+)/nuevos/(\d+)', function($conversacionId, $usuarioId, $ultimoId) {
+    $user = AuthMiddleware::getCurrentUser();
+    if ((int)$user['id'] !== (int)$usuarioId) {
+        \App\Utils\Response::error('No autorizado', 403);
+    }
+    (new MensajesController())->getMensajesNuevos($conversacionId, $usuarioId, $ultimoId);
+}, ['auth']);
+
 route('POST', '/api/mensajes/iniciar/(\d+)/(\d+)', function($usuarioId, $otroUsuarioId) {
     $user = AuthMiddleware::getCurrentUser();
     if ((int)$user['id'] !== (int)$usuarioId) {
