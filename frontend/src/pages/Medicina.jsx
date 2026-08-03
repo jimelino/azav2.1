@@ -105,6 +105,7 @@ const Medicina = () => {
   const cargarIndicaciones = async () => {
   try {
     const res = await api.get(`/indicaciones/paciente/${pacienteId}`);
+    console.log("Indicaciones:", res.data.data);
 
     if (res.data.success) {
       setIndicaciones(res.data.data);
@@ -369,7 +370,7 @@ useEffect(() => {
     hba1c: { icon: 'droplet', label: 'HbA1c', color: '#FF6F00' },
     medicamentos: { icon: 'pill', label: 'Medicamentos', color: '#7B1FA2' }
   };
-
+  console.log(indicaciones);
   return (
     <div
       className="medicina-page"
