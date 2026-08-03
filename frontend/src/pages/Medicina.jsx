@@ -30,7 +30,7 @@ const Medicina = () => {
   const [saving, setSaving] = useState(false);
   const [medicamentos, setMedicamentos] = useState([]);
   const [showInactivos, setShowInactivos] = useState(false);
-
+  const [indicaciones, setIndicaciones] = useState([]);
   // Obtener paciente_id con fallback al user.id
   const pacienteId = user?.paciente_id || user?.id;
 
@@ -66,10 +66,8 @@ const Medicina = () => {
     notas: ''
   });
 
-  useEffect(() => {
-    cargarDatos();
-  }, [activeTab]);
 
+  
   // Bienvenida por voz al entrar al módulo
   useEffect(() => {
     if (settings.voiceNavigation) {
@@ -104,6 +102,22 @@ const Medicina = () => {
       setLoading(false);
     }
   };
+  const cargarIndicaciones = async () => {
+  try {
+    const res = await api.get(`/indicaciones/paciente/${pacienteId}`);
+
+    if (res.data.success) {
+      setIndicaciones(res.data.data);
+    }
+  } catch (err) {
+    console.error("Error cargando indicaciones:", err);
+  }
+};
+useEffect(() => {
+  cargarDatos();
+  cargarIndicaciones();
+}, [activeTab, pacienteId]);
+
 
   const abrirModal = (tipo) => {
     setModalType(tipo);
@@ -480,6 +494,39 @@ const Medicina = () => {
           </Speakable>
         </div>
       </section>
+      {/* Indicaciones del especialista */}
+<section className="stats-section">
+  <div className="stat-card-new">
+    <div className="stat-content">
+
+      <h3>Indicaciones Médicas</h3>
+
+      {indicaciones.length === 0 ? (
+        <p>No tienes indicaciones registradas.</p>
+      ) : (
+        indicaciones.map((item) => (
+          <div
+            key={item.id}
+            style={{
+              marginBottom: "12px",
+              paddingBottom: "10px",
+              borderBottom: "1px solid #ddd"
+            }}
+          >
+            <strong>{item.titulo}</strong>
+
+            <p>{item.descripcion}</p>
+
+            <small>
+              Especialista: {item.especialista}
+            </small>
+          </div>
+        ))
+      )}
+
+    </div>
+  </div>
+</section>
 
       {/* Tabs mejorados */}
       <nav className="tabs-container" role="tablist" aria-label="Tipos de registro médico">
