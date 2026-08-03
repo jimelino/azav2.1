@@ -1,5 +1,12 @@
 <?php
 
+/**
+ * OBSOLETO: reemplazado por NeupsiproApiService.php.
+ * Ya no lo usa ningún controlador (ExternalPatientController ahora usa
+ * NeupsiproApiService). Se deja el archivo por si se necesita como
+ * referencia, pero puede borrarse con seguridad.
+ */
+
 namespace App\Services;
 
 use RuntimeException;

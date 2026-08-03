@@ -8,6 +8,7 @@ import InstitutionalHeader from '../../components/layouts/InstitutionalHeader';
 import InstitutionalFooter from '../../components/layouts/InstitutionalFooter';
 import LucideIcon from '../../components/LucideIcon';
 import AdmisionesTab from '../../components/admin/AdmisionesTab';
+import NeupsiproSyncTab from '../../components/admin/NeupsiproSyncTab';
 import api from '../../services/api';
 import '../../components/layouts/institutional.css';
 import './AdminDashboard.css';
@@ -38,6 +39,7 @@ const TABS = [
   { id: 'especialistas', label: 'Especialistas', icon: 'stethoscope' },
   { id: 'comunidad', label: 'Comunidad', icon: 'pen-line' },
   { id: 'faqs', label: 'FAQs', icon: 'circle-help' },
+  { id: 'neupsipro', label: 'Neuropsicología (neupsipro)', icon: 'refresh-cw' },
 ];
 
 const AdminDashboard = () => {
@@ -496,6 +498,8 @@ const AdminDashboard = () => {
         return renderComunidad();
       case 'faqs':
         return renderFaqs();
+      case 'neupsipro':
+        return <NeupsiproSyncTab />;
       default:
         return renderResumen();
     }

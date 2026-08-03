@@ -2470,3 +2470,26 @@
 .neuro-documents-heading h3 { margin: 0; }
 .neuro-documents-list { display: grid; gap: .5rem; margin-top: .75rem; }
 .neuro-document-link { display: flex; align-items: center; gap: .5rem; padding: .65rem .75rem; border-radius: 8px; background: #f7f5fa; color: #4b2472; text-decoration: none; }
+
+/* Tarjetas de evaluaciones neuropsicológicas (integración neupsipro) */
+.neuro-document-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .75rem;
+  padding: .65rem .85rem;
+  border-radius: 8px;
+  background: #f7f5fa;
+  flex-wrap: wrap;
+}
+.neuro-document-card-info { display: flex; align-items: center; gap: .6rem; color: #4b2472; }
+.neuro-document-card-info > div { display: flex; flex-direction: column; }
+.neuro-document-card-nombre { font-weight: 600; }
+.neuro-document-card-meta { font-size: .8rem; color: var(--text-muted, #6e7681); }
+.neuro-document-card-actions { display: flex; align-items: center; gap: .5rem; }
+.neuro-document-card-actions .btn-sm { padding: .4rem .7rem; font-size: .85rem; display: inline-flex; align-items: center; gap: .35rem; }
+
+@media (max-width: 480px) {
+  .neuro-document-card { flex-direction: column; align-items: flex-start; }
+  .neuro-document-card-actions { width: 100%; justify-content: flex-end; }
+}

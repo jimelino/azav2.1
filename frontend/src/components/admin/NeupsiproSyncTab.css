@@ -1,0 +1,22 @@
+.neupsipro-sync-tab { padding: 1rem 0; }
+.neupsipro-sync-card {
+  background: var(--surface-primary, #fff);
+  border: 1px solid var(--border-color, #e1e5ea);
+  border-radius: 12px;
+  padding: 1.25rem;
+  max-width: 640px;
+}
+.neupsipro-sync-heading { display: flex; align-items: center; gap: .6rem; color: #6a1b9a; margin-bottom: .5rem; }
+.neupsipro-sync-heading h3 { margin: 0; }
+.neupsipro-sync-actions { margin: 1rem 0; }
+.neupsipro-sync-divider { font-size: .85rem; color: var(--text-muted, #6e7681); margin: 1rem 0 .5rem; }
+.neupsipro-sync-one { display: flex; gap: .5rem; flex-wrap: wrap; }
+.neupsipro-sync-one .form-control { flex: 1; min-width: 200px; }
+.neupsipro-sync-resultado {
+  margin-top: 1rem;
+  padding: .85rem;
+  border-radius: 8px;
+  background: #f7f5fa;
+  font-size: .9rem;
+}
+.neupsipro-sync-resultado ul { margin: .35rem 0 0; padding-left: 1.1rem; }

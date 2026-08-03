@@ -23,8 +23,18 @@ const Neuropsicologia = () => {
   const [loading, setLoading] = useState(true);
   const [externalLoading, setExternalLoading] = useState(true);
   const [externalError, setExternalError] = useState('');
-  const [externalContext, setExternalContext] = useState({ appointments: [], documents: [], specialist: null });
+  const [externalContext, setExternalContext] = useState({
+    profile: null,
+    documents: { folio: null, colaboradorAsignado: null, evaluaciones: [] },
+    specialist: null
+  });
   const [showModal, setShowModal] = useState(false);
+
+  // Detalle de una evaluación neuropsicológica (tests + descarga de PDF)
+  const [evaluacionDetalle, setEvaluacionDetalle] = useState(null); // evaluación seleccionada (fila de la lista)
+  const [evaluacionDetalleDatos, setEvaluacionDetalleDatos] = useState(null); // { estatusAplicacion, tests }
+  const [evaluacionDetalleLoading, setEvaluacionDetalleLoading] = useState(false);
+  const [evaluacionDetalleError, setEvaluacionDetalleError] = useState('');
 
   // Estado de ánimo
   const [emocionSeleccionada, setEmocionSeleccionada] = useState(null);
@@ -112,27 +122,34 @@ const Neuropsicologia = () => {
       setExternalLoading(true);
       setExternalError('');
       const results = await Promise.allSettled([
-        externalHealthService.fetchNeuroAppointments(),
+        externalHealthService.fetchPatientProfile(),
         externalHealthService.fetchNeuroDocuments(),
         externalHealthService.fetchAssignedSpecialist()
       ]);
 
       if (!mounted) return;
 
-      const [appointments, documents, specialist] = results;
+      const [profile, documents, specialist] = results;
       const rejected = results.some(result => result.status === 'rejected');
+      const notLinked = results.some(result =>
+        result.status === 'rejected' && (result.reason?.message || '').toLowerCase().includes('vinculado')
+      );
+
       setExternalContext({
-        appointments: appointments.status === 'fulfilled'
-          ? (Array.isArray(appointments.value) ? appointments.value : appointments.value?.items || [])
-          : [],
+        profile: profile.status === 'fulfilled' ? profile.value : null,
         documents: documents.status === 'fulfilled'
-          ? (Array.isArray(documents.value) ? documents.value : documents.value?.items || [])
-          : [],
-        specialist: specialist.status === 'fulfilled'
-          ? (specialist.value?.specialist || specialist.value || null)
-          : null
+          ? {
+              folio: documents.value?.folio ?? null,
+              colaboradorAsignado: documents.value?.colaboradorAsignado ?? null,
+              evaluaciones: Array.isArray(documents.value?.evaluaciones) ? documents.value.evaluaciones : []
+            }
+          : { folio: null, colaboradorAsignado: null, evaluaciones: [] },
+        specialist: specialist.status === 'fulfilled' ? specialist.value : null
       });
-      if (rejected) {
+
+      if (notLinked) {
+        setExternalError('Tu expediente de neuropsicología aún no ha sido vinculado. Intenta de nuevo más tarde o contacta a soporte.');
+      } else if (rejected) {
         setExternalError('No se pudo consultar toda la información del sistema clínico externo.');
       }
       setExternalLoading(false);
@@ -179,6 +196,27 @@ const Neuropsicologia = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const abrirDetalleEvaluacion = async (evaluacionItem) => {
+    setEvaluacionDetalle(evaluacionItem);
+    setEvaluacionDetalleDatos(null);
+    setEvaluacionDetalleError('');
+    setEvaluacionDetalleLoading(true);
+    try {
+      const detalle = await externalHealthService.fetchNeuroDocumentDetail(evaluacionItem.idAplicacion);
+      setEvaluacionDetalleDatos(detalle);
+    } catch (err) {
+      setEvaluacionDetalleError(err?.message || 'No se pudo cargar el detalle de esta evaluación.');
+    } finally {
+      setEvaluacionDetalleLoading(false);
+    }
+  };
+
+  const cerrarDetalleEvaluacion = () => {
+    setEvaluacionDetalle(null);
+    setEvaluacionDetalleDatos(null);
+    setEvaluacionDetalleError('');
   };
 
   const registrarEstadoAnimo = async () => {
@@ -521,12 +559,20 @@ const Neuropsicologia = () => {
         ) : (
           <div className="neuro-external-grid">
             <div className="neuro-external-item">
-              <LucideIcon name="calendar" size={20} />
-              <span><strong>Citas</strong>{externalContext.appointments.length} registradas</span>
+              <LucideIcon name="hash" size={20} />
+              <span><strong>Folio</strong>{externalContext.profile?.folio || externalContext.documents.folio || 'Sin asignar'}</span>
             </div>
             <div className="neuro-external-item">
               <LucideIcon name="user" size={20} />
-              <span><strong>Especialista asignado</strong>{externalContext.specialist?.nombre_completo || externalContext.specialist?.name || 'Pendiente de asignación'}</span>
+              <span><strong>Colaborador asignado</strong>{externalContext.profile?.colaboradorAsignado || externalContext.documents.colaboradorAsignado || externalContext.specialist?.colaboradorAsignado || 'Pendiente de asignación'}</span>
+            </div>
+            <div className="neuro-external-item">
+              <LucideIcon name="activity" size={20} />
+              <span><strong>Estado</strong>{externalContext.profile?.estado || 'Sin datos'}</span>
+            </div>
+            <div className="neuro-external-item">
+              <LucideIcon name="calendar" size={20} />
+              <span><strong>Próxima cita</strong>{externalContext.profile?.proximaCita || 'Sin cita programada'}</span>
             </div>
           </div>
         )}
@@ -741,13 +787,41 @@ const Neuropsicologia = () => {
           {activeTab === 'ejercicios' && (
             <div className="ejercicios-section">
               <section className="neuro-documents-section" aria-labelledby="neuro-documents-heading">
-                <div className="neuro-documents-heading"><LucideIcon name="file-text" size={20} /><h3 id="neuro-documents-heading">Documentos clínicos</h3></div>
-                {externalContext.documents.length === 0 ? <p className="help-text">No hay documentos disponibles.</p> : (
+                <div className="neuro-documents-heading"><LucideIcon name="file-text" size={20} /><h3 id="neuro-documents-heading">Evaluaciones neuropsicológicas</h3></div>
+                {externalContext.documents.evaluaciones.length === 0 ? (
+                  <p className="help-text">No hay evaluaciones disponibles todavía.</p>
+                ) : (
                   <div className="neuro-documents-list">
-                    {externalContext.documents.map((documento, index) => (
-                      <a key={documento.id || index} href={documento.url || documento.enlace || '#'} target="_blank" rel="noreferrer" className="neuro-document-link">
-                        <LucideIcon name="file-text" size={18} /><span>{documento.titulo || documento.nombre || `Documento ${index + 1}`}</span>
-                      </a>
+                    {externalContext.documents.evaluaciones.map((evaluacionItem, index) => (
+                      <div key={evaluacionItem.idAplicacion || index} className="neuro-document-card">
+                        <div className="neuro-document-card-info">
+                          <LucideIcon name="file-text" size={18} />
+                          <div>
+                            <span className="neuro-document-card-nombre">{evaluacionItem.nombre || `Evaluación ${index + 1}`}</span>
+                            <span className="neuro-document-card-meta">
+                              {evaluacionItem.estatus || 'Sin estatus'}
+                              {evaluacionItem.fechaCreacion ? ` · ${evaluacionItem.fechaCreacion}` : ''}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="neuro-document-card-actions">
+                          <button
+                            type="button"
+                            className="btn btn-secondary btn-sm"
+                            onClick={() => abrirDetalleEvaluacion(evaluacionItem)}
+                          >
+                            Ver detalle
+                          </button>
+                          <a
+                            className="btn btn-primary btn-sm"
+                            href={externalHealthService.getNeuroDocumentDownloadUrl(evaluacionItem.idAplicacion)}
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+                            <LucideIcon name="download" size={14} /> PDF
+                          </a>
+                        </div>
+                      </div>
                     ))}
                   </div>
                 )}
@@ -1310,6 +1384,61 @@ const Neuropsicologia = () => {
               >
                 {savingEval ? 'Guardando...' : 'Guardar'}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Detalle de evaluación neuropsicológica (tests de neupsipro) */}
+      {evaluacionDetalle && (
+        <div className="modal-overlay" onClick={cerrarDetalleEvaluacion}>
+          <div className="modal-content" onClick={e => e.stopPropagation()}>
+            <h2>{evaluacionDetalle.nombre || 'Detalle de evaluación'}</h2>
+            <p className="modal-subtitle">
+              {evaluacionDetalle.estatus || 'Sin estatus'}
+              {evaluacionDetalle.fechaCreacion ? ` · ${evaluacionDetalle.fechaCreacion}` : ''}
+            </p>
+
+            {evaluacionDetalleLoading ? (
+              <div className="loading-container">
+                <div className="spinner"></div>
+                <p>Cargando detalle...</p>
+              </div>
+            ) : evaluacionDetalleError ? (
+              <p className="neuro-external-error" role="alert">{evaluacionDetalleError}</p>
+            ) : (
+              <div className="neuro-documents-list">
+                {(evaluacionDetalleDatos?.tests || []).length === 0 ? (
+                  <p className="help-text">Esta evaluación aún no tiene tests registrados.</p>
+                ) : (
+                  evaluacionDetalleDatos.tests.map((test, idx) => (
+                    <div key={test.idTest || idx} className="neuro-document-card">
+                      <div className="neuro-document-card-info">
+                        <LucideIcon name="file-text" size={18} />
+                        <div>
+                          <span className="neuro-document-card-nombre">{test.nombre || `Test ${idx + 1}`}</span>
+                          <span className="neuro-document-card-meta">
+                            {test.estatus || 'Sin estatus'}
+                            {test.fechaAplicacion ? ` · ${test.fechaAplicacion}` : ''}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            )}
+
+            <div className="modal-actions">
+              <a
+                className="btn btn-primary"
+                href={externalHealthService.getNeuroDocumentDownloadUrl(evaluacionDetalle.idAplicacion)}
+                target="_blank"
+                rel="noreferrer"
+              >
+                <LucideIcon name="download" size={14} /> Descargar PDF
+              </a>
+              <button className="btn btn-secondary" onClick={cerrarDetalleEvaluacion}>Cerrar</button>
             </div>
           </div>
         </div>

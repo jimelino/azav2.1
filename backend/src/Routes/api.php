@@ -131,20 +131,43 @@ route('PUT', '/api/integracion/paciente/perfil', function() {
     $controller->updateProfile(AuthMiddleware::getCurrentUser(), json_decode(file_get_contents('php://input'), true) ?? []);
 }, ['auth']);
 
-route('GET', '/api/integracion/neuro/citas', function() {
-    $controller = new ExternalPatientController();
-    $controller->getNeuroAppointments(AuthMiddleware::getCurrentUser());
-}, ['auth']);
-
 route('GET', '/api/integracion/neuro/documentos', function() {
     $controller = new ExternalPatientController();
     $controller->getNeuroDocuments(AuthMiddleware::getCurrentUser());
+}, ['auth']);
+
+// Detalle (tests individuales) de una evaluación puntual
+route('GET', '/api/integracion/neuro/documentos/([^/]+)', function ($idAplicacion) {
+    $controller = new ExternalPatientController();
+    $controller->getNeuroDocumentDetail(AuthMiddleware::getCurrentUser(), $idAplicacion);
+}, ['auth']);
+
+// Descarga del PDF de resultados de una evaluación (proxy hacia neupsipro).
+// Acepta ?token=... para poder abrirse en una pestaña nueva del navegador,
+// igual que el resto de las descargas de esta app (ver SessionService).
+route('GET', '/api/integracion/neuro/documentos/([^/]+)/descargar', function ($idAplicacion) {
+    $controller = new ExternalPatientController();
+    $controller->downloadNeuroDocument(AuthMiddleware::getCurrentUser(), $idAplicacion);
 }, ['auth']);
 
 route('GET', '/api/integracion/neuro/especialista', function() {
     $controller = new ExternalPatientController();
     $controller->getAssignedSpecialist(AuthMiddleware::getCurrentUser());
 }, ['auth']);
+
+// ---- Sincronización (uso administrativo) de la tabla puente con neupsipro --
+
+// Sincroniza UN paciente por su id_user de neupsipro
+route('POST', '/api/admin/neupsipro/sync/([^/]+)', function ($neupsiproIdUser) {
+    $controller = new ExternalPatientController();
+    $controller->syncOne($neupsiproIdUser);
+}, ['auth', 'role:administrador']);
+
+// Sincroniza TODOS los pacientes (recorre /api/users paginado en neupsipro).
+route('POST', '/api/admin/neupsipro/sync', function () {
+    $controller = new ExternalPatientController();
+    $controller->syncAll();
+}, ['auth', 'role:administrador']);
 
 // RUTA PARA OBTENER ESPECIALISTAS ASIGNADOS A UN PACIENTE
 route('GET', '/api/pacientes/(\d+)/especialistas', function($pacienteId) {
