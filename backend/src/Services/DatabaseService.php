@@ -18,11 +18,11 @@ class DatabaseService
 
         // Obtenemos los valores desde las variables de entorno de Railway
         // o caemos al valor que está en tu archivo config/database.php
-        $host = getenv('DB_HOST') ?: ($config['host'] ?? 'mysql.railway.internal');
-        $port = getenv('DB_PORT') ?: ($config['port'] ?? '3306');
-        $db   = getenv('DB_NAME') ?: ($config['database'] ?? 'railway');
-        $user = getenv('DB_USER') ?: ($config['username'] ?? 'root');
-        $pass = getenv('DB_PASS') ?: ($config['password'] ?? '');
+        $host = $config['host'] ?? '127.0.0.1';
+        $port = $config['port'] ?? '3306';
+        $db   = $config['database'] ?? 'vitalia_v2';
+        $user = $config['username'] ?? 'root';
+        $pass = $config['password'] ?? '';
         
         $driver = $config['driver'] ?? 'mysql';
         $charset = $config['charset'] ?? 'utf8mb4';

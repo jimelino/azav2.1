@@ -23,15 +23,9 @@ $results = [];
 
 // 1. Test conexión a BD
 try {
-    $dsn = sprintf(
-        "mysql:host=%s;port=%s;dbname=%s;charset=utf8mb4",
-        $_ENV['DB_HOST'] ?? 'localhost',
-        $_ENV['DB_PORT'] ?? '3306',
-        $_ENV['DB_NAME'] ?? 'vitalia_db'
-    );
-
-    $pdo = new PDO($dsn, $_ENV['DB_USER'] ?? 'root', $_ENV['DB_PASSWORD'] ?? '');
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $config = require __DIR__ . '/../config/database.php';
+    $dsn = "{$config['driver']}:host={$config['host']};port={$config['port']};dbname={$config['database']};charset={$config['charset']}";
+    $pdo = new PDO($dsn, $config['username'], $config['password'], $config['options']);
     $results['conexion_bd'] = 'OK';
 } catch (Exception $e) {
     $results['conexion_bd'] = 'ERROR: ' . $e->getMessage();
