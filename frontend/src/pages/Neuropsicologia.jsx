@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useAccessibility } from '../context/AccessibilityContext';
 import AccessibilityPanel, { AccessibilityFAB } from '../components/accessibility/AccessibilityPanel';
@@ -8,6 +8,8 @@ import ACTEjercicioActivo from '../components/neuropsicologia/ACTEjercicioActivo
 import { CUESTIONARIOS, ACT_CATEGORIAS, ACT_HERRAMIENTAS, getHerramientasByCategoria, getCuestionarioById, calcularPuntuacion } from '../data/neuropsicologiaData';
 import { Bar, Line } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, PointElement, LineElement, Filler, Title, Tooltip, Legend } from 'chart.js';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 import api from '../services/api';
 import externalHealthService from '../services/externalHealthService';
 import LucideIcon from '../components/LucideIcon';
@@ -55,6 +57,8 @@ const Neuropsicologia = () => {
   const [evalCampos, setEvalCampos] = useState([{ nombre: '', valor: '' }]);
   const [evalNotas, setEvalNotas] = useState('');
   const [savingEval, setSavingEval] = useState(false);
+  const [descargandoPdf, setDescargandoPdf] = useState(false);
+  const perfilRef = useRef(null);
 
   const emociones = [
     { id: 'enojo', nombre: 'Enojo', icon: 'flame', color: '#C62828' },
@@ -402,6 +406,54 @@ const Neuropsicologia = () => {
       console.error('Error guardando evaluacion:', e);
     } finally {
       setSavingEval(false);
+    }
+  };
+
+  const handleDescargarEvaluacionPdf = async () => {
+    if (!perfilRef.current || !evaluacion) return;
+    setDescargandoPdf(true);
+    try {
+      const element = perfilRef.current;
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: '#ffffff'
+      });
+
+      const pdf = new jsPDF('p', 'mm', 'letter');
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const margin = 10;
+      const imgWidth = pageWidth - margin * 2;
+      const ratio = imgWidth / canvas.width;
+      const canvasPageHeight = Math.floor(pageHeight / ratio) - margin * 2;
+      let yOffset = 0;
+      let pageIndex = 0;
+
+      while (yOffset < canvas.height) {
+        const sliceHeight = Math.min(canvasPageHeight, canvas.height - yOffset);
+        const pageCanvas = document.createElement('canvas');
+        pageCanvas.width = canvas.width;
+        pageCanvas.height = sliceHeight;
+        const ctx = pageCanvas.getContext('2d');
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
+        ctx.drawImage(canvas, 0, yOffset, canvas.width, sliceHeight, 0, 0, canvas.width, sliceHeight);
+
+        const pageData = pageCanvas.toDataURL('image/png');
+        if (pageIndex > 0) pdf.addPage();
+        pdf.addImage(pageData, 'PNG', margin, margin, imgWidth, sliceHeight * ratio);
+        yOffset += sliceHeight;
+        pageIndex += 1;
+      }
+
+      const fileName = `evaluacion-neuropsicologica-${new Date().toISOString().slice(0, 10)}.pdf`;
+      pdf.save(fileName);
+    } catch (error) {
+      console.error('Error descargando PDF:', error);
+      alert('No se pudo generar el PDF. Intenta nuevamente.');
+    } finally {
+      setDescargandoPdf(false);
     }
   };
 
@@ -1037,6 +1089,19 @@ const Neuropsicologia = () => {
                   Evaluacion de funciones cognitivas. Los colores indican el nivel de desempeno en cada area.
                 </p>
 
+                <div className="eval-actions-row">
+                  {evaluacion && (
+                    <button
+                      type="button"
+                      className="btn btn-secondary eval-descargar-btn"
+                      onClick={handleDescargarEvaluacionPdf}
+                      disabled={descargandoPdf}
+                    >
+                      {descargandoPdf ? 'Generando PDF...' : 'Descargar PDF'}
+                    </button>
+                  )}
+                </div>
+
                 {/* Leyenda del semáforo */}
                 <div className="semaforo-leyenda">
                   <div className="leyenda-item">
@@ -1055,7 +1120,8 @@ const Neuropsicologia = () => {
 
                 {evaluacion ? (
                   <>
-                    <div className="eval-info-card">
+                    <div className="eval-download-wrapper" ref={perfilRef}>
+                      <div className="eval-info-card">
                       <div className="eval-info-row">
                         <span className="eval-info-label">Evaluado por:</span>
                         <span className="eval-info-value">{evaluacion.especialista_nombre || 'Especialista'}</span>
@@ -1119,6 +1185,7 @@ const Neuropsicologia = () => {
                           );
                         })}
                       </div>
+                    </div>
                     </div>
 
                     {historialEval.length > 1 && (

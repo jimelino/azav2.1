@@ -1406,6 +1406,24 @@
 }
 
 /* Info de evaluacion */
+.eval-actions-row {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--spacing-sm, 12px);
+  margin-bottom: var(--spacing-md, 16px);
+}
+
+.eval-descargar-btn {
+  min-width: 180px;
+}
+
+.eval-download-wrapper {
+  background: var(--surface-primary, #FFFFFF);
+  padding: var(--spacing-md, 16px);
+  border-radius: var(--radius-lg, 16px);
+  border: 1px solid var(--border-color, #E0E0E0);
+}
+
 .eval-info-card {
   background: var(--surface-primary, #FFFFFF);
   padding: var(--spacing-md, 16px) var(--spacing-lg, 24px);

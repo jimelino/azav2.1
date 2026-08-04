@@ -189,7 +189,7 @@ const Fases = () => {
         {/* Timeline */}
         <section className="timeline-section" aria-labelledby="timeline-heading">
           <h2 id="timeline-heading" className="section-title">Fases del Tratamiento</h2>
-          <div className="timeline" role="list">
+          <div className="timeline timeline-grid" role="list" aria-label="Línea de tiempo de rehabilitación con ocho etapas">
             {FASES_INFO.map((fase) => {
               const estado = getFaseEstado(fase.numero);
               return (

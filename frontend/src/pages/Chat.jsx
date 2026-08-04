@@ -99,6 +99,13 @@ const Chat = () => {
       const convs = response?.data?.conversaciones || response?.conversaciones || [];
       setConversaciones(convs);
 
+      if (conversacionActiva) {
+        const convActualizada = convs.find(c => c.id === conversacionActiva.id);
+        if (convActualizada) {
+          setConversacionActiva(prev => prev ? { ...prev, ...convActualizada } : convActualizada);
+        }
+      }
+
       if (silencioso) {
         // Refresco de fondo: solo actualiza la lista (últimos mensajes,
         // badges de no leídos). No toca cuál conversación está activa.

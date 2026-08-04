@@ -9,7 +9,7 @@ use App\Controllers\FisioterapiaController;
 use App\Controllers\NeuropsicologiaController;
 use App\Controllers\OrtesisController;
 use App\Controllers\CitasController;
-use App\Controllers\ChatController;
+use App\Controllers\MensajesController;
 use App\Controllers\RecordatoriosController;
 use App\Controllers\FAQController;
 use App\Controllers\BlogController;
@@ -17,7 +17,6 @@ use App\Controllers\ComunidadController;
 use App\Controllers\DashboardController;
 use App\Controllers\AdminController;
 use App\Controllers\EspecialistaController;
-use App\Controllers\MensajesController;
 use App\Controllers\ExpedienteController;
 use App\Controllers\ConfiguracionController;
 use App\Controllers\AdmisionesController;
@@ -887,12 +886,12 @@ route('GET', '/api/mensajes/no-leidos/(\d+)', function($usuarioId) {
 
 route('GET', '/api/chat/conversaciones', function() {
     $user = AuthMiddleware::getCurrentUser();
-    $controller = new ChatController();
+    $controller = new MensajesController();
     $controller->getConversaciones($user['id'], $user['rol']);
 }, ['auth']);
 
 route('POST', '/api/chat/mensajes', function() {
-    $controller = new ChatController();
+    $controller = new MensajesController();
     $controller->enviarMensaje(json_decode(file_get_contents('php://input'), true));
 }, ['auth']);
 

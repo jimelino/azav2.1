@@ -92,16 +92,42 @@
   padding-left: 40px;
 }
 
-/* Linea vertical del timeline */
-.timeline::before {
-  content: '';
-  position: absolute;
-  left: 19px;
-  top: 0;
-  bottom: 0;
-  width: 3px;
-  background: var(--surface-tertiary, #E0E0E0);
-  border-radius: 2px;
+.timeline-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: var(--spacing-lg, 24px);
+  padding-left: 0;
+}
+
+.timeline-grid::before {
+  display: none;
+}
+
+.timeline-item {
+  position: relative;
+  padding-bottom: var(--spacing-lg, 24px);
+  padding-top: 32px;
+}
+
+.timeline-grid .timeline-dot {
+  position: relative;
+  left: auto;
+  top: auto;
+  margin: 0 auto 16px;
+}
+
+@media (min-width: 900px) {
+  .timeline {
+    padding-left: 0;
+  }
+
+  .timeline::before {
+    left: 0;
+  }
+
+  .timeline-item {
+    padding-bottom: 0;
+  }
 }
 
 .timeline-item {
