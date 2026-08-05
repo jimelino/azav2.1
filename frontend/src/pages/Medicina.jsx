@@ -559,41 +559,7 @@ console.log("cantidad:", indicaciones.length);
           ))}
         </div>
       </nav>
-        {/* Indicaciones del especialista */}
-<section className="indicaciones-card">
-  <div className="stat-card-new">
-    <div className="indicaciones-content">
-
-      <h3 style={{ color: "red", fontSize: "30px" }}>
-  Indicaciones/Notas generales
-</h3>
-
-      {indicaciones.length === 0 ? (
-        <p>No tienes indicaciones registradas.</p>
-      ) : (
-        indicaciones.map((item) => (
-          <div
-            key={item.id}
-            style={{
-              marginBottom: "12px",
-              paddingBottom: "10px",
-              borderBottom: "1px solid #ddd"
-            }}
-          >
-            <strong>{item.titulo}</strong>
-
-            <p>{item.descripcion}</p>
-
-            <small>
-              Especialista: {item.especialista}
-            </small>
-          </div>
-        ))
-      )}
-
-    </div>
-  </div>
-</section>
+       
 
       {/* Gráfica de tendencia */}
       {!loading && registros.length >= 3 && activeTab !== 'medicamentos' && (
@@ -825,6 +791,41 @@ console.log("cantidad:", indicaciones.length);
           </div>
         </section>
       )}
+       {/* Indicaciones del especialista */}
+<section className="indicaciones-card">
+  <div className="stat-card-new">
+    <div className="indicaciones-content">
+
+      <h3 style={{ color: "red", fontSize: "30px" }}>
+  Indicaciones/Notas generales
+</h3>
+
+      {indicaciones.length === 0 ? (
+        <p>No tienes indicaciones registradas.</p>
+      ) : (
+        indicaciones.map((item) => (
+          <div
+            key={item.id}
+            style={{
+              marginBottom: "12px",
+              paddingBottom: "10px",
+              borderBottom: "1px solid #ddd"
+            }}
+          >
+            <strong>{item.titulo}</strong>
+
+            <p>{item.descripcion}</p>
+
+            <small>
+              Especialista: {item.especialista}
+            </small>
+          </div>
+        ))
+      )}
+
+    </div>
+  </div>
+</section>
 
       {/* Botón de nuevo registro flotante - solo para tabs de registro */}
       {activeTab !== 'medicamentos' && (
