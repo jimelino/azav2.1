@@ -43,32 +43,39 @@ const Chat = () => {
   }, [showNuevaConversacion, contactosSearchEmail, puedeIniciarConversacion]);
 
   useEffect(() => {
+    const conversacionActivaId = conversacionActiva?.id;
     const alCambiarVisibilidad = () => {
       pestanaVisibleRef.current = document.visibilityState === 'visible';
       // Al volver a la pestaña, trae de inmediato lo que se haya perdido
-      if (pestanaVisibleRef.current && conversacionActiva) {
-        pollMensajesNuevos(conversacionActiva.id);
+      if (pestanaVisibleRef.current && conversacionActivaId) {
+        pollMensajesNuevos(conversacionActivaId);
       }
     };
     document.addEventListener('visibilitychange', alCambiarVisibilidad);
     return () => document.removeEventListener('visibilitychange', alCambiarVisibilidad);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [conversacionActiva]);
+  }, [conversacionActiva?.id]);
 
   useEffect(() => {
-    if (conversacionActiva) {
-      cargarMensajes(conversacionActiva.id);
-      // Polling corto: cada 3s pide solo los mensajes nuevos (no toda la
-      // conversación), y se pausa si la pestaña no está visible.
-      const interval = setInterval(() => {
-        if (pestanaVisibleRef.current) {
-          pollMensajesNuevos(conversacionActiva.id);
-        }
-      }, 3000);
-      return () => clearInterval(interval);
-    }
+    // OJO: depende solo del id, no del objeto conversacionActiva completo.
+    // El refresco silencioso de la lista de conversaciones (cada 8s) crea un
+    // objeto conversacionActiva nuevo (misma conversación, otra referencia);
+    // si este efecto dependiera del objeto, reiniciaría el intervalo y
+    // recargaría TODOS los mensajes cada 8s, causando parpadeo.
+    const conversacionActivaId = conversacionActiva?.id;
+    if (!conversacionActivaId) return;
+
+    cargarMensajes(conversacionActivaId);
+    // Polling corto: cada 3s pide solo los mensajes nuevos (no toda la
+    // conversación), y se pausa si la pestaña no está visible.
+    const interval = setInterval(() => {
+      if (pestanaVisibleRef.current) {
+        pollMensajesNuevos(conversacionActivaId);
+      }
+    }, 3000);
+    return () => clearInterval(interval);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [conversacionActiva]);
+  }, [conversacionActiva?.id]);
 
   useEffect(() => {
     if (!user?.id) return;

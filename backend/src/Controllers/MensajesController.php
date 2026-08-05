@@ -203,6 +203,15 @@ class MensajesController
             return Response::error('Tipo de conversacion no permitido para estos roles', 422);
         }
 
+        if ($tipo === 'paciente_especialista') {
+            $pacienteUsuarioId = (int)$emisor['rol_id'] === 3 ? $emisor['id'] : $receptor['id'];
+            $especialistaUsuarioId = (int)$emisor['rol_id'] === 2 ? $emisor['id'] : $receptor['id'];
+
+            if (!$this->pacientePuedeContactarEspecialista($pacienteUsuarioId, $especialistaUsuarioId)) {
+                return Response::error('Solo puedes enviar mensajes entre paciente y especialista asignados', 403);
+            }
+        }
+
         $conversacionId = $this->obtenerOCrearConversacionUniversal($emisor, $receptor, $tipo);
         $expiraEn = date('Y-m-d H:i:s', strtotime('+24 hours'));
 
@@ -502,21 +511,21 @@ class MensajesController
             return Response::error('Usuario no encontrado', 404);
         }
 
-        if ((int)$emisor['rol_id'] === 3 && (int)$receptor['rol_id'] === 2
-            && !$this->pacientePuedeContactarEspecialista($emisor['id'], $receptor['id'])) {
+        $esParPacienteEspecialista = ((int)$emisor['rol_id'] === 3 && (int)$receptor['rol_id'] === 2)
+            || ((int)$emisor['rol_id'] === 2 && (int)$receptor['rol_id'] === 3);
+
+        if (!$esParPacienteEspecialista) {
+            return Response::error('Tipo de conversacion no permitido para estos roles', 422);
+        }
+
+        $pacienteUsuarioId = (int)$emisor['rol_id'] === 3 ? $emisorId : $receptorId;
+        $especialistaId = (int)$emisor['rol_id'] === 2 ? $emisorId : $receptorId;
+
+        if (!$this->pacientePuedeContactarEspecialista($pacienteUsuarioId, $especialistaId)) {
             return Response::error('Solo puedes contactar a especialistas asignados a tu atención', 403);
         }
 
-        $pacienteId = null;
-        $especialistaId = null;
-
-        if ($emisor['rol_id'] == 3) {
-            $pacienteId = $this->getPacienteIdPorUsuario($emisorId);
-            $especialistaId = $receptorId;
-        } else {
-            $pacienteId = $this->getPacienteIdPorUsuario($receptorId);
-            $especialistaId = $emisorId;
-        }
+        $pacienteId = $this->getPacienteIdPorUsuario($pacienteUsuarioId);
 
         if (!$pacienteId) {
             return Response::error('No se pudo determinar el paciente', 422);

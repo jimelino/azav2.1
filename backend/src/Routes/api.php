@@ -891,8 +891,12 @@ route('GET', '/api/chat/conversaciones', function() {
 }, ['auth']);
 
 route('POST', '/api/chat/mensajes', function() {
-    $controller = new MensajesController();
-    $controller->enviarMensaje(json_decode(file_get_contents('php://input'), true));
+    $data = json_decode(file_get_contents('php://input'), true) ?? [];
+    $user = AuthMiddleware::getCurrentUser();
+    if ((int)($data['emisor_id'] ?? 0) !== (int)$user['id']) {
+        \App\Utils\Response::error('No autorizado', 403);
+    }
+    (new MensajesController())->enviarMensaje($data);
 }, ['auth']);
 
 // RUTAS DE RECORDATORIOS
