@@ -1,0 +1,62 @@
+/*==========================
+  INDICACIONES
+===========================*/
+
+.indicaciones-card{
+    background:#fff;
+    border-radius:24px;
+    padding:22px;
+    box-shadow:0 4px 18px rgba(0,0,0,.08);
+    border:1px solid #ececec;
+}
+
+.indicaciones-content{
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+}
+
+.indicaciones-title{
+    font-size:1.35rem;
+    font-weight:700;
+    color:#1565c0;
+    margin-bottom:6px;
+}
+
+.indicacion-item{
+    background:#fafafa;
+    border-radius:16px;
+    padding:16px;
+    border-left:6px solid #1976d2;
+    transition:.25s;
+}
+
+.indicacion-item:hover{
+    background:#f3f8ff;
+    transform:translateY(-2px);
+}
+
+.indicacion-titulo{
+    display:block;
+    font-size:18px;
+    color:#222;
+    margin-bottom:8px;
+}
+
+.indicacion-descripcion{
+    margin:0;
+    color:#555;
+    line-height:1.5;
+}
+
+.indicacion-especialista{
+    display:block;
+    margin-top:12px;
+    font-size:.88rem;
+    color:#1976d2;
+    font-weight:600;
+}
+.indicaciones-content{
+    max-height:260px;
+    overflow-y:auto;
+}
