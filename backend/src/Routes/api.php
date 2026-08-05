@@ -307,6 +307,12 @@ route('GET', '/api/indicaciones/paciente/(\d+)', function ($pacienteId) {
     $controller = new IndicacionesController();
     $controller->obtenerPorPaciente($pacienteId);
 }, ['auth']);
+//ruta eliminar indicacion
+// Eliminar una indicación
+route('DELETE', '/api/indicaciones/(\d+)', function ($id) {
+    $controller = new IndicacionesController();
+    $controller->eliminar($id);
+}, ['auth']);
 
 // =============================
 // RUTAS DE ESPECIALISTAS

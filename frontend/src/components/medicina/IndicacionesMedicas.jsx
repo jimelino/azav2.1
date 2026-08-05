@@ -133,7 +133,32 @@ useEffect(() => {
 
         }
 
+
     };
+    //neuva funcion eliminar
+        const eliminarIndicacion = async (id) => {
+
+    const confirmar = window.confirm(
+        "¿Deseas eliminar esta indicación?"
+    );
+
+    if (!confirmar) return;
+
+    try {
+
+        await api.delete(`/indicaciones/${id}`);
+
+        cargarIndicaciones(pacienteId);
+
+    } catch (error) {
+
+        console.error(error);
+        alert("No se pudo eliminar la indicación.");
+
+    }
+
+}; 
+
 
 
 
@@ -363,6 +388,14 @@ useEffect(() => {
                                     {i.prioridad}
 
                                 </small>
+                                 <br /><br />
+
+        <button
+            className="btn-eliminar"
+            onClick={() => eliminarIndicacion(i.id)}
+        >
+            🗑 Eliminar
+        </button>
 
                             </div>
 
