@@ -391,18 +391,12 @@ useEffect(() => {
                                  <br /><br />
 
         <button
-    style={{
-        background: "red",
-        color: "white",
-        padding: "10px",
-        marginTop: "15px",
-        display: "block"
-    }}
+    className="btn-eliminar"
     onClick={() => eliminarIndicacion(i.id)}
 >
-    ELIMINAR
+    <LucideIcon name="trash-2" size={16} />
+    Eliminar
 </button>
-
                             </div>
 
                         ))
