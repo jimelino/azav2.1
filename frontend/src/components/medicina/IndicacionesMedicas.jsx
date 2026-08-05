@@ -391,11 +391,17 @@ useEffect(() => {
                                  <br /><br />
 
         <button
-            className="btn-eliminar"
-            onClick={() => eliminarIndicacion(i.id)}
-        >
-            🗑 Eliminar
-        </button>
+    style={{
+        background: "red",
+        color: "white",
+        padding: "10px",
+        marginTop: "15px",
+        display: "block"
+    }}
+    onClick={() => eliminarIndicacion(i.id)}
+>
+    ELIMINAR
+</button>
 
                             </div>
 
