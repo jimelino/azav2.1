@@ -205,7 +205,8 @@ elseif ($sistolica >= 160 || $diastolica >= 100) {
 
         [
             'medicina',
-            'fisioterapia'
+            'fisioterapia',
+            'ortesis'
         ]
 
     );
@@ -284,7 +285,8 @@ if ($nivelDolor >= 8) {
 
         [
             'medicina',
-            'fisioterapia'
+            'fisioterapia',
+            'ortesis'
         ]
 
     );
@@ -305,7 +307,9 @@ elseif ($nivelDolor >= 6) {
         'media',
 
         [
-            'fisioterapia'
+            'fisioterapia',
+            'medicina',
+            'ortesis'
         ]
 
     );
@@ -425,7 +429,8 @@ if ($valor >= 9.0) {
 
         [
             'medicina',
-            'fisioterapia'
+            'fisioterapia',
+            'ortesis'
         ]
 
     );
@@ -446,7 +451,9 @@ elseif ($valor >= 7.0) {
         'media',
 
         [
-            'medicina'
+            'medicina',
+            'fisioterapia',
+            'ortesis'
         ]
 
     );
