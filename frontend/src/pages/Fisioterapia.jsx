@@ -6,6 +6,7 @@ import AccessibilityPanel, { AccessibilityFAB } from '../components/accessibilit
 import api from '../services/api';
 import LucideIcon from '../components/LucideIcon';
 import '../styles/Fisioterapia.css';
+import MapaFases from '../components/fisioterapia/MapaFases';
 
 /**
  * Fisioterapia - Módulo de ejercicios y rehabilitación
@@ -152,8 +153,12 @@ const Fisioterapia = () => {
           </div>
         </div>
       </header>
+      <MapaFases
+    faseActual={2}
+/>
 
       {/* Navegación por pestañas */}
+      
       <nav className="tabs" role="tablist" aria-label="Secciones de fisioterapia">
         <button
           role="tab"

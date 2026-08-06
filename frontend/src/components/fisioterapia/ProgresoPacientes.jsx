@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import LucideIcon from '../LucideIcon';
 import api from '../../services/api';
 import './ProgresoPacientes.css';
-import MapaFases from "./MapaFases";
+
 
 const ProgresoPacientes = ({ pacienteId, onBack }) => {
   const [stats, setStats] = useState(null);
@@ -82,7 +82,7 @@ const ProgresoPacientes = ({ pacienteId, onBack }) => {
   const adherencia = getAdherencia();
   const dolorTrend = getDolorTrend();
   const romTrend = getRomTrend();
-  <MapaFases faseActual={1} />
+  
 
   return (
     <section className="module-view progreso-pacientes">
