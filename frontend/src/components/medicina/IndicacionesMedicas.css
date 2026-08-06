@@ -1,0 +1,33 @@
+.btn-eliminar{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+
+    width:100%;
+    margin-top:18px;
+    padding:12px;
+
+    border:none;
+    border-radius:12px;
+
+    background:#ef4444;
+    color:#fff;
+
+    font-size:14px;
+    font-weight:600;
+
+    cursor:pointer;
+
+    transition:all .25s ease;
+}
+
+.btn-eliminar:hover{
+    background:#dc2626;
+    transform:translateY(-2px);
+    box-shadow:0 8px 18px rgba(239,68,68,.30);
+}
+
+.btn-eliminar:active{
+    transform:scale(.97);
+}

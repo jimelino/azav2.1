@@ -4118,3 +4118,15 @@ button.section-link {
 [data-theme="dark"] .loading-module p {
   color: var(--text-secondary);
 }
+.btn-eliminar{
+    background:#d32f2f;
+    color:white;
+    border:none;
+    padding:8px 14px;
+    border-radius:8px;
+    cursor:pointer;
+}
+
+.btn-eliminar:hover{
+    background:#b71c1c;
+}

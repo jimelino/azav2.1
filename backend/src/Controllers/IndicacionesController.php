@@ -88,4 +88,19 @@ class IndicacionesController
             "data" => $indicaciones
         ]);
     }
+
+    public function eliminar($id)
+{
+    $db = DatabaseService::getInstance();
+
+    $db->query(
+        "DELETE FROM indicaciones WHERE id = ?",
+        [$id]
+    );
+
+    echo json_encode([
+        "success" => true,
+        "message" => "Indicación eliminada correctamente."
+    ]);
+}
 }

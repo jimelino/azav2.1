@@ -31,6 +31,9 @@ const Medicina = () => {
   const [medicamentos, setMedicamentos] = useState([]);
   const [showInactivos, setShowInactivos] = useState(false);
   const [indicaciones, setIndicaciones] = useState([]);
+  useEffect(() => {
+  console.log("Indicaciones actualizadas:", indicaciones);
+}, [indicaciones]);
   // Obtener paciente_id con fallback al user.id
   const pacienteId = user?.paciente_id || user?.id;
 
@@ -105,13 +108,13 @@ const Medicina = () => {
   const cargarIndicaciones = async () => {
   try {
     const res = await api.get(`/indicaciones/paciente/${pacienteId}`);
-    console.log("RES COMPLETO:", res);
-    console.log("res.data:", res.data);
-    console.log("res.data.data:", res.data?.data);
 
-    if (res.data.success) {
-      setIndicaciones(res.data.data);
+    console.log("RES:", res);
+
+    if (res.success) {
+      setIndicaciones(res.data);
     }
+
   } catch (err) {
     console.error("Error cargando indicaciones:", err);
   }
@@ -501,11 +504,10 @@ console.log("cantidad:", indicaciones.length);
       </section>
       {/* Indicaciones del especialista */}
 <section className="stats-section">
-  <div className="stat-card-new">
-    <div className="stat-content">
-
+  <div className="indicaciones-card">
+    <div className="indicaciones-content">
       <h3 style={{ color: "red", fontSize: "30px" }}>
-  HOLA SOY MEDICINA.JSX
+  Indicaciones/Notas generales
 </h3>
 
       {indicaciones.length === 0 ? (
@@ -513,13 +515,9 @@ console.log("cantidad:", indicaciones.length);
       ) : (
         indicaciones.map((item) => (
           <div
-            key={item.id}
-            style={{
-              marginBottom: "12px",
-              paddingBottom: "10px",
-              borderBottom: "1px solid #ddd"
-            }}
-          >
+    key={item.id}
+    className="indicacion-titulo"
+>
             <strong>{item.titulo}</strong>
 
             <p>{item.descripcion}</p>
@@ -556,6 +554,7 @@ console.log("cantidad:", indicaciones.length);
           ))}
         </div>
       </nav>
+       
 
       {/* Gráfica de tendencia */}
       {!loading && registros.length >= 3 && activeTab !== 'medicamentos' && (
@@ -787,6 +786,7 @@ console.log("cantidad:", indicaciones.length);
           </div>
         </section>
       )}
+      
 
       {/* Botón de nuevo registro flotante - solo para tabs de registro */}
       {activeTab !== 'medicamentos' && (
