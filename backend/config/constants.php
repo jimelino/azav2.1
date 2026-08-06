@@ -35,6 +35,16 @@ define('NOTIF_RECORDATORIO', 'recordatorio');
 define('NOTIF_MENSAJE', 'mensaje');
 define('NOTIF_ALERTA', 'alerta');
 define('NOTIF_SISTEMA', 'sistema');
+define('NOTIF_NEURO_FASE', 'neuro_fase_cambio');
+
+// Fases de tratamiento de Neuropsicología (1..4, propio del módulo,
+// independiente de FASE_PREOPERATORIA/etc. que son del proceso protésico)
+define('NEURO_FASES', [
+    1 => 'Consulta inicial',
+    2 => 'Evaluación',
+    3 => 'Intervención',
+    4 => 'Alta',
+]);
 
 // Tipos de reacción
 define('REACCION_ME_GUSTA', 'me_gusta');

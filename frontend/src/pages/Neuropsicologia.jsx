@@ -5,6 +5,7 @@ import AccessibilityPanel, { AccessibilityFAB } from '../components/accessibilit
 import CuestionarioActivo from '../components/neuropsicologia/CuestionarioActivo';
 import CuestionarioResultado from '../components/neuropsicologia/CuestionarioResultado';
 import ACTEjercicioActivo from '../components/neuropsicologia/ACTEjercicioActivo';
+import MapaFasesNeuropsicologia from '../components/neuropsicologia/MapaFasesNeuropsicologia';
 import { CUESTIONARIOS, ACT_CATEGORIAS, ACT_HERRAMIENTAS, getHerramientasByCategoria, getCuestionarioById, calcularPuntuacion } from '../data/neuropsicologiaData';
 import { Bar, Line } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, PointElement, LineElement, Filler, Title, Tooltip, Legend } from 'chart.js';
@@ -594,6 +595,9 @@ const Neuropsicologia = () => {
         </button>
         <button className={`tab ${activeTab === 'evaluaciones' ? 'active' : ''}`} onClick={() => setActiveTab('evaluaciones')}>
           Evaluaciones Neuropsicologicas
+        </button>
+        <button className={`tab ${activeTab === 'fases' ? 'active' : ''}`} onClick={() => setActiveTab('fases')}>
+          Fases del Tratamiento
         </button>
       </div>
 
@@ -1222,6 +1226,11 @@ const Neuropsicologia = () => {
                 )}
               </div>
             </div>
+          )}
+
+          {/* ===== TAB: FASES DEL TRATAMIENTO ===== */}
+          {activeTab === 'fases' && (
+            <MapaFasesNeuropsicologia pacienteId={user.paciente_id || user.id} />
           )}
         </div>
       )}

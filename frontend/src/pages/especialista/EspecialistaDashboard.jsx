@@ -27,6 +27,7 @@ import CuestionariosHistorial from '../../components/neuropsicologia/Cuestionari
 import DispositivosPacientes from '../../components/ortesis/DispositivosPacientes';
 import EspecialistaOrtesisPanel from '../../components/ortesis/EspecialistaOrtesisPanel';
 import EspecialistaAlertasAnimo from '../../components/neuropsicologia/EspecialistaAlertasAnimo';
+import MapaFasesNeuropsicologia from '../../components/neuropsicologia/MapaFasesNeuropsicologia';
 import SeguimientoAdaptacion from '../../components/ortesis/SeguimientoAdaptacion';
 import MantenimientoAjustes from '../../components/ortesis/MantenimientoAjustes';
 import MedicionesMunon from '../../components/ortesis/MedicionesMunon';
@@ -123,6 +124,7 @@ const AREAS_CONFIG = {
       { id: 'herramientas-act', nombre: 'Herramientas ACT', icon: 'sparkles', descripcion: 'Ver actividades de usuarios', view: 'mod-herramientas-act' },
       { id: 'emocional', nombre: 'Estado Emocional', icon: 'smile', descripcion: 'Ver evaluación emocional', view: 'mod-emocional' },
       { id: 'alertas-animo', nombre: 'Alertas de ánimo', icon: 'bell-ring', descripcion: 'Atender alertas urgentes', view: 'mod-alertas-animo' },
+      { id: 'fases-neuro', nombre: 'Fases del Tratamiento', icon: 'map-pin', descripcion: 'Ver y cambiar la fase del usuario', view: 'mod-fases-neuro' },
     ],
     herramientas: []
   },
@@ -2212,6 +2214,9 @@ const renderModIndicaciones = () => {
         return <EstadoEmocionalPaciente pacienteId={selectedPaciente.id} onBack={handleBackToPatientList} />;
       case 'mod-alertas-animo':
         return <EspecialistaAlertasAnimo />;
+      case 'mod-fases-neuro':
+        if (!selectedPaciente) return renderPatientSelector('Fases del Tratamiento', 'map-pin');
+        return <MapaFasesNeuropsicologia pacienteId={selectedPaciente.id} esEspecialista onBack={handleBackToPatientList} />;
       case 'mod-gestion-ortesis':
         return <EspecialistaOrtesisPanel />;
       case 'mod-dispositivos':

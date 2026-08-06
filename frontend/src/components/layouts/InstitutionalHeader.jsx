@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import TextToSpeechButton from '../accessibility/TextToSpeechButton';
+import NotificationBell from '../notifications/NotificationBell';
 
 const LogoImage = ({ src, alt, className, fallbackText }) => {
   const [hasError, setHasError] = useState(false);
@@ -27,7 +28,7 @@ const LogoImage = ({ src, alt, className, fallbackText }) => {
 /**
  * InstitutionalHeader - Cabecera institucional DGTIC UNAM
  * Color cabeza: #00589c | Color menu: #004179
- * Logos: ENES VECTOR AZUL desde public/assets/images + icon-192 desde public
+ * Logos: ENES_VECTOR_ORO desde public/assets/images + icon-192 desde public
  */
 const InstitutionalHeader = ({
   speechText = 'Azaria. Plataforma de Rehabilitación. Sistema de Adherencia Terapéutica.'
@@ -57,6 +58,7 @@ const InstitutionalHeader = ({
             <span className="institutional-service-desc">Plataforma de Rehabilitacion</span>
           </div>
           <div className="institutional-actions">
+            <NotificationBell />
             <TextToSpeechButton
               text={speechText}
               label="Leer encabezado de la página"
