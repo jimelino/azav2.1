@@ -3,27 +3,10 @@ import api from "../../services/api";
 import "./IndicacionesFisioterapia.css";
 
 const fases = [
-
-    {
-        id: 1,
-        nombre: "Adaptación al ejercicio"
-    },
-
-    {
-        id: 2,
-        nombre: "Preprotésica"
-    },
-
-    {
-        id: 3,
-        nombre: "Protésica"
-    },
-
-    {
-        id: 4,
-        nombre: "Postprotésica"
-    }
-
+    { id: 1, nombre: "Adaptación al ejercicio" },
+    { id: 2, nombre: "Preprotésica" },
+    { id: 3, nombre: "Protésica" },
+    { id: 4, nombre: "Postprotésica" }
 ];
 
 const IndicacionesFisioterapia = ({
@@ -34,6 +17,8 @@ const IndicacionesFisioterapia = ({
 
 }) => {
 
+    const [paciente, setPaciente] = useState(null);
+
     const [faseActual, setFaseActual] = useState(1);
 
     const [indicaciones, setIndicaciones] = useState("");
@@ -42,13 +27,9 @@ const IndicacionesFisioterapia = ({
 
     const [cargando, setCargando] = useState(true);
 
-    const [paciente, setPaciente] = useState(null);
-
     const cargarInformacion = async () => {
 
-        try {
-
-            // Información del paciente
+        try{
 
             const infoPaciente = await api.get(
 
@@ -56,13 +37,11 @@ const IndicacionesFisioterapia = ({
 
             );
 
-            if (infoPaciente.success) {
+            if(infoPaciente.success){
 
                 setPaciente(infoPaciente.data);
 
             }
-
-            // Indicaciones
 
             const res = await api.get(
 
@@ -70,7 +49,7 @@ const IndicacionesFisioterapia = ({
 
             );
 
-            if (res.success && res.data) {
+            if(res.success && res.data){
 
                 setFaseActual(
 
@@ -86,11 +65,11 @@ const IndicacionesFisioterapia = ({
 
             }
 
-        } catch (error) {
+        }catch(error){
 
             console.error(error);
 
-        } finally {
+        }finally{
 
             setCargando(false);
 
@@ -98,27 +77,23 @@ const IndicacionesFisioterapia = ({
 
     };
 
-    useEffect(() => {
+    useEffect(()=>{
 
         cargarInformacion();
 
-    }, [pacienteId]);
+    },[pacienteId]);
 
-    const guardarCambios = async () => {
+    const guardarCambios = async()=>{
 
-        if (indicaciones.trim() === "") {
+        if(indicaciones.trim()===""){
 
-            alert(
-
-                "Escriba las indicaciones para el paciente."
-
-            );
+            alert("Escriba las indicaciones.");
 
             return;
 
         }
 
-        try {
+        try{
 
             setGuardando(true);
 
@@ -128,11 +103,11 @@ const IndicacionesFisioterapia = ({
 
                 {
 
-                    paciente_id: pacienteId,
+                    paciente_id:pacienteId,
 
-                    especialista_id: especialistaId,
+                    especialista_id:especialistaId,
 
-                    fase_actual: faseActual,
+                    fase_actual:faseActual,
 
                     indicaciones
 
@@ -140,27 +115,19 @@ const IndicacionesFisioterapia = ({
 
             );
 
-            if (res.success) {
+            if(res.success){
 
-                alert(
-
-                    "Información guardada correctamente."
-
-                );
+                alert("Indicaciones guardadas correctamente.");
 
             }
 
-        } catch (error) {
+        }catch(error){
 
             console.error(error);
 
-            alert(
+            alert("No fue posible guardar.");
 
-                "No fue posible guardar la información."
-
-            );
-
-        } finally {
+        }finally{
 
             setGuardando(false);
 
@@ -171,34 +138,41 @@ const IndicacionesFisioterapia = ({
 
         <section className="indicaciones-fisio">
 
-            <button
-                className="back-btn"
-                onClick={onBack}
-            >
-                ← Regresar
-            </button>
-
             <div className="titulo-modulo">
 
-                <h1>
+                <button
 
-                    Indicaciones de Fisioterapia
+                    className="back-btn"
 
-                </h1>
+                    onClick={onBack}
 
-                <p>
+                >
 
-                    Actualice la fase del tratamiento y registre las indicaciones que visualizará el paciente.
+                    ← Regresar
 
-                </p>
+                </button>
+
+                <div>
+
+                    <h1>
+
+                        Indicaciones de Fisioterapia
+
+                    </h1>
+
+                    <p>
+
+                        Administre la fase del tratamiento y las indicaciones asignadas al paciente.
+
+                    </p>
+
+                </div>
 
             </div>
 
             {
 
-                cargando
-
-                ?
+                cargando ?
 
                 (
 
@@ -216,6 +190,10 @@ const IndicacionesFisioterapia = ({
 
                     <>
 
+                        {/* ==========================
+                           TARJETA DEL PACIENTE
+                        =========================== */}
+
                         <div className="paciente-card">
 
                             <div className="paciente-avatar">
@@ -232,11 +210,11 @@ const IndicacionesFisioterapia = ({
 
                                 </h2>
 
-                                <p>
+                                <span>
 
-                                    {paciente?.email || "Correo no disponible"}
+                                    {paciente?.email}
 
-                                </p>
+                                </span>
 
                             </div>
 
@@ -252,7 +230,7 @@ const IndicacionesFisioterapia = ({
 
                                     <strong>
 
-                                        {paciente?.especialista || "Sin asignar"}
+                                        {paciente?.especialista || "Lic. Fisioterapia"}
 
                                     </strong>
 
@@ -262,7 +240,7 @@ const IndicacionesFisioterapia = ({
 
                                     <span>
 
-                                        Área médica
+                                        Área
 
                                     </span>
 
@@ -278,97 +256,108 @@ const IndicacionesFisioterapia = ({
 
                         </div>
 
+                        {/* ==========================
+                           TARJETA PRINCIPAL
+                        =========================== */}
+
                         <div className="indicaciones-card">
 
-                            <div className="info-paciente">
+                            <div className="panel-info">
 
-                                <h3>
+                                <h2>
 
-                                    Panel de seguimiento del paciente
+                                    📋 Panel de seguimiento del paciente
 
-                                </h3>
+                                </h2>
 
                                 <p>
 
-                                    Seleccione la fase actual del tratamiento/ indicaciones para el paciente.
+                                    Seleccione la fase del tratamiento y escriba las indicaciones que el paciente visualizará dentro de su aplicación.
 
                                 </p>
 
                             </div>
+                                                        {/* ==========================
+                               FORMULARIO
+                            =========================== */}
 
-                            <div className="campo">
+                            <div className="formulario">
 
-                                <label>
+                                <div className="campo">
 
-                                    Fase del tratamiento
+                                    <label>
 
-                                </label>
+                                        Fase del tratamiento
 
-                                <select
+                                    </label>
 
-                                    value={faseActual}
+                                    <select
 
-                                    onChange={(e) =>
+                                        value={faseActual}
 
-                                        setFaseActual(
+                                        onChange={(e)=>
 
-                                            Number(e.target.value)
+                                            setFaseActual(
 
-                                        )
+                                                Number(e.target.value)
 
-                                    }
+                                            )
 
-                                >
+                                        }
 
-                                    {
+                                    >
 
-                                        fases.map((fase) => (
+                                        {
 
-                                            <option
+                                            fases.map((fase)=>(
 
-                                                key={fase.id}
+                                                <option
 
-                                                value={fase.id}
+                                                    key={fase.id}
 
-                                            >
+                                                    value={fase.id}
 
-                                                {fase.nombre}
+                                                >
 
-                                            </option>
+                                                    {fase.nombre}
 
-                                        ))
+                                                </option>
 
-                                    }
+                                            ))
 
-                                </select>
+                                        }
 
-                            </div>
+                                    </select>
 
-                            <div className="campo">
+                                </div>
 
-                                <label>
+                                <div className="campo">
 
-                                    Indicaciones para el paciente
+                                    <label>
 
-                                </label>
+                                        Indicaciones para el paciente
 
-                                <textarea
+                                    </label>
 
-                                    value={indicaciones}
+                                    <textarea
 
-                                    onChange={(e) =>
+                                        value={indicaciones}
 
-                                        setIndicaciones(
+                                        onChange={(e)=>
 
-                                            e.target.value
+                                            setIndicaciones(
 
-                                        )
+                                                e.target.value
 
-                                    }
+                                            )
 
-                                    placeholder="Escriba aquí  las indicaciones que deberá seguir el paciente"
+                                        }
 
-                                />
+                                        placeholder="Escriba aquí las indicaciones que deberá seguir el paciente durante esta fase del tratamiento..."
+
+                                    />
+
+                                </div>
 
                             </div>
 
@@ -413,6 +402,7 @@ const IndicacionesFisioterapia = ({
         </section>
 
     );
-    };
+
+};
 
 export default IndicacionesFisioterapia;

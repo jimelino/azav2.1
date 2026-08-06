@@ -6,18 +6,53 @@
 
     width:100%;
 
-    max-width:1400px;
-
-    margin:25px auto;
-
-    padding:25px;
+    padding:30px;
 
     box-sizing:border-box;
 
 }
+
 /* =====================================================
    ENCABEZADO
 ===================================================== */
+
+.titulo-modulo{
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:space-between;
+
+    gap:20px;
+
+    margin-bottom:30px;
+
+}
+
+.titulo-modulo h1{
+
+    margin:0;
+
+    color:#D97706;
+
+    font-size:34px;
+
+    font-weight:700;
+
+}
+
+.titulo-modulo p{
+
+    margin-top:8px;
+
+    color:#6B7280;
+
+    font-size:16px;
+
+    line-height:1.7;
+
+}
 
 .back-btn{
 
@@ -39,8 +74,6 @@
 
     transition:.25s;
 
-    margin-bottom:25px;
-
 }
 
 .back-btn:hover{
@@ -51,69 +84,31 @@
 
 }
 
-.titulo-modulo{
-
-    text-align:center;
-
-    margin-bottom:30px;
-
-}
-
-.titulo-modulo h1{
-
-    margin:0;
-
-    font-size:34px;
-
-    color:#D97706;
-
-    font-weight:700;
-
-}
-
-.titulo-modulo p{
-
-    margin-top:10px;
-
-    color:#666;
-
-    font-size:17px;
-
-    max-width:750px;
-
-    margin-left:auto;
-
-    margin-right:auto;
-
-    line-height:1.7;
-
-}
-
 /* =====================================================
    TARJETA DEL PACIENTE
 ===================================================== */
 
 .paciente-card{
 
+    background:#fff;
+
+    border-radius:20px;
+
+    padding:28px;
+
+    margin-bottom:30px;
+
     display:grid;
 
     grid-template-columns:80px 1fr auto;
 
+    gap:25px;
+
     align-items:center;
-
-    gap:30px;
-
-    background:#fff;
-
-    padding:30px;
-
-    border-radius:22px;
-
-    margin-bottom:30px;
 
     border-left:8px solid #F4A825;
 
-    box-shadow:0 8px 25px rgba(0,0,0,.08);
+    box-shadow:0 10px 25px rgba(0,0,0,.08);
 
 }
 
@@ -125,7 +120,7 @@
 
     border-radius:50%;
 
-    background:#FFF4DD;
+    background:#FFF3D9;
 
     display:flex;
 
@@ -135,14 +130,6 @@
 
     font-size:34px;
 
-    flex-shrink:0;
-
-}
-
-.paciente-info{
-
-    flex:1;
-
 }
 
 .paciente-info h2{
@@ -151,15 +138,15 @@
 
     color:#333;
 
-    font-size:28px;
-
-    font-weight:700;
+    font-size:27px;
 
 }
 
-.paciente-info p{
+.paciente-info span{
 
-    margin-top:8px;
+    display:block;
+
+    margin-top:6px;
 
     color:#777;
 
@@ -169,11 +156,9 @@
 
 .paciente-extra{
 
-    display:grid;
+    display:flex;
 
-    grid-template-columns:repeat(2,1fr);
-
-    gap:25px;
+    gap:35px;
 
 }
 
@@ -187,21 +172,19 @@
 
 .dato-extra span{
 
-    color:#999;
+    color:#9CA3AF;
 
     font-size:13px;
-
-    margin-bottom:5px;
 
 }
 
 .dato-extra strong{
 
+    margin-top:5px;
+
     color:#E67E22;
 
     font-size:17px;
-
-    font-weight:700;
 
 }
 
@@ -215,54 +198,62 @@
 
     background:#fff;
 
-    border-radius:22px;
+    border-radius:20px;
 
     padding:35px;
 
-    box-shadow:0 10px 30px rgba(0,0,0,.08);
+    box-shadow:0 10px 25px rgba(0,0,0,.08);
 
 }
 
-/* =====================================================
-   PANEL DE INFORMACIÓN
-===================================================== */
+.panel-info{
 
-.info-paciente{
-
-    background:#FFF7E7;
+    background:#FFF8EA;
 
     border-left:6px solid #F4A825;
 
     padding:22px;
 
-    border-radius:15px;
+    border-radius:14px;
 
     margin-bottom:30px;
 
 }
 
-.info-paciente h3{
+.panel-info h2{
 
     margin:0;
 
     color:#D97706;
 
-    font-size:23px;
+    font-size:24px;
 
 }
 
-.info-paciente p{
+.panel-info p{
 
     margin-top:12px;
 
     color:#666;
 
-    line-height:1.8;
+    line-height:1.7;
 
 }
 /* =====================================================
    FORMULARIO
 ===================================================== */
+
+.formulario{
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:28px;
+
+    width:100%;
+
+}
 
 .campo{
 
@@ -270,13 +261,11 @@
 
     flex-direction:column;
 
-    margin-bottom:28px;
-
 }
 
 .campo label{
 
-    font-size:17px;
+    font-size:16px;
 
     font-weight:700;
 
@@ -296,9 +285,9 @@
 
     border-radius:14px;
 
-    font-size:16px;
-
     background:#fff;
+
+    font-size:16px;
 
     transition:.25s;
 
@@ -318,21 +307,21 @@
 
     width:100%;
 
-    min-height:170px;
+    min-height:260px;
 
     padding:18px;
 
-    border-radius:14px;
-
     border:1px solid #DDD;
+
+    border-radius:14px;
 
     resize:vertical;
 
     font-size:16px;
 
-    font-family:inherit;
-
     line-height:1.8;
+
+    font-family:inherit;
 
     transition:.25s;
 
@@ -354,23 +343,19 @@
 
 .boton-guardar{
 
-    display:flex;
-
-    justify-content:center;
-
     margin-top:35px;
 
 }
 
 .btn-guardar{
 
-    min-width:260px;
-
-    padding:16px 35px;
+    width:100%;
 
     border:none;
 
     border-radius:14px;
+
+    padding:16px;
 
     background:linear-gradient(135deg,#F4A825,#E67E22);
 
@@ -409,38 +394,72 @@
 }
 
 /* =====================================================
+   CARGANDO
+===================================================== */
+
+.loading-card{
+
+    background:#fff;
+
+    border-radius:18px;
+
+    padding:60px;
+
+    text-align:center;
+
+    color:#666;
+
+    font-size:18px;
+
+    box-shadow:0 8px 25px rgba(0,0,0,.08);
+
+}
+
+/* =====================================================
    RESPONSIVE
 ===================================================== */
 
 @media (max-width:900px){
 
-    .indicaciones-fisio{
-
-        padding:20px;
-
-    }
-
-    .paciente-card{
+    .titulo-modulo{
 
         flex-direction:column;
 
         align-items:flex-start;
 
-        gap:20px;
+    }
+
+    .paciente-card{
+
+        grid-template-columns:1fr;
+
+        text-align:center;
+
+    }
+
+    .paciente-avatar{
+
+        margin:auto;
 
     }
 
     .paciente-extra{
 
-        width:100%;
+        flex-direction:column;
 
-        justify-content:space-between;
+        gap:18px;
 
     }
 
 }
 
 @media (max-width:768px){
+
+    .indicaciones-fisio{
+
+        padding:18px;
+
+    }
 
     .titulo-modulo h1{
 
@@ -466,57 +485,12 @@
 
     }
 
-    .paciente-avatar{
-
-        width:65px;
-
-        height:65px;
-
-        font-size:30px;
-
-    }
-
-    .paciente-info h2{
-
-        font-size:22px;
-
-    }
-
-    .paciente-extra{
-
-        flex-direction:column;
-
-        gap:15px;
-
-    }
-
     .campo textarea{
 
-        width:100%;
-
-    min-height:220px;
-
-        
+        min-height:200px;
 
     }
 
-    .boton-guardar{
-
-    width:100%;
-
-    margin-top:35px;
-
-}
-
-.btn-guardar{
-
-    width:100%;
-
-    min-width:unset;
-
-}
-
-   
 }
 
 @media (max-width:480px){
@@ -527,21 +501,15 @@
 
     }
 
-    .titulo-modulo{
+    .back-btn{
 
-        margin-bottom:20px;
+        width:100%;
 
     }
 
     .titulo-modulo h1{
 
         font-size:24px;
-
-    }
-
-    .back-btn{
-
-        width:100%;
 
     }
 
