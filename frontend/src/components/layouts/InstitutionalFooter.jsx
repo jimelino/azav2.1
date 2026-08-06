@@ -12,7 +12,7 @@ const InstitutionalFooter = () => {
         <div className="institutional-footer-content">
           <div className="institutional-footer-logos">
             <img
-              src="/assets/images/ENES VECTOR AZUL.png"
+              src="/assets/images/ENES_VECTOR_ORO.png"
               alt="ENES Logo"
               className="institutional-footer-logo institutional-footer-logo-enes"
             />
