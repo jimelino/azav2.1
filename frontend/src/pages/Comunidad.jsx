@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 import LucideIcon from '../components/LucideIcon';
@@ -43,20 +43,38 @@ const Comunidad = () => {
   const [editContenido, setEditContenido] = useState('');
   const [menuAbiertoId, setMenuAbiertoId] = useState(null);
 
-  // Cargar publicaciones
-  const cargarPublicaciones = useCallback(async () => {
-    setLoading(true);
-    setError(null);
+  const pestanaVisibleRef = useRef(true);
+
+  // Cargar publicaciones. En modo silencioso (polling de fondo) no toca el
+  // spinner ni el estado de error, para no interrumpir al usuario mientras
+  // lee o escribe.
+  const cargarPublicaciones = useCallback(async (silencioso = false) => {
+    if (!silencioso) {
+      setLoading(true);
+      setError(null);
+    }
     try {
       const response = await api.get('/comunidad/feed');
       const posts = response?.data || response || [];
-      setPublicaciones(Array.isArray(posts) ? posts : []);
+      const lista = Array.isArray(posts) ? posts : [];
+      setPublicaciones(lista);
+
+      // Refleja si el usuario ya reaccionó a cada publicación (el feed lo
+      // trae ahora); sin esto, el "me gusta" se veía "apagado" tras recargar
+      // aunque el contador sí fuera correcto.
+      setMisReacciones(prev => {
+        const next = { ...prev };
+        lista.forEach(p => { next[p.id] = p.mi_reaccion || null; });
+        return next;
+      });
     } catch (err) {
-      console.error('Error al cargar publicaciones:', err);
-      setError('No se pudieron cargar las publicaciones');
-      setPublicaciones([]);
+      if (!silencioso) {
+        console.error('Error al cargar publicaciones:', err);
+        setError('No se pudieron cargar las publicaciones');
+        setPublicaciones([]);
+      }
     } finally {
-      setLoading(false);
+      if (!silencioso) setLoading(false);
     }
   }, []);
 
@@ -75,6 +93,26 @@ const Comunidad = () => {
     cargarPublicaciones();
     cargarTemas();
   }, [cargarPublicaciones, cargarTemas]);
+
+  // Pausa el polling cuando la pestaña no está visible
+  useEffect(() => {
+    const alCambiarVisibilidad = () => {
+      pestanaVisibleRef.current = document.visibilityState === 'visible';
+    };
+    document.addEventListener('visibilitychange', alCambiarVisibilidad);
+    return () => document.removeEventListener('visibilitychange', alCambiarVisibilidad);
+  }, []);
+
+  // Refresco silencioso del feed: para ver publicaciones nuevas de otros
+  // usuarios sin recargar la página.
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (pestanaVisibleRef.current) {
+        cargarPublicaciones(true);
+      }
+    }, 20000);
+    return () => clearInterval(interval);
+  }, [cargarPublicaciones]);
 
   // Cerrar menu al hacer clic fuera
   useEffect(() => {

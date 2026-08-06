@@ -16,6 +16,27 @@ class AntropometriaController
     }
 
     /**
+     * ¿El usuario autenticado puede ver/editar mediciones de este paciente?
+     * Sí, si es el propio paciente, o si es un especialista con asignación activa.
+     */
+    private function usuarioPuedeAccederPaciente($pacienteId, $user)
+    {
+        if ((int)$user['rol_id'] === 3) {
+            return (int)($user['paciente_id'] ?? 0) === (int)$pacienteId;
+        }
+
+        if ((int)$user['rol_id'] === 2) {
+            $asignacion = $this->db->query(
+                "SELECT id FROM asignaciones_especialista WHERE paciente_id = ? AND especialista_id = ? AND activo = 1",
+                [$pacienteId, $user['id']]
+            )->fetch();
+            return (bool)$asignacion;
+        }
+
+        return false;
+    }
+
+    /**
      * Registrar una nueva medición antropométrica
      */
     public function registrarMedicion($pacienteId)
@@ -24,6 +45,10 @@ class AntropometriaController
             $user = AuthMiddleware::getCurrentUser();
             if (!$user) {
                 return Response::error('No autorizado', 401);
+            }
+
+            if (!$this->usuarioPuedeAccederPaciente($pacienteId, $user)) {
+                return Response::error('No autorizado', 403);
             }
 
             $data = json_decode(file_get_contents('php://input'), true);
@@ -63,6 +88,11 @@ class AntropometriaController
     public function getMediciones($pacienteId)
     {
         try {
+            $user = AuthMiddleware::getCurrentUser();
+            if (!$user || !$this->usuarioPuedeAccederPaciente($pacienteId, $user)) {
+                return Response::error('No autorizado', 403);
+            }
+
             $mediciones = $this->db->query(
                 "SELECT m.*, u.nombre_completo AS especialista_nombre
                  FROM mediciones_antropometricas m
@@ -112,6 +142,11 @@ class AntropometriaController
     public function getEvolucionPeso($pacienteId)
     {
         try {
+            $user = AuthMiddleware::getCurrentUser();
+            if (!$user || !$this->usuarioPuedeAccederPaciente($pacienteId, $user)) {
+                return Response::error('No autorizado', 403);
+            }
+
             $evolucion = $this->db->query(
                 "SELECT fecha_medicion AS fecha, peso, imc
                  FROM mediciones_antropometricas

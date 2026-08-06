@@ -2,6 +2,7 @@
 
 namespace App\Controllers;
 
+use App\Middleware\AuthMiddleware;
 use App\Models\Recordatorio;
 use App\Services\RecordatorioService;
 use App\Utils\Response;
@@ -19,6 +20,11 @@ class RecordatoriosController
     // OBTENER RECORDATORIOS
     public function getRecordatorios($pacienteId, $activos = null)
     {
+        $user = AuthMiddleware::getCurrentUser();
+        if ((int)Recordatorio::getUsuarioIdByPaciente($pacienteId) !== (int)$user['id']) {
+            return Response::error('No autorizado', 403);
+        }
+
         $recordatorios = Recordatorio::getByPaciente($pacienteId, $activos);
         return Response::success($recordatorios);
     }
@@ -31,6 +37,11 @@ class RecordatoriosController
 
         if (!$validator->passes()) {
             return Response::error($validator->errors(), 422);
+        }
+
+        $user = AuthMiddleware::getCurrentUser();
+        if ((int)Recordatorio::getUsuarioIdByPaciente($data['paciente_id']) !== (int)$user['id']) {
+            return Response::error('No autorizado', 403);
         }
 
         $result = Recordatorio::create($data);
@@ -54,6 +65,10 @@ class RecordatoriosController
     // ACTUALIZAR RECORDATORIO
     public function actualizarRecordatorio($id, $data)
     {
+        if (!$this->usuarioEsDuenoDelRecordatorio($id)) {
+            return Response::error('No autorizado', 403);
+        }
+
         $result = Recordatorio::update($id, $data);
 
         if ($result) {
@@ -69,6 +84,10 @@ class RecordatoriosController
     // ELIMINAR RECORDATORIO
     public function eliminarRecordatorio($id)
     {
+        if (!$this->usuarioEsDuenoDelRecordatorio($id)) {
+            return Response::error('No autorizado', 403);
+        }
+
         $result = Recordatorio::delete($id);
 
         if ($result) {
@@ -76,6 +95,14 @@ class RecordatoriosController
         }
 
         return Response::error('Error al eliminar recordatorio', 500);
+    }
+
+    private function usuarioEsDuenoDelRecordatorio($id)
+    {
+        $user = AuthMiddleware::getCurrentUser();
+        $recordatorio = Recordatorio::find($id);
+
+        return $recordatorio && (int)$recordatorio['usuario_id'] === (int)$user['id'];
     }
 
     // MARCAR COMO COMPLETADO
@@ -117,6 +144,7 @@ class RecordatoriosController
 
         foreach ($recordatorios as $recordatorio) {
             if ($this->recordatorioService->send($recordatorio)) {
+                Recordatorio::registrarEnvio($recordatorio['id'], $recordatorio['usuario_id']);
                 $enviados++;
             }
         }

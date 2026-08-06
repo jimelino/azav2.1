@@ -39,6 +39,10 @@
   height: 40px;
   width: auto;
   object-fit: contain;
+  /* El PNG es el escudo ENES en azul sobre fondo transparente; sin este
+     filtro se pierde por bajo contraste contra la barra azul institucional
+     (#00589c). El filtro lo vuelve blanco preservando la transparencia. */
+  filter: brightness(0) invert(1);
 }
 
 .institutional-logo-azaria {
@@ -159,6 +163,12 @@
   height: 32px;
   width: auto;
   object-fit: contain;
+}
+
+.institutional-footer-logo-enes {
+  /* Mismo problema de contraste que en el header: el escudo es azul sobre
+     transparente y la barra del pie también es azul (#00589c). */
+  filter: brightness(0) invert(1);
 }
 
 .institutional-footer-info {

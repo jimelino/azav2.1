@@ -92,17 +92,21 @@ class Video {
         return $db->query("DELETE FROM " . self::$table . " WHERE id = ?", [$id]);
     }
 
-    public static function getAsignados($pacienteId) {
+    public static function getAsignados($pacienteId, $fecha = null) {
         $db = DatabaseService::getInstance();
+        $fecha = $fecha ?? date('Y-m-d');
         return $db->query(
             "SELECT v.*, va.frecuencia_recomendada, va.repeticiones, va.notas as nota_asignacion,
-                    n.nombre as nivel_nombre, c.nombre as categoria_nombre
+                    n.nombre as nivel_nombre, c.nombre as categoria_nombre,
+                    COALESCE(rv.completado, 0) as completado
              FROM videos_asignados va
              JOIN " . self::$table . " v ON va.video_id = v.id
              LEFT JOIN niveles_ejercicio n ON v.nivel_id = n.id
              LEFT JOIN categorias_ejercicio c ON v.categoria_id = c.id
+             LEFT JOIN registro_videos rv ON rv.paciente_id = va.paciente_id
+                    AND rv.video_id = va.video_id AND rv.fecha = ?
              WHERE va.paciente_id = ? AND va.activo = 1",
-            [$pacienteId]
+            [$fecha, $pacienteId]
         )->fetchAll();
     }
 

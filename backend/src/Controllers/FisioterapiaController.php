@@ -329,6 +329,12 @@ class FisioterapiaController
 
         $db = DatabaseService::getInstance();
 
+        $user = AuthMiddleware::getCurrentUser();
+        $paciente = $db->query("SELECT usuario_id FROM pacientes WHERE id = ?", [$pacienteId])->fetch();
+        if (!$paciente || (int)$paciente['usuario_id'] !== (int)$user['id']) {
+            return Response::error('No autorizado', 403);
+        }
+
         // Insertar o actualizar registro de completado
         $db->query(
             "INSERT INTO registro_videos (paciente_id, video_id, porcentaje_visto, completado, fecha)
