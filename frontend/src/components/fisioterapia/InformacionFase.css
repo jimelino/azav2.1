@@ -1,0 +1,47 @@
+.informacion-fase{
+
+    background:#ffffff;
+
+    border-radius:18px;
+
+    padding:25px;
+
+    margin:25px 0;
+
+    box-shadow:0 5px 15px rgba(0,0,0,.08);
+
+    border-left:6px solid #2E7D32;
+
+}
+
+.titulo-fase{
+
+    font-size:22px;
+
+    font-weight:700;
+
+    color:#1f2937;
+
+    margin-bottom:18px;
+
+}
+
+.nombre-fase{
+
+    font-size:20px;
+
+    color:#2E7D32;
+
+    margin-bottom:15px;
+
+}
+
+.descripcion-fase{
+
+    font-size:16px;
+
+    line-height:1.7;
+
+    color:#555;
+
+}
