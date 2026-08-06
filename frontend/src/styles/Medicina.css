@@ -1090,9 +1090,9 @@
   flex-wrap: wrap;
   gap: 8px;
   padding: 12px 16px;
-  background: var(--surface-primary, #161B22);
+  background: var(--surface-primary, #a90d0d);
   border-radius: var(--radius-md, 12px);
-  border: 1px solid var(--border-color, #30363D);
+  border: 1px solid var(--border-color, #d11818);
   margin-bottom: 12px;
 }
 
@@ -2046,7 +2046,7 @@
 ==========================================*/
 
 .indicaciones-card{
-    width: 55%;
+    width: 50%;
     margin: 0 auto 20px auto;
     background:#fff;
     border-radius:20px;
@@ -2056,7 +2056,7 @@
 }
 
 .indicaciones-title{
-    color:#1976d2;
+    color:#d11818;
     font-size:24px;
     font-weight:700;
     margin-bottom:18px;
@@ -2073,7 +2073,7 @@
 .indicacion-item{
     background:#f8fbff;
     border:1px solid #d8e8ff;
-    border-left:5px solid #1976d2;
+    border-left:5px solid #d11818;
     border-radius:16px;
     padding:16px;
     transition:.25s;
@@ -2081,12 +2081,12 @@
 
 .indicacion-item:hover{
     transform:translateY(-2px);
-    box-shadow:0 6px 14px rgba(25,118,210,.15);
+    box-shadow:0 6px 14px rgba(203, 16, 16, 0.15);
 }
 
 .indicacion-titulo{
     margin:0;
-    color:#1565c0;
+    color:#d11818;
     font-size:18px;
     font-weight:700;
 }
