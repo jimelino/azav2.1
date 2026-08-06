@@ -36,7 +36,33 @@ const AlertasClinicas = ({
         }
 
     };
-    
+    const atenderAlerta = async (id) => {
+
+    const confirmar = window.confirm(
+        "¿Marcar esta alerta como atendida?"
+    );
+
+    if (!confirmar) return;
+
+    try {
+
+        const res = await api.put(`/alertas/${id}/atender`);
+
+        if (res.success) {
+
+            cargarAlertas();
+
+        }
+
+    } catch (error) {
+
+        console.error(error);
+
+        alert("No fue posible actualizar la alerta.");
+
+    }
+
+};
 
    useEffect(() => {
     console.log("Cargando alertas...");
@@ -127,6 +153,14 @@ const AlertasClinicas = ({
                                 {a.prioridad}
 
                             </small>
+                            <br /><br />
+
+<button
+    className="btn-atender-alerta"
+    onClick={() => atenderAlerta(a.id)}
+>
+    ✅ Marcar como atendida
+</button>
 
                         </div>
 
