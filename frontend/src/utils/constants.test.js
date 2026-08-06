@@ -2,6 +2,7 @@
  * Tests para constantes de la aplicacion
  */
 import { ROLES, FASES, ESPECIALIDADES, API_URL } from './constants';
+import { REHABILITATION_PHASES } from './rehabilitationPhases';
 
 describe('Constantes - ROLES', () => {
   test('debe definir rol ADMIN', () => {
@@ -22,16 +23,16 @@ describe('Constantes - ROLES', () => {
 });
 
 describe('Constantes - FASES', () => {
-  test('debe definir 4 fases de rehabilitacion', () => {
-    expect(Object.keys(FASES)).toHaveLength(4);
+  test('debe definir 8 fases de rehabilitacion', () => {
+    expect(Object.keys(FASES)).toHaveLength(8);
   });
 
-  test('PREOPERATORIA debe ser 1', () => {
-    expect(FASES.PREOPERATORIA).toBe(1);
+  test('PRECONSULTA debe ser 1', () => {
+    expect(FASES.PRECONSULTA).toBe(1);
   });
 
-  test('POSTOPERATORIA debe ser 2', () => {
-    expect(FASES.POSTOPERATORIA).toBe(2);
+  test('ADAPTACION_EJERCICIO debe ser 2', () => {
+    expect(FASES.ADAPTACION_EJERCICIO).toBe(2);
   });
 
   test('PREPROTESICA debe ser 3', () => {
@@ -42,9 +43,22 @@ describe('Constantes - FASES', () => {
     expect(FASES.PROTESICA).toBe(4);
   });
 
-  test('las fases deben ser consecutivas del 1 al 4', () => {
+  test('las fases deben ser consecutivas del 1 al 8', () => {
     const valores = Object.values(FASES).sort();
-    expect(valores).toEqual([1, 2, 3, 4]);
+    expect(valores).toEqual([1, 2, 3, 4, 5, 6, 7, 8]);
+  });
+
+  test('el catalogo compartido debe contener las ocho fases en orden', () => {
+    expect(REHABILITATION_PHASES.map(({ numero, nombre }) => ({ numero, nombre }))).toEqual([
+      { numero: 1, nombre: 'Preconsulta' },
+      { numero: 2, nombre: 'Adaptación al ejercicio' },
+      { numero: 3, nombre: 'Preprotésico' },
+      { numero: 4, nombre: 'Protésico' },
+      { numero: 5, nombre: 'Posprotésico' },
+      { numero: 6, nombre: 'Alta/Graduación' },
+      { numero: 7, nombre: 'Seguimiento a 6 meses' },
+      { numero: 8, nombre: 'Seguimiento a 12 meses' }
+    ]);
   });
 });
 

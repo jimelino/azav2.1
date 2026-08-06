@@ -163,6 +163,21 @@ route('GET', '/api/fases/progreso/(\d+)', function($pacienteId) {
     $controller->getProgreso($pacienteId);
 }, ['auth']);
 
+route('GET', '/api/fases/dashboard/(\d+)', function($pacienteId) {
+    $controller = new FaseController();
+    $controller->getDashboard($pacienteId);
+}, ['auth']);
+
+route('PUT', '/api/fases/cambiar/(\d+)', function($pacienteId) {
+    $user = AuthMiddleware::getCurrentUser();
+    $controller = new FaseController();
+    $controller->cambiarFase(
+        $pacienteId,
+        json_decode(file_get_contents('php://input'), true) ?? [],
+        $user['id']
+    );
+}, ['auth', 'role:especialista']);
+
 // RUTAS DE NUTRICIÓN
 route('POST', '/api/guardar_porciones', function() {
     require_once __DIR__ . '/../Controllers/guardar_porciones.php';

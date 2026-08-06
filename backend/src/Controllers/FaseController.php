@@ -26,17 +26,37 @@ class FaseController
         return Response::success($progreso);
     }
 
-    public function cambiarFase($pacienteId, $data)
+    public function cambiarFase($pacienteId, $data, $especialistaId = null)
     {
         $validator = new Validator($data);
         $validator->required(['nueva_fase', 'motivo'])
-                  ->in('nueva_fase', [FASE_PREOPERATORIA, FASE_POSTOPERATORIA, FASE_PREPROTESICA, FASE_PROTESICA]);
+                  ->numeric('nueva_fase');
 
         if (!$validator->passes()) {
             return Response::error($validator->errors(), 422);
         }
 
-        $result = Fase::cambiarFase($pacienteId, $data['nueva_fase'], $data['motivo']);
+        $motivo = trim((string) $data['motivo']);
+        if ($motivo === '') {
+            return Response::error(['motivo' => 'El motivo del cambio es requerido'], 422);
+        }
+
+        $nuevaFaseNumero = filter_var($data['nueva_fase'], FILTER_VALIDATE_INT);
+        if ($nuevaFaseNumero === false) {
+            return Response::error(['nueva_fase' => 'La fase seleccionada debe ser un número entero'], 422);
+        }
+
+        $nuevaFase = Fase::getByNumero($nuevaFaseNumero);
+        if (!$nuevaFase) {
+            return Response::error(['nueva_fase' => 'La fase seleccionada no existe'], 422);
+        }
+
+        $result = Fase::cambiarFase(
+            $pacienteId,
+            $nuevaFase['id'],
+            $motivo,
+            $especialistaId
+        );
 
         if ($result) {
             return Response::success(null, 'Fase actualizada exitosamente');
