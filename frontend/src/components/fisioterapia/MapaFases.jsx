@@ -20,7 +20,7 @@ const fases = [
     }
 ];
 
-const MapaFases = ({ faseActual = 1 }) => {
+const MapaFases = ({ faseActual = 3 }) => {
 
     return (
 
