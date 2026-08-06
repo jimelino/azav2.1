@@ -1158,6 +1158,25 @@ route('GET', '/api/comunidad/temas', function() {
     \App\Utils\Response::success($temas);
 }, ['auth']);
 
+// Cola de moderación (publicaciones/reportes pendientes) — antes existían
+// en el controller pero sin ruta, así que el contenido marcado como
+// pendiente quedaba huérfano para siempre, sin forma de aprobarlo/rechazarlo.
+route('GET', '/api/comunidad/moderacion/cola', function() {
+    $controller = new ComunidadController();
+    $controller->getColaModeracion();
+}, ['auth', 'role:administrador']);
+
+route('PUT', '/api/comunidad/moderacion/(publicacion|reporte)/(\d+)/aprobar', function($tipo, $id) {
+    $controller = new ComunidadController();
+    $controller->aprobarContenido($tipo, $id);
+}, ['auth', 'role:administrador']);
+
+route('PUT', '/api/comunidad/moderacion/(publicacion|reporte)/(\d+)/rechazar', function($tipo, $id) {
+    $data = json_decode(file_get_contents('php://input'), true) ?? [];
+    $controller = new ComunidadController();
+    $controller->rechazarContenido($tipo, $id, $data);
+}, ['auth', 'role:administrador']);
+
 // ===== RUTAS DE ADMINISTRACIÓN =====
 route('GET', '/api/admin/metricas', function() {
     $controller = new AdminController();

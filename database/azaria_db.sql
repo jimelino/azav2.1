@@ -1235,6 +1235,7 @@ CREATE TABLE IF NOT EXISTS publicaciones_comunidad (
     tema_id INT UNSIGNED NOT NULL,
     titulo VARCHAR(100),
     contenido TEXT NOT NULL,
+    imagen_url VARCHAR(500) NULL,
     es_anonimo TINYINT(1) DEFAULT 0,
 
     -- Estado de moderación

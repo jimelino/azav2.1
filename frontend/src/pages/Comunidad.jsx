@@ -139,7 +139,7 @@ const Comunidad = () => {
         formData.append('imagen', imagen);
       }
 
-      await api.post('/comunidad/publicaciones', formData, {
+      const response = await api.post('/comunidad/publicaciones', formData, {
         headers: { 'Content-Type': undefined }
       });
 
@@ -149,6 +149,11 @@ const Comunidad = () => {
       setTemaSeleccionado('');
       setImagen(null);
       setImagenPreview(null);
+
+      const publicada = response?.data || response;
+      if (publicada?.estado === 'pendiente') {
+        alert('Tu publicación fue enviada a revisión y aparecerá en el foro cuando sea aprobada.');
+      }
     } catch (err) {
       console.error('Error al publicar:', err);
       setError('Error al crear la publicacion. Intenta de nuevo.');
