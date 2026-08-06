@@ -62,7 +62,7 @@ class RateLimitMiddleware
      */
     public static function checkAuth(): bool
     {
-        return self::check(5, 60, 'auth'); // 5 intentos por minuto
+        return self::check(20, 60, 'auth'); // Increased from 5 to 20 attempts per minute
     }
 
     /**
