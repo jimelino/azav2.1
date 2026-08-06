@@ -2046,10 +2046,12 @@
 ==========================================*/
 
 .indicaciones-card{
+    width: 65%;
+    margin: 0 auto 20px auto;
     background:#fff;
-    border-radius:22px;
-    padding:20px;
-    box-shadow:0 4px 15px rgba(0,0,0,.08);
+    border-radius:20px;
+    padding:16px;
+    box-shadow:0 4px 12px rgba(0,0,0,.08);
     border:1px solid #ececec;
 }
 
