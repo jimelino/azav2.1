@@ -19,6 +19,15 @@ class Fase
         )->fetch();
     }
 
+    public static function getByNumero($numero)
+    {
+        $db = DatabaseService::getInstance();
+        return $db->query(
+            "SELECT * FROM fases_tratamiento WHERE numero = ?",
+            [$numero]
+        )->fetch();
+    }
+
     public static function getProgreso($pacienteId)
     {
         $db = DatabaseService::getInstance();

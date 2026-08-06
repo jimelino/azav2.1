@@ -8,6 +8,7 @@ import InstitutionalHeader from '../../components/layouts/InstitutionalHeader';
 import InstitutionalFooter from '../../components/layouts/InstitutionalFooter';
 import LucideIcon from '../../components/LucideIcon';
 import api from '../../services/api';
+import { getRehabilitationPhase, REHABILITATION_PHASES } from '../../utils/rehabilitationPhases';
 import '../../components/layouts/institutional.css';
 import './PacienteDashboard.css';
 
@@ -36,31 +37,40 @@ const ACCESOS_RAPIDOS = [
   { id: 'comunidad', nombre: 'Comunidad', icon: 'users', color: '#F06292', ruta: '/comunidad', desc: 'Conecta con otros' },
 ];
 
-const PROGRESS_STEPS = [
-  { label: 'Inicio', phase: 1 },
-  { label: 'Evaluacion', phase: 1 },
-  { label: 'Tratamiento', phase: 2 },
-  { label: 'Rehabilitacion', phase: 3 },
-  { label: 'Meta', phase: 4 },
-];
-
-const ProgressRouteMap = ({ progress = 0 }) => {
-  const normalizedProgress = Math.max(0, Math.min(100, Number(progress) || 0));
-  const currentStep = Math.max(0, Math.min(PROGRESS_STEPS.length - 1, Math.round((normalizedProgress / 100) * (PROGRESS_STEPS.length - 1))));
+const ProgressRouteMap = ({ currentPhase = 1 }) => {
+  const requestedPhase = Number(currentPhase) || 1;
+  const foundIndex = REHABILITATION_PHASES.findIndex((fase) => fase.numero === requestedPhase);
+  const currentStep = foundIndex >= 0 ? foundIndex : 0;
+  const routeProgress = (currentStep / (REHABILITATION_PHASES.length - 1)) * 100;
+  const currentPhaseName = REHABILITATION_PHASES[currentStep].nombre;
 
   return (
-    <div className="progress-route-map" role="img" aria-label={`Mapa de progreso: ${normalizedProgress}% completado`}>
-      <svg className="progress-route-svg" viewBox="0 0 900 260" aria-hidden="true" preserveAspectRatio="none">
-        <path className="progress-route-track" d="M55 166 C190 238 282 228 410 150 S650 48 845 128" />
-        <path className="progress-route-active" d="M55 166 C190 238 282 228 410 150 S650 48 845 128" pathLength="100" style={{ strokeDashoffset: 100 - normalizedProgress }} />
-      </svg>
-      <div className="progress-route-points">
-        {PROGRESS_STEPS.map((step, index) => (
-          <div key={step.label} className={`progress-route-point point-${index} ${index <= currentStep ? 'is-complete' : ''}`}>
-            <span className="progress-route-dot">{index === currentStep ? <LucideIcon name="smile" size={18} /> : index + 1}</span>
-            <span className="progress-route-label">{step.label}</span>
-          </div>
-        ))}
+    <div className="progress-route-map" aria-label={`Mapa de progreso. Fase actual: ${currentPhaseName}`}>
+      <div className="progress-route-canvas">
+        <svg className="progress-route-svg" viewBox="0 0 1000 360" aria-hidden="true" preserveAspectRatio="none">
+          <path className="progress-route-track" d="M60 245 C145 310 230 315 320 260 S425 145 560 90 S730 135 820 205 S900 195 940 150" />
+          <path className="progress-route-active" d="M60 245 C145 310 230 315 320 260 S425 145 560 90 S730 135 820 205 S900 195 940 150" pathLength="100" style={{ strokeDashoffset: 100 - routeProgress }} />
+        </svg>
+        <div className="progress-route-points" role="list">
+          {REHABILITATION_PHASES.map((fase, index) => {
+            const statusClass = index < currentStep ? 'is-complete' : index === currentStep ? 'is-current' : 'is-pending';
+            const statusLabel = index < currentStep ? 'completada' : index === currentStep ? 'en curso' : 'pendiente';
+
+            return (
+              <div
+                key={fase.numero}
+                className={`progress-route-point point-${index} ${statusClass}`}
+                role="listitem"
+                aria-label={`Fase ${fase.numero}: ${fase.nombre}, ${statusLabel}`}
+              >
+                <span className="progress-route-dot" aria-hidden="true">
+                  {index === currentStep ? <LucideIcon name="smile" size={18} /> : index < currentStep ? <LucideIcon name="check" size={17} /> : fase.numero}
+                </span>
+                <span className="progress-route-label" aria-hidden="true">{fase.nombre}</span>
+              </div>
+            );
+          })}
+        </div>
       </div>
     </div>
   );
@@ -132,13 +142,7 @@ const PacienteDashboard = () => {
   };
 
   const getFaseNombre = (fase) => {
-    const fases = {
-      1: 'Pre-operatorio',
-      2: 'Post-operatorio',
-      3: 'Rehabilitación',
-      4: 'Mantenimiento'
-    };
-    return fases[fase] || `Fase ${fase}`;
+    return getRehabilitationPhase(fase)?.nombre || `Fase ${fase}`;
   };
 
   const handleCategoriaClick = (categoria) => {
@@ -256,10 +260,10 @@ const PacienteDashboard = () => {
                   <span className="progress-motivational-icon" aria-hidden="true">
                     <LucideIcon name={faseActual.progreso >= 75 ? 'trophy' : faseActual.progreso >= 50 ? 'zap' : faseActual.progreso >= 25 ? 'sprout' : 'rocket'} size={24} />
                   </span>
-                  <span className="progress-phase">{faseActual.nombre || getFaseNombre(faseActual.fase)}</span>
+                  <span className="progress-phase">{getFaseNombre(faseActual.fase)}</span>
                 </div>
               </div>
-              <ProgressRouteMap progress={faseActual.progreso} />
+              <ProgressRouteMap currentPhase={faseActual.fase} />
               <p className="progress-message">{faseActual.progreso >= 50 ? 'Excelente progreso. Sigue avanzando.' : 'Tu camino comienza aqui. Cada paso cuenta.'}</p>
             </Link>
           </section>

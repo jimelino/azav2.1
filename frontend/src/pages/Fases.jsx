@@ -3,18 +3,8 @@ import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 import LucideIcon from '../components/LucideIcon';
+import { REHABILITATION_PHASES } from '../utils/rehabilitationPhases';
 import '../styles/Fases.css';
-
-const FASES_INFO = [
-  { numero: 1, nombre: 'Preconsulta', icono: 'search', descripcion: 'Primera aproximación al dispositivo, evaluaciones médicas y plan de tratamiento.' },
-  { numero: 2, nombre: 'Adaptación al ejercicio', icono: 'book-open', descripcion: 'Aprendizaje de uso del dispositivo, ejercicios básicos y ajustes iniciales.' },
-  { numero: 3, nombre: 'Preprotésico', icono: 'bar-chart', descripcion: 'Uso regular del dispositivo, monitoreo constante y correcciones necesarias.' },
-  { numero: 4, nombre: 'Protésico', icono: 'user-check', descripcion: 'Uso independiente del dispositivo con seguimiento periódico.' },
-  { numero: 5, nombre: 'Posprotésico', icono: 'award', descripcion: 'Consolidación de la autonomía y adaptación funcional avanzada a la vida diaria.' },
-  { numero: 6, nombre: 'Alta/Graduación', icono: 'graduation-cap', descripcion: 'Finalización formal del proceso de rehabilitación y alta clínica.' },
-  { numero: 7, nombre: 'Seguimiento a 6 meses', icono: 'clock', descripcion: 'Evaluación de control semestral para asegurar el buen estado del dispositivo y confort.' },
-  { numero: 8, nombre: 'Seguimiento a 12 meses', icono: 'calendar-check', descripcion: 'Evaluación de control anual y cierre de ciclo de seguimiento prolongado.' },
-];
 
 const Fases = () => {
   const { user } = useAuth();
@@ -68,7 +58,8 @@ const Fases = () => {
   };
 
   const getFaseNumero = () => {
-    return dashboard?.fase_actual?.numero || dashboard?.estadisticas?.fase_numero || 1;
+    const numero = Number(dashboard?.fase_actual?.numero || dashboard?.estadisticas?.fase_numero || 1);
+    return Number.isFinite(numero) ? numero : 1;
   };
 
   const getProgreso = () => {
@@ -125,7 +116,7 @@ const Fases = () => {
 
   const faseActualNum = getFaseNumero();
   const progreso = getProgreso();
-  const faseActualInfo = FASES_INFO.find(f => f.numero === faseActualNum) || FASES_INFO[0];
+  const faseActualInfo = REHABILITATION_PHASES.find(f => f.numero === faseActualNum) || REHABILITATION_PHASES[0];
 
   return (
     <div className="fases-page">
@@ -168,7 +159,7 @@ const Fases = () => {
             </div>
             <div className="stat-card">
               <div className="stat-icon" aria-hidden="true"><LucideIcon name="target" size={20} /></div>
-              <p className="stat-value">{faseActualNum}/{FASES_INFO.length}</p>
+              <p className="stat-value">{faseActualNum}/{REHABILITATION_PHASES.length}</p>
               <p className="stat-label">Fase actual</p>
             </div>
             <div className="stat-card">
@@ -189,8 +180,8 @@ const Fases = () => {
         {/* Timeline */}
         <section className="timeline-section" aria-labelledby="timeline-heading">
           <h2 id="timeline-heading" className="section-title">Fases del Tratamiento</h2>
-          <div className="timeline timeline-grid" role="list" aria-label="Línea de tiempo de rehabilitación con ocho etapas">
-            {FASES_INFO.map((fase) => {
+          <div className="timeline" role="list" aria-label="Línea de tiempo de rehabilitación con ocho etapas">
+            {REHABILITATION_PHASES.map((fase) => {
               const estado = getFaseEstado(fase.numero);
               return (
                 <div key={fase.numero} className={`timeline-item ${estado}`} role="listitem">
@@ -264,7 +255,7 @@ const Fases = () => {
                   onChange={e => setCambioForm(prev => ({ ...prev, nueva_fase: e.target.value }))}
                 >
                   <option value="">Seleccionar fase...</option>
-                  {FASES_INFO.filter(f => f.numero !== faseActualNum).map(f => (
+                  {REHABILITATION_PHASES.filter(f => f.numero !== faseActualNum).map(f => (
                     <option key={f.numero} value={f.numero}>
                       Fase {f.numero}: {f.nombre}
                     </option>

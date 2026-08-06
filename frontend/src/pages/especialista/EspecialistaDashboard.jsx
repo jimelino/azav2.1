@@ -40,7 +40,7 @@ import '../../components/layouts/institutional.css';
 import './EspecialistaDashboard.css';
 import PorcionesNutricionales from './PorcionesNutricionales';
 import IndicacionesMedicas from '../../components/medicina/IndicacionesMedicas';
-
+import AlertasClinicas from '../../components/medicina/AlertasClinicas';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Filler, Title, Tooltip, Legend);
 
@@ -572,6 +572,7 @@ const EspecialistaDashboard = () => {
 
   // Obtener área médica del especialista
   const areaCodigo = user?.area_medica || 'medicina';
+  console.log("Área del especialista:", areaCodigo);
   const areaConfig = AREAS_CONFIG[areaCodigo] || AREAS_CONFIG.medicina;
   const usuariosNuevaConversacion = contactosChat.map((contacto) => ({
     id: contacto.id,
@@ -2117,7 +2118,24 @@ const renderModIndicaciones = () => {
         />
     );
 };
+//alertas medicas
+const renderModAlertasClinicas = () => {
 
+    return (
+
+        <AlertasClinicas
+
+            especialistaId={user?.especialista_id || user?.id}
+
+            area={areaCodigo}
+
+            onBack={() => setActiveView('inicio')}
+
+        />
+
+    );
+
+};
   // Vista genérica para módulos en desarrollo
   // Vista: Planes Nutricionales (Nutrición)
   const renderPlanesNutricionales = () => {
@@ -2165,6 +2183,7 @@ const renderModIndicaciones = () => {
       case 'mod-recetas': return renderModRecetas();
       case 'mod-porciones-nutricionales':return renderPorcionesNutricionales();
       case 'mod-indicaciones': return renderModIndicaciones();
+      case 'mod-alertas-clinicas': return renderModAlertasClinicas();
 
       // Módulos de Fisioterapia
       case 'mod-ejercicios':
