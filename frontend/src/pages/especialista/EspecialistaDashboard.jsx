@@ -61,6 +61,7 @@ const AREAS_CONFIG = {
       { id: 'evaluaciones', nombre: 'Evaluaciones', icon: 'bar-chart', descripcion: 'Evaluaciones físicas de usuarios', view: 'mod-evaluaciones' },
       { id: 'planes', nombre: 'Planes de Tratamiento', icon: 'clipboard', descripcion: 'Gestionar planes de usuarios', view: 'mod-planes' },
       { id: 'progreso', nombre: 'Progreso', icon: 'trending-up', descripcion: 'Ver progreso de usuarios', view: 'mod-progreso' },
+      {id: 'alertas-clinicas', nombre: 'Alertas Clínicas', icon: 'bell-ring', descripcion: 'Alertas de riesgo registradas por los pacientes', view: 'mod-alertas-clinicas'},
     ],
     herramientas: [
       { nombre: 'Calculadora de ROM', icon: 'compass' },
@@ -138,6 +139,7 @@ const AREAS_CONFIG = {
       { id: 'mantenimiento', nombre: 'Mantenimiento y Ajustes', icon: 'hammer', descripcion: 'Historial de mantenimiento y ajustes', view: 'mod-mantenimiento' },
       { id: 'mediciones', nombre: 'Mediciones del Muñón', icon: 'ruler', descripcion: 'Registro de medidas del muñón', view: 'mod-mediciones-munon' },
       { id: 'gestion-contenido', nombre: 'Alertas y contenido', icon: 'book-open', descripcion: 'Reportes y material educativo', view: 'mod-gestion-ortesis' },
+      { id: 'alertas-clinicas', nombre: 'Alertas Clínicas', icon: 'bell-ring', descripcion: 'Alertas de riesgo registradas por los pacientes', view: 'mod-alertas-clinicas'},
     ],
     herramientas: []
   },
