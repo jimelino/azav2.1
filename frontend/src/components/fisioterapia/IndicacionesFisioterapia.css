@@ -4,77 +4,141 @@
 
 .indicaciones-fisio{
 
-    max-width:900px;
-
+    width:95%;
+    max-width:1400px;
     margin:30px auto;
-
-    padding:25px;
+    padding:20px;
 
 }
+
+/* ---------- TARJETA PRINCIPAL ---------- */
 
 .indicaciones-card{
 
-    background:#ffffff;
-
-    border-radius:18px;
-
-    padding:30px;
-
-    box-shadow:0 8px 25px rgba(0,0,0,.08);
-
-    border:1px solid #ececec;
+    background:#fff;
+    border-radius:22px;
+    padding:35px;
+    box-shadow:0 10px 30px rgba(0,0,0,.08);
 
 }
+
+/* ---------- LOADING ---------- */
 
 .loading-card{
 
     background:#fff;
-
-    border-radius:15px;
-
-    padding:50px;
-
+    border-radius:20px;
+    padding:60px;
     text-align:center;
-
     font-size:18px;
-
-    color:#777;
-
-    box-shadow:0 5px 18px rgba(0,0,0,.08);
+    color:#666;
+    box-shadow:0 8px 20px rgba(0,0,0,.08);
 
 }
 
-.info-paciente{
+/* ==========================================
+   INFORMACIÓN DEL PACIENTE
+========================================== */
 
-    background:#FFF8E8;
+.paciente-card{
 
-    border-left:6px solid #F4A825;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:25px;
 
-    border-radius:12px;
+    background:#F8FCFF;
 
-    padding:20px;
+    border-left:6px solid #2E8B57;
 
-    margin-bottom:25px;
+    border-radius:18px;
+
+    padding:25px;
+
+    margin-bottom:35px;
 
 }
 
-.info-paciente h3{
+.paciente-avatar{
 
-    margin:0 0 10px;
+    width:70px;
+    height:70px;
 
-    color:#E67E22;
+    border-radius:50%;
 
-    font-size:22px;
+    background:#E8F5E9;
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    font-size:34px;
 
 }
 
-.info-paciente p{
+.paciente-info{
+
+    flex:1;
+
+}
+
+.paciente-info h2{
 
     margin:0;
 
-    color:#555;
+    color:#1B4F72;
 
-    line-height:1.6;
+    font-size:28px;
+
+}
+
+.paciente-info p{
+
+    margin-top:8px;
+
+    color:#666;
+
+}
+
+.paciente-extra{
+
+    text-align:right;
+
+}
+
+.paciente-extra span{
+
+    display:block;
+
+    color:#777;
+
+    font-size:14px;
+
+}
+
+.paciente-extra strong{
+
+    font-size:17px;
+
+    color:#2E8B57;
+
+}
+
+/* ==========================================
+   FORMULARIO
+========================================== */
+
+.formulario-indicaciones{
+
+    display:grid;
+
+    grid-template-columns:320px 1fr;
+
+    gap:35px;
+
+    align-items:start;
 
 }
 
@@ -84,31 +148,29 @@
 
     flex-direction:column;
 
-    margin-bottom:25px;
-
 }
 
 .campo label{
 
-    font-size:15px;
+    font-size:16px;
 
     font-weight:700;
 
-    color:#444;
-
     margin-bottom:10px;
+
+    color:#444;
 
 }
 
 .campo select{
 
-    padding:14px;
+    padding:15px;
 
-    border-radius:12px;
+    border-radius:14px;
 
-    border:1px solid #d8d8d8;
+    border:1px solid #DDD;
 
-    font-size:15px;
+    font-size:16px;
 
     transition:.25s;
 
@@ -126,23 +188,25 @@
 
 }
 
+/* ---------- TEXTAREA ---------- */
+
 .campo textarea{
+
+    min-height:300px;
 
     resize:vertical;
 
-    min-height:180px;
+    padding:18px;
 
-    padding:16px;
+    border-radius:14px;
 
-    border-radius:12px;
+    border:1px solid #DDD;
 
-    border:1px solid #d8d8d8;
-
-    font-size:15px;
+    font-size:16px;
 
     font-family:inherit;
 
-    line-height:1.7;
+    line-height:1.8;
 
     transition:.25s;
 
@@ -158,23 +222,35 @@
 
 }
 
+/* ==========================================
+   BOTÓN
+========================================== */
+
+.boton-guardar{
+
+    display:flex;
+
+    justify-content:center;
+
+    margin-top:40px;
+
+}
+
 .btn-guardar{
 
-    width:100%;
+    width:320px;
 
-    margin-top:10px;
-
-    padding:15px;
+    padding:16px;
 
     border:none;
 
-    border-radius:12px;
+    border-radius:14px;
 
     background:#E67E22;
 
-    color:white;
+    color:#fff;
 
-    font-size:16px;
+    font-size:18px;
 
     font-weight:700;
 
@@ -186,15 +262,15 @@
 
 .btn-guardar:hover{
 
-    background:#cf7119;
+    background:#CF7119;
 
-    transform:translateY(-2px);
+    transform:translateY(-3px);
 
 }
 
 .btn-guardar:disabled{
 
-    background:#bbbbbb;
+    background:#BDBDBD;
 
     cursor:not-allowed;
 
@@ -202,43 +278,55 @@
 
 }
 
-.card-ayuda{
+/* ==========================================
+   INFORMACIÓN SUPERIOR
+========================================== */
 
-    margin-top:30px;
+.info-paciente{
 
-    background:#F7FAFC;
+    background:#FFF8E8;
 
-    border-radius:15px;
+    border-left:6px solid #F4A825;
 
-    padding:20px;
+    border-radius:18px;
 
-    border-left:5px solid #2E86DE;
+    padding:25px;
 
-}
-
-.card-ayuda h4{
-
-    margin-top:0;
-
-    color:#2E86DE;
+    margin-bottom:30px;
 
 }
 
-.card-ayuda ul{
+.info-paciente h3{
 
-    margin:15px 0 0;
+    margin:0 0 12px;
 
-    padding-left:20px;
+    color:#D97706;
+
+    font-size:28px;
 
 }
 
-.card-ayuda li{
+.info-paciente p{
 
-    margin-bottom:10px;
+    margin:0;
+
+    line-height:1.8;
 
     color:#555;
 
-    line-height:1.6;
+}
+
+/* ==========================================
+   RESPONSIVE
+========================================== */
+
+@media(max-width:1100px){
+
+    .formulario-indicaciones{
+
+        grid-template-columns:1fr;
+
+    }
 
 }
 
@@ -246,7 +334,9 @@
 
     .indicaciones-fisio{
 
-        padding:15px;
+        width:100%;
+
+        padding:12px;
 
     }
 
@@ -256,9 +346,37 @@
 
     }
 
+    .paciente-card{
+
+        flex-direction:column;
+
+        align-items:flex-start;
+
+    }
+
+    .paciente-extra{
+
+        text-align:left;
+
+        width:100%;
+
+    }
+
+    .paciente-info h2{
+
+        font-size:24px;
+
+    }
+
     .campo textarea{
 
-        min-height:140px;
+        min-height:220px;
+
+    }
+
+    .btn-guardar{
+
+        width:100%;
 
     }
 

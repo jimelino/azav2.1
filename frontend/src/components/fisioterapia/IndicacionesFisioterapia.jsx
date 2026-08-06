@@ -155,6 +155,31 @@ const IndicacionesFisioterapia = ({
                     Indicaciones de Fisioterapia
 
                 </h2>
+                <div className="paciente-card">
+
+    <div className="paciente-avatar">
+
+        👤
+
+    </div>
+
+    <div className="paciente-info">
+
+        <h2>{nombrePaciente}</h2>
+
+        <p>ID del paciente: {pacienteId}</p>
+
+    </div>
+
+    <div className="paciente-extra">
+
+        <span>Especialista</span>
+
+        <strong>Fisioterapia</strong>
+
+    </div>
+
+</div>
 
             </div>
 
@@ -188,7 +213,7 @@ const IndicacionesFisioterapia = ({
 
                             <p>
 
-                                Desde este módulo podrá actualizar la fase del tratamiento y asignar las indicaciones que visualizará el paciente.
+                                En este módulo podrá actualizar la fase del tratamiento y asignar las indicaciones que visualizará el paciente
 
                             </p>
 
@@ -282,37 +307,7 @@ const IndicacionesFisioterapia = ({
 
                         </button>
 
-                        <div className="card-ayuda">
-
-                            <h4>
-
-                                Recomendaciones
-
-                            </h4>
-
-                            <ul>
-
-                                <li>
-
-                                    Escriba instrucciones claras y fáciles de entender.
-
-                                </li>
-
-                                <li>
-
-                                    Actualice la fase únicamente cuando corresponda.
-
-                                </li>
-
-                                <li>
-
-                                    Las indicaciones aparecerán automáticamente en el panel del paciente.
-
-                                </li>
-
-                            </ul>
-
-                        </div>
+                        
 
                     </div>
 
