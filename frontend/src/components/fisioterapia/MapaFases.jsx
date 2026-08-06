@@ -24,10 +24,15 @@ const MapaFases = ({ faseActual = 1 }) => {
 
     return (
 
-        <div className="mapa-fases">
+        <div className="mapa-fases-container">
 
-            {
-                fases.map((fase, index) => {
+            <h2 className="titulo-mapa">
+                Estado del tratamiento
+            </h2>
+
+            <div className="mapa-fases">
+
+                {fases.map((fase, index) => {
 
                     const completada = fase.id < faseActual;
                     const actual = fase.id === faseActual;
@@ -49,34 +54,12 @@ const MapaFases = ({ faseActual = 1 }) => {
                                 />
 
                                 <span className="fase-nombre">
-
                                     {fase.nombre}
-
                                 </span>
 
                             </div>
-                            <div className="leyenda-fases">
 
-    <div className="leyenda-item">
-        <span className="leyenda-color verde"></span>
-        <span>Fase completada</span>
-    </div>
-
-    <div className="leyenda-item">
-        <span className="leyenda-color naranja"></span>
-        <span>Fase actual</span>
-    </div>
-
-    <div className="leyenda-item">
-        <span className="leyenda-color gris"></span>
-        <span>Fase pendiente</span>
-    </div>
-
-</div>
-
-                            {
-
-                                index < fases.length - 1 &&
+                            {index < fases.length - 1 && (
 
                                 <div
                                     className={
@@ -86,14 +69,34 @@ const MapaFases = ({ faseActual = 1 }) => {
                                     }
                                 />
 
-                            }
+                            )}
 
                         </React.Fragment>
 
                     );
 
-                })
-            }
+                })}
+
+            </div>
+
+            <div className="leyenda-fases">
+
+                <div className="leyenda-item">
+                    <span className="leyenda-color verde"></span>
+                    <span>Completada</span>
+                </div>
+
+                <div className="leyenda-item">
+                    <span className="leyenda-color naranja"></span>
+                    <span>Actual</span>
+                </div>
+
+                <div className="leyenda-item">
+                    <span className="leyenda-color gris"></span>
+                    <span>Pendiente</span>
+                </div>
+
+            </div>
 
         </div>
 

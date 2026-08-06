@@ -89,21 +89,38 @@
     color:#444;
 
 }
+.mapa-fases-wrapper{
+    background:#fff;
+    border-radius:18px;
+    padding:25px 35px;
+    margin:20px 0;
+    box-shadow:0 5px 15px rgba(0,0,0,.08);
+}
+
+.titulo-mapa{
+    font-size:24px;
+    font-weight:700;
+    color:#1f2937;
+    margin-bottom:22px;
+}
+
 .leyenda-fases{
     display:flex;
     justify-content:center;
+    align-items:center;
     gap:35px;
-    margin-top:18px;
-    flex-wrap:wrap;
+    margin-top:28px;
+    padding-top:18px;
+    border-top:1px solid #ececec;
 }
 
 .leyenda-item{
     display:flex;
     align-items:center;
-    gap:8px;
-    font-size:14px;
+    gap:10px;
+    font-size:15px;
+    font-weight:600;
     color:#555;
-    font-weight:500;
 }
 
 .leyenda-color{
@@ -112,15 +129,14 @@
     border-radius:50%;
 }
 
-.leyenda-color.verde{
+.verde{
     background:#2e7d32;
 }
 
-.leyenda-color.naranja{
+.naranja{
     background:#ff9800;
 }
 
-.leyenda-color.gris{
+.gris{
     background:#d9d9d9;
 }
-
