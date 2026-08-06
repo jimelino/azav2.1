@@ -1,0 +1,265 @@
+/* ==========================================
+   INDICACIONES DE FISIOTERAPIA
+========================================== */
+
+.indicaciones-fisio{
+
+    max-width:900px;
+
+    margin:30px auto;
+
+    padding:25px;
+
+}
+
+.indicaciones-card{
+
+    background:#ffffff;
+
+    border-radius:18px;
+
+    padding:30px;
+
+    box-shadow:0 8px 25px rgba(0,0,0,.08);
+
+    border:1px solid #ececec;
+
+}
+
+.loading-card{
+
+    background:#fff;
+
+    border-radius:15px;
+
+    padding:50px;
+
+    text-align:center;
+
+    font-size:18px;
+
+    color:#777;
+
+    box-shadow:0 5px 18px rgba(0,0,0,.08);
+
+}
+
+.info-paciente{
+
+    background:#FFF8E8;
+
+    border-left:6px solid #F4A825;
+
+    border-radius:12px;
+
+    padding:20px;
+
+    margin-bottom:25px;
+
+}
+
+.info-paciente h3{
+
+    margin:0 0 10px;
+
+    color:#E67E22;
+
+    font-size:22px;
+
+}
+
+.info-paciente p{
+
+    margin:0;
+
+    color:#555;
+
+    line-height:1.6;
+
+}
+
+.campo{
+
+    display:flex;
+
+    flex-direction:column;
+
+    margin-bottom:25px;
+
+}
+
+.campo label{
+
+    font-size:15px;
+
+    font-weight:700;
+
+    color:#444;
+
+    margin-bottom:10px;
+
+}
+
+.campo select{
+
+    padding:14px;
+
+    border-radius:12px;
+
+    border:1px solid #d8d8d8;
+
+    font-size:15px;
+
+    transition:.25s;
+
+    background:#fff;
+
+}
+
+.campo select:focus{
+
+    outline:none;
+
+    border-color:#E67E22;
+
+    box-shadow:0 0 0 4px rgba(230,126,34,.15);
+
+}
+
+.campo textarea{
+
+    resize:vertical;
+
+    min-height:180px;
+
+    padding:16px;
+
+    border-radius:12px;
+
+    border:1px solid #d8d8d8;
+
+    font-size:15px;
+
+    font-family:inherit;
+
+    line-height:1.7;
+
+    transition:.25s;
+
+}
+
+.campo textarea:focus{
+
+    outline:none;
+
+    border-color:#E67E22;
+
+    box-shadow:0 0 0 4px rgba(230,126,34,.15);
+
+}
+
+.btn-guardar{
+
+    width:100%;
+
+    margin-top:10px;
+
+    padding:15px;
+
+    border:none;
+
+    border-radius:12px;
+
+    background:#E67E22;
+
+    color:white;
+
+    font-size:16px;
+
+    font-weight:700;
+
+    cursor:pointer;
+
+    transition:.25s;
+
+}
+
+.btn-guardar:hover{
+
+    background:#cf7119;
+
+    transform:translateY(-2px);
+
+}
+
+.btn-guardar:disabled{
+
+    background:#bbbbbb;
+
+    cursor:not-allowed;
+
+    transform:none;
+
+}
+
+.card-ayuda{
+
+    margin-top:30px;
+
+    background:#F7FAFC;
+
+    border-radius:15px;
+
+    padding:20px;
+
+    border-left:5px solid #2E86DE;
+
+}
+
+.card-ayuda h4{
+
+    margin-top:0;
+
+    color:#2E86DE;
+
+}
+
+.card-ayuda ul{
+
+    margin:15px 0 0;
+
+    padding-left:20px;
+
+}
+
+.card-ayuda li{
+
+    margin-bottom:10px;
+
+    color:#555;
+
+    line-height:1.6;
+
+}
+
+@media(max-width:768px){
+
+    .indicaciones-fisio{
+
+        padding:15px;
+
+    }
+
+    .indicaciones-card{
+
+        padding:20px;
+
+    }
+
+    .campo textarea{
+
+        min-height:140px;
+
+    }
+
+}

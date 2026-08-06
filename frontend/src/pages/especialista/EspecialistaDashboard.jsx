@@ -41,7 +41,7 @@ import './EspecialistaDashboard.css';
 import PorcionesNutricionales from './PorcionesNutricionales';
 import IndicacionesMedicas from '../../components/medicina/IndicacionesMedicas';
 import AlertasClinicas from '../../components/medicina/AlertasClinicas';
-
+import IndicacionesFisioterapia from '../../components/fisioterapia/IndicacionesFisioterapia';
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Filler, Title, Tooltip, Legend);
 
 /**
@@ -62,6 +62,7 @@ const AREAS_CONFIG = {
       { id: 'planes', nombre: 'Planes de Tratamiento', icon: 'clipboard', descripcion: 'Gestionar planes de usuarios', view: 'mod-planes' },
       { id: 'progreso', nombre: 'Progreso', icon: 'trending-up', descripcion: 'Ver progreso de usuarios', view: 'mod-progreso' },
       {id: 'alertas-clinicas', nombre: 'Alertas Clínicas', icon: 'bell-ring', descripcion: 'Alertas de riesgo registradas por los pacientes', view: 'mod-alertas-clinicas'},
+      { id: 'indicaciones-fisioterapia', nombre: 'Indicaciones', icon: 'clipboard', descripcion: 'Asignar indicaciones al paciente', view: 'mod-indicaciones-fisioterapia'},
     ],
     herramientas: [
       { nombre: 'Calculadora de ROM', icon: 'compass' },
@@ -1558,6 +1559,7 @@ const EspecialistaDashboard = () => {
   );
 
   // ===== VISTAS DE MÓDULOS ESPECÍFICOS =====
+  
 
   // Componente reutilizable: Selector de paciente para módulos
   const renderPatientSelector = (title, icon) => (
@@ -2259,6 +2261,21 @@ const renderModAlertasClinicas = () => {
       case 'mod-progreso':
         if (!selectedPaciente) return renderPatientSelector('Progreso de Usuarios', 'trending-up');
         return <ProgresoPacientes pacienteId={selectedPaciente.id} onBack={handleBackToPatientList} />;
+      case 'mod-indicaciones-fisioterapia':
+    if (!selectedPaciente)
+        return renderPatientSelector(
+            'Indicaciones de Fisioterapia',
+            'clipboard'
+        );
+        console.log("Paciente seleccionado:", selectedPaciente);
+
+    return (
+        <IndicacionesFisioterapia
+            pacienteId={selectedPaciente.id}
+            especialistaId={user?.especialista_id || user?.id}
+            onBack={handleBackToPatientList}
+        />
+    );
       case 'mod-planes-nutricionales': return renderPlanesNutricionales();
       case 'mod-seguimiento-peso':
         if (!selectedPaciente) return renderPatientSelector('Seguimiento de Peso', 'chart-line');

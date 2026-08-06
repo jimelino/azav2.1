@@ -38,7 +38,7 @@ const InformacionFase = ({ faseActual = 1 }) => {
         <div className="informacion-fase">
 
             <h2 className="titulo-fase">
-                📋 Fase actual
+                Fase actual
             </h2>
 
             <h3 className="nombre-fase">
