@@ -2041,3 +2041,63 @@
 [data-reduced-motion="true"] .toggle-chevron {
   transition: none;
 }
+/*==========================================
+  TARJETA DE INDICACIONES
+==========================================*/
+
+.indicaciones-card{
+    background:#fff;
+    border-radius:22px;
+    padding:20px;
+    box-shadow:0 4px 15px rgba(0,0,0,.08);
+    border:1px solid #ececec;
+}
+
+.indicaciones-title{
+    color:#1976d2;
+    font-size:24px;
+    font-weight:700;
+    margin-bottom:18px;
+}
+
+.indicaciones-content{
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+    max-height:320px;
+    overflow-y:auto;
+}
+
+.indicacion-item{
+    background:#f8fbff;
+    border:1px solid #d8e8ff;
+    border-left:5px solid #1976d2;
+    border-radius:16px;
+    padding:16px;
+    transition:.25s;
+}
+
+.indicacion-item:hover{
+    transform:translateY(-2px);
+    box-shadow:0 6px 14px rgba(25,118,210,.15);
+}
+
+.indicacion-titulo{
+    margin:0;
+    color:#1565c0;
+    font-size:18px;
+    font-weight:700;
+}
+
+.indicacion-descripcion{
+    margin:10px 0;
+    color:#444;
+    line-height:1.5;
+}
+
+.indicacion-especialista{
+    display:block;
+    color:#666;
+    font-size:14px;
+    font-weight:600;
+}
