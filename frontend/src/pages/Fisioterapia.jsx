@@ -154,7 +154,7 @@ const Fisioterapia = () => {
         </div>
       </header>
       <MapaFases
-    faseActual={2}
+    faseActual={3}
 />
 
       {/* Navegación por pestañas */}
