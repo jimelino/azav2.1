@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import api from "../../services/api";
 import LucideIcon from "../LucideIcon";
+import "./AlertasClinicas.css";
 
 const AlertasClinicas = ({
     especialistaId,
@@ -49,6 +50,7 @@ const AlertasClinicas = ({
         const res = await api.put(`/alertas/${id}/atender`);
 
         if (res.success) {
+            alert("Alerta marcada como atendida.");
 
             cargarAlertas();
 
@@ -159,7 +161,7 @@ const AlertasClinicas = ({
     className="btn-atender-alerta"
     onClick={() => atenderAlerta(a.id)}
 >
-    ✅ Marcar como atendida
+    Marcar como atendida
 </button>
 
                         </div>
