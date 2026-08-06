@@ -95,25 +95,25 @@
 
 .paciente-card{
 
-    background:#fff;
+    display:grid;
 
-    border-radius:22px;
-
-    padding:28px 35px;
-
-    display:flex;
+    grid-template-columns:80px 1fr auto;
 
     align-items:center;
 
-    justify-content:space-between;
-
     gap:30px;
+
+    background:#fff;
+
+    padding:30px;
+
+    border-radius:22px;
 
     margin-bottom:30px;
 
-    box-shadow:0 10px 30px rgba(0,0,0,.08);
-
     border-left:8px solid #F4A825;
+
+    box-shadow:0 8px 25px rgba(0,0,0,.08);
 
 }
 
@@ -169,9 +169,11 @@
 
 .paciente-extra{
 
-    display:flex;
+    display:grid;
 
-    gap:45px;
+    grid-template-columns:repeat(2,1fr);
+
+    gap:25px;
 
 }
 
@@ -316,7 +318,7 @@
 
     width:100%;
 
-    min-height:260px;
+    min-height:170px;
 
     padding:18px;
 
@@ -509,6 +511,8 @@
 .btn-guardar{
 
     width:100%;
+
+    min-width:unset;
 
 }
 
