@@ -32,12 +32,15 @@ class Publicacion {
     public static function getFeed($userId, $filters = []) {
         $db = DatabaseService::getInstance();
 
-        $query = "SELECT p.*, u.nombre_completo as autor_nombre, t.nombre as tema_nombre, t.icono as tema_icono
+        $query = "SELECT p.*, u.nombre_completo as autor_nombre, t.nombre as tema_nombre, t.icono as tema_icono,
+                         (SELECT tr.nombre FROM reacciones_publicacion r
+                          LEFT JOIN tipos_reaccion tr ON r.tipo_reaccion_id = tr.id
+                          WHERE r.publicacion_id = p.id AND r.usuario_id = ? LIMIT 1) AS mi_reaccion
                   FROM " . self::$table . " p
                   LEFT JOIN usuarios u ON p.usuario_id = u.id
                   LEFT JOIN temas_comunidad t ON p.tema_id = t.id
                   WHERE p.estado = 'aprobada'";
-        $params = [];
+        $params = [$userId];
 
         if (!empty($filters['tema_id'])) {
             $query .= " AND p.tema_id = ?";

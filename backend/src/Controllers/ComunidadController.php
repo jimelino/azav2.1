@@ -179,6 +179,17 @@ class ComunidadController
 
     public function eliminarComentario($id)
     {
+        $currentUser = \App\Middleware\AuthMiddleware::getCurrentUser();
+        $comentario = ComentarioComunidad::find($id);
+
+        if (!$comentario) {
+            return Response::error('Comentario no encontrado', 404);
+        }
+
+        if ($comentario['usuario_id'] != $currentUser['id']) {
+            return Response::error('No tienes permiso para eliminar este comentario', 403);
+        }
+
         $result = ComentarioComunidad::delete($id);
 
         if ($result) {

@@ -46,6 +46,40 @@ class EmailService
         return $this->send($user['email'], $subject, $body);
     }
 
+    public function sendRecordatorioEmail($recordatorio)
+    {
+        $email = $recordatorio['email'] ?? null;
+        if (!$email) {
+            $this->log("Recordatorio - sin email de usuario", $recordatorio);
+            return true;
+        }
+
+        $nombre = $recordatorio['nombre_completo'] ?? 'Usuario';
+        $titulo = $recordatorio['mensaje_personalizado'] ?? 'Tienes un recordatorio pendiente';
+        $hora = $recordatorio['hora'] ?? '';
+
+        $subject = "Recordatorio: $titulo";
+        $body = "
+        <!DOCTYPE html>
+        <html>
+        <head><meta charset='UTF-8'></head>
+        <body style='font-family: Arial, sans-serif; line-height: 1.6; color: #333;'>
+            <div style='max-width:600px;margin:0 auto;padding:20px;'>
+                <div style='background:#FFC107;color:#333;padding:20px;text-align:center;'>
+                    <h1 style='margin:0;font-size:22px;'>🔔 Recordatorio</h1>
+                </div>
+                <div style='padding:20px;background:#f9f9f9;'>
+                    <p>Hola <strong>{$nombre}</strong>,</p>
+                    <p>Es hora de: <strong>{$titulo}</strong></p>
+                    <p>🕐 Programado a las <strong>{$hora}</strong></p>
+                </div>
+            </div>
+        </body>
+        </html>";
+
+        return $this->send($email, $subject, $body);
+    }
+
     public function sendRecoveryCode($email, $code)
     {
         $subject = 'Código de recuperación - Vitalia';

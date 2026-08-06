@@ -672,6 +672,7 @@ CREATE TABLE IF NOT EXISTS registro_videos (
 
     FOREIGN KEY (paciente_id) REFERENCES pacientes(id) ON DELETE CASCADE,
     FOREIGN KEY (video_id) REFERENCES videos_ejercicios(id) ON DELETE CASCADE,
+    UNIQUE KEY unique_registro_dia (paciente_id, video_id, fecha),
     INDEX idx_paciente_fecha (paciente_id, fecha)
 ) ENGINE=InnoDB;
 

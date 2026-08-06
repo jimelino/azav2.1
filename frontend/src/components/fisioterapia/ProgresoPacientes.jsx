@@ -8,10 +8,18 @@ const ProgresoPacientes = ({ pacienteId, onBack }) => {
   const [evaluaciones, setEvaluaciones] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => { cargarDatos(); }, [pacienteId]);
+  useEffect(() => {
+    cargarDatos();
 
-  const cargarDatos = async () => {
-    setLoading(true);
+    // Refresco silencioso: si el paciente completa un ejercicio mientras el
+    // especialista tiene este dashboard abierto, lo ve sin recargar la página.
+    const interval = setInterval(() => cargarDatos(true), 20000);
+    return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pacienteId]);
+
+  const cargarDatos = async (silencioso = false) => {
+    if (!silencioso) setLoading(true);
     try {
       const [statsRes, evalRes] = await Promise.all([
         api.get(`/fisioterapia/stats/paciente/${pacienteId}`),
@@ -23,9 +31,9 @@ const ProgresoPacientes = ({ pacienteId, onBack }) => {
       setEvaluaciones(Array.isArray(rawEval) ? rawEval : []);
     } catch (error) {
       console.error('Error cargando datos:', error);
-      setStats({});
+      if (!silencioso) setStats({});
     } finally {
-      setLoading(false);
+      if (!silencioso) setLoading(false);
     }
   };
 

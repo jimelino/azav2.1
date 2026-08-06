@@ -203,6 +203,27 @@ route('POST', '/api/nutricion/agua', function() {
     $controller->registrarAgua(json_decode(file_get_contents('php://input'), true));
 }, ['auth']);
 
+// RUTAS DE ANTROPOMETRÍA (seguimiento de peso)
+route('GET', '/api/nutricion/antropometria/(\d+)', function($pacienteId) {
+    $controller = new \App\Controllers\AntropometriaController();
+    $controller->getMediciones($pacienteId);
+}, ['auth']);
+
+route('GET', '/api/nutricion/antropometria/(\d+)/peso', function($pacienteId) {
+    $controller = new \App\Controllers\AntropometriaController();
+    $controller->getEvolucionPeso($pacienteId);
+}, ['auth']);
+
+route('POST', '/api/nutricion/antropometria/(\d+)', function($pacienteId) {
+    $controller = new \App\Controllers\AntropometriaController();
+    $controller->registrarMedicion($pacienteId);
+}, ['auth']);
+
+route('DELETE', '/api/nutricion/antropometria/medicion/(\d+)', function($id) {
+    $controller = new \App\Controllers\AntropometriaController();
+    $controller->eliminarMedicion($id);
+}, ['auth']);
+
 route('GET', '/api/nutricion/agua/(\d+)/([0-9-]+)', function($pacienteId, $fecha) {
     $controller = new NutricionController();
     $controller->getRegistroAgua($pacienteId, $fecha);
@@ -981,6 +1002,17 @@ route('GET', '/api/comunidad/publicaciones/(\d+)', function($id) {
     $controller->getPublicacion($id);
 }, ['auth']);
 
+route('PUT', '/api/comunidad/publicaciones/(\d+)', function($id) {
+    $data = json_decode(file_get_contents('php://input'), true) ?? [];
+    $controller = new ComunidadController();
+    $controller->actualizarPublicacion($id, $data);
+}, ['auth']);
+
+route('DELETE', '/api/comunidad/publicaciones/(\d+)', function($id) {
+    $controller = new ComunidadController();
+    $controller->eliminarPublicacion($id);
+}, ['auth']);
+
 route('POST', '/api/comunidad/publicaciones/(\d+)/like', function($id) {
     $user = AuthMiddleware::getCurrentUser();
     $controller = new ComunidadController();
@@ -1082,4 +1114,4 @@ route('PUT', '/api/admin/usuarios/(\d+)/toggle', function($id) {
 route('GET', '/api/nutricion/plan-paciente/(\d+)', function($id) {
     $controller = new \App\Controllers\NutricionController();
     $controller->obtenerPlanPaciente($id);
-});
+}, ['auth']);

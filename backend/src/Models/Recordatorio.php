@@ -89,6 +89,12 @@ class Recordatorio {
         }, $recordatorios);
     }
 
+    public static function getUsuarioIdByPaciente($pacienteId) {
+        $db = DatabaseService::getInstance();
+        $paciente = $db->query("SELECT usuario_id FROM pacientes WHERE id = ?", [$pacienteId])->fetch();
+        return $paciente['usuario_id'] ?? null;
+    }
+
     public static function getByUsuario($usuarioId, $activos = null) {
         $db = DatabaseService::getInstance();
 
@@ -218,13 +224,22 @@ class Recordatorio {
         $recordatorio = self::find($id);
         if ($recordatorio) {
             $db->query(
-                "INSERT INTO historial_recordatorios (recordatorio_id, usuario_id, completado, created_at)
-                 VALUES (?, ?, 1, NOW())",
+                "INSERT INTO historial_recordatorios (recordatorio_id, usuario_id, enviado_en, completado, completado_en, created_at)
+                 VALUES (?, ?, NOW(), 1, NOW(), NOW())",
                 [$id, $recordatorio['usuario_id']]
             );
         }
 
         return true;
+    }
+
+    public static function registrarEnvio($recordatorioId, $usuarioId) {
+        $db = DatabaseService::getInstance();
+        $db->query(
+            "INSERT INTO historial_recordatorios (recordatorio_id, usuario_id, enviado_en, created_at)
+             VALUES (?, ?, NOW(), NOW())",
+            [$recordatorioId, $usuarioId]
+        );
     }
 
     public static function getHistorial($pacienteId, $filters = []) {

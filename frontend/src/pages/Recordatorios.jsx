@@ -205,24 +205,31 @@ const Recordatorios = () => {
   };
 
   const toggleRecordatorioActivo = async (recordatorioId, activo) => {
+    // Actualización optimista con rollback: si el PUT falla, revierte el
+    // switch a su estado anterior en vez de quedar desincronizado en silencio.
+    setRecordatorios(prev =>
+      prev.map(r => r.id === recordatorioId ? { ...r, activo: !activo } : r)
+    );
     try {
       await api.put(`/recordatorios/${recordatorioId}`, { activo: !activo });
-      setRecordatorios(prev =>
-        prev.map(r => r.id === recordatorioId ? { ...r, activo: !activo } : r)
-      );
     } catch (err) {
       console.error('Error al actualizar recordatorio:', err);
+      setRecordatorios(prev =>
+        prev.map(r => r.id === recordatorioId ? { ...r, activo } : r)
+      );
     }
   };
 
   const eliminarRecordatorio = async (recordatorioId) => {
     if (!window.confirm('¿Eliminar este recordatorio?')) return;
 
+    const anterior = recordatorios;
+    setRecordatorios(prev => prev.filter(r => r.id !== recordatorioId));
     try {
       await api.delete(`/recordatorios/${recordatorioId}`);
-      setRecordatorios(prev => prev.filter(r => r.id !== recordatorioId));
     } catch (err) {
       console.error('Error al eliminar recordatorio:', err);
+      setRecordatorios(anterior);
     }
   };
 

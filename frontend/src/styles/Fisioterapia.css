@@ -639,6 +639,17 @@
   line-height: 1.6;
 }
 
+.video-modal-acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm, 12px);
+  margin-top: var(--spacing-md, 16px);
+}
+
+.video-modal-acciones .btn {
+  min-height: var(--touch-target-min, 48px);
+}
+
 .instrucciones {
   margin-top: var(--spacing-md, 16px);
   padding-top: var(--spacing-md, 16px);

@@ -23,6 +23,8 @@ const Fisioterapia = () => {
   const [progreso, setProgreso] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedVideo, setSelectedVideo] = useState(null);
+  const [completadosHoy, setCompletadosHoy] = useState(new Set());
+  const [marcandoCompletado, setMarcandoCompletado] = useState(false);
 
   useEffect(() => {
     cargarDatos();
@@ -62,6 +64,7 @@ const Fisioterapia = () => {
   };
 
   const marcarEjercicioCompletado = async (ejercicioId) => {
+    setMarcandoCompletado(true);
     try {
       await api.post('/fisioterapia/ejercicio/completar', {
         paciente_id: user.paciente_id,
@@ -69,6 +72,7 @@ const Fisioterapia = () => {
         fecha: new Date().toISOString().split('T')[0]
       });
 
+      setCompletadosHoy(prev => new Set(prev).add(ejercicioId));
       setRutinaDiaria(prev => prev.map(ej =>
         ej.id === ejercicioId ? { ...ej, completado: true } : ej
       ));
@@ -79,6 +83,9 @@ const Fisioterapia = () => {
       }
     } catch (err) {
       console.error('Error al marcar ejercicio:', err);
+      alert('No se pudo registrar el ejercicio como completado. Intenta de nuevo.');
+    } finally {
+      setMarcandoCompletado(false);
     }
   };
 
@@ -346,13 +353,24 @@ const Fisioterapia = () => {
                   <p>{selectedVideo.instrucciones}</p>
                 </div>
               )}
-              <button
-                className="btn btn-voice"
-                onClick={() => speak(`${selectedVideo.titulo || selectedVideo.nombre}. ${selectedVideo.descripcion}. ${selectedVideo.instrucciones || ''}`)}
-                aria-label="Escuchar descripción del video"
-              >
-                <LucideIcon name="volume" size={16} /> Escuchar descripción
-              </button>
+              <div className="video-modal-acciones">
+                <button
+                  className="btn btn-voice"
+                  onClick={() => speak(`${selectedVideo.titulo || selectedVideo.nombre}. ${selectedVideo.descripcion}. ${selectedVideo.instrucciones || ''}`)}
+                  aria-label="Escuchar descripción del video"
+                >
+                  <LucideIcon name="volume" size={16} /> Escuchar descripción
+                </button>
+                <button
+                  className="btn btn-primary"
+                  onClick={() => marcarEjercicioCompletado(selectedVideo.id)}
+                  disabled={marcandoCompletado || completadosHoy.has(selectedVideo.id)}
+                  aria-label="Marcar este ejercicio como completado hoy"
+                >
+                  <LucideIcon name={completadosHoy.has(selectedVideo.id) ? 'check' : 'circle-check'} size={16} />
+                  {completadosHoy.has(selectedVideo.id) ? ' Completado hoy' : (marcandoCompletado ? ' Guardando...' : ' Marcar como completado')}
+                </button>
+              </div>
             </div>
           </div>
         </div>

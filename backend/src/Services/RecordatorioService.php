@@ -14,6 +14,6 @@ class RecordatorioService {
     
     public function send($recordatorio) {
         $emailService = new EmailService();
-        return $emailService->sendWelcomeEmail([], []);
+        return $emailService->sendRecordatorioEmail($recordatorio);
     }
 }
