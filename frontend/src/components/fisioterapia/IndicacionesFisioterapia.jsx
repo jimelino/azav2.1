@@ -41,21 +41,28 @@ const IndicacionesFisioterapia = ({
     const [guardando, setGuardando] = useState(false);
 
     const [cargando, setCargando] = useState(true);
+
     const [paciente, setPaciente] = useState(null);
 
     const cargarInformacion = async () => {
 
         try {
 
+            // Información del paciente
+
             const infoPaciente = await api.get(
-    `/fisioterapia/paciente/${pacienteId}`
-);
 
-if (infoPaciente.success) {
+                `/fisioterapia/paciente/${pacienteId}`
 
-    setPaciente(infoPaciente.data);
+            );
 
-}
+            if (infoPaciente.success) {
+
+                setPaciente(infoPaciente.data);
+
+            }
+
+            // Indicaciones
 
             const res = await api.get(
 
@@ -101,7 +108,11 @@ if (infoPaciente.success) {
 
         if (indicaciones.trim() === "") {
 
-            alert("Escriba las indicaciones para el paciente.");
+            alert(
+
+                "Escriba las indicaciones para el paciente."
+
+            );
 
             return;
 
@@ -123,7 +134,7 @@ if (infoPaciente.success) {
 
                     fase_actual: faseActual,
 
-                    indicaciones: indicaciones
+                    indicaciones
 
                 }
 
@@ -131,7 +142,11 @@ if (infoPaciente.success) {
 
             if (res.success) {
 
-                alert("Información guardada correctamente.");
+                alert(
+
+                    "Información guardada correctamente."
+
+                );
 
             }
 
@@ -139,7 +154,11 @@ if (infoPaciente.success) {
 
             console.error(error);
 
-            alert("No fue posible guardar la información.");
+            alert(
+
+                "No fue posible guardar la información."
+
+            );
 
         } finally {
 
@@ -152,80 +171,34 @@ if (infoPaciente.success) {
 
         <section className="indicaciones-fisio">
 
-            <div className="module-header">
+            <button
+                className="back-btn"
+                onClick={onBack}
+            >
+                ← Regresar
+            </button>
 
-                <button
-                    className="back-btn"
-                    onClick={onBack}
-                >
-                    ← Regresar
-                </button>
+            <div className="titulo-modulo">
 
-                <h2>
+                <h1>
 
                     Indicaciones de Fisioterapia
 
-                </h2>
-                <div className="paciente-card">
+                </h1>
 
-    <div className="paciente-avatar">
+                <p>
 
-        👤
+                    Actualice la fase del tratamiento y registre las indicaciones que visualizará el paciente.
 
-    </div>
+                </p>
 
-    <div className="paciente-info">
-
-        <h2>
-
-            {paciente?.nombre_completo || "Paciente"}
-
-        </h2>
-
-        <p>
-
-             {paciente?.email || "Correo no disponible"}
-
-        </p>
-
-    </div>
-
-    <div className="paciente-extra">
-
-        <span>
-
-            Especialista
-
-        </span>
-
-        <strong>
-
-            {paciente?.especialista || "Sin asignar"}
-
-        </strong>
-
-        <br /><br />
-
-        <span>
-
-            Área
-
-        </span>
-
-        <strong>
-
-            {paciente?.area || "Fisioterapia"}
-
-        </strong>
-
-    </div>
-
-</div>
             </div>
 
             {
 
-                cargando ?
+                cargando
+
+                ?
 
                 (
 
@@ -241,109 +214,197 @@ if (infoPaciente.success) {
 
                 (
 
-                    <div className="indicaciones-card">
+                    <>
 
-                        <div className="info-paciente">
+                        <div className="paciente-card">
 
-                            <h3>
+                            <div className="paciente-avatar">
 
-                                Panel de seguimiento del paciente
+                                👤
 
-                            </h3>
+                            </div>
 
-                            <p>
+                            <div className="paciente-info">
 
-                                En este módulo podrá actualizar la fase del tratamiento y asignar las indicaciones que visualizará el paciente
+                                <h2>
 
-                            </p>
+                                    {paciente?.nombre_completo || "Paciente"}
+
+                                </h2>
+
+                                <p>
+
+                                    {paciente?.email || "Correo no disponible"}
+
+                                </p>
+
+                            </div>
+
+                            <div className="paciente-extra">
+
+                                <div className="dato-extra">
+
+                                    <span>
+
+                                        Especialista
+
+                                    </span>
+
+                                    <strong>
+
+                                        {paciente?.especialista || "Sin asignar"}
+
+                                    </strong>
+
+                                </div>
+
+                                <div className="dato-extra">
+
+                                    <span>
+
+                                        Área médica
+
+                                    </span>
+
+                                    <strong>
+
+                                        {paciente?.area || "Fisioterapia"}
+
+                                    </strong>
+
+                                </div>
+
+                            </div>
 
                         </div>
 
-                        <div className="formulario-indicaciones">
+                        <div className="indicaciones-card">
 
-    <div className="campo">
+                            <div className="info-paciente">
 
-        <label>
+                                <h3>
 
-            Fase del tratamiento
+                                    📋 Panel de seguimiento del paciente
 
-        </label>
+                                </h3>
 
-        <select
-            value={faseActual}
-            onChange={(e)=>setFaseActual(Number(e.target.value))}
-        >
+                                <p>
 
-            {fases.map((fase)=>(
+                                    Seleccione la fase actual del tratamiento y escriba las indicaciones que el paciente visualizará dentro de su aplicación.
 
-                <option
-                    key={fase.id}
-                    value={fase.id}
-                >
-                    {fase.nombre}
-                </option>
+                                </p>
 
-            ))}
+                            </div>
 
-        </select>
+                            <div className="campo">
 
-    </div>
+                                <label>
 
+                                    Fase del tratamiento
 
-    <div className="campo">
+                                </label>
 
-        <label>
+                                <select
 
-            Indicaciones para el paciente
+                                    value={faseActual}
 
-        </label>
+                                    onChange={(e) =>
 
-        <textarea
+                                        setFaseActual(
 
-            value={indicaciones}
+                                            Number(e.target.value)
 
-            onChange={(e)=>setIndicaciones(e.target.value)}
+                                        )
 
-            placeholder="Escriba aquí las indicaciones que deberá seguir el paciente..."
+                                    }
 
-        />
+                                >
 
-    </div>
+                                    {
 
-</div>
+                                        fases.map((fase) => (
 
-                       <div className="boton-guardar">
+                                            <option
 
-    <button
+                                                key={fase.id}
 
-        className="btn-guardar"
+                                                value={fase.id}
 
-        onClick={guardarCambios}
+                                            >
 
-        disabled={guardando}
+                                                {fase.nombre}
 
-    >
+                                            </option>
 
-        {
+                                        ))
 
-            guardando
+                                    }
 
-            ?
+                                </select>
 
-            "Guardando..."
+                            </div>
 
-            :
+                            <div className="campo">
 
-            "Guardar cambios"
+                                <label>
 
-        }
+                                    Indicaciones para el paciente
 
-    </button>
+                                </label>
 
-</div>
-                        
+                                <textarea
 
-                    </div>
+                                    value={indicaciones}
+
+                                    onChange={(e) =>
+
+                                        setIndicaciones(
+
+                                            e.target.value
+
+                                        )
+
+                                    }
+
+                                    placeholder="Escriba aquí todas las indicaciones que deberá seguir el paciente durante esta fase del tratamiento."
+
+                                />
+
+                            </div>
+
+                            <div className="boton-guardar">
+
+                                <button
+
+                                    className="btn-guardar"
+
+                                    onClick={guardarCambios}
+
+                                    disabled={guardando}
+
+                                >
+
+                                    {
+
+                                        guardando
+
+                                        ?
+
+                                        "Guardando..."
+
+                                        :
+
+                                        "Guardar cambios"
+
+                                    }
+
+                                </button>
+
+                            </div>
+
+                        </div>
+
+                    </>
 
                 )
 
@@ -352,7 +413,6 @@ if (infoPaciente.success) {
         </section>
 
     );
-
-};
+    };
 
 export default IndicacionesFisioterapia;
