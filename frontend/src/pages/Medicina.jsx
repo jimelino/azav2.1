@@ -502,35 +502,54 @@ console.log("cantidad:", indicaciones.length);
           </Speakable>
         </div>
       </section>
-      {/* Indicaciones del especialista */}
+     {/* Indicaciones del especialista */}
 <section className="stats-section">
+
   <div className="indicaciones-card">
+
+    <h3 className="indicaciones-title">
+      Indicaciones del Especialista
+    </h3>
+
     <div className="indicaciones-content">
-      <h3 style={{ color: "red", fontSize: "30px" }}>
-  Indicaciones/Notas generales
-</h3>
 
       {indicaciones.length === 0 ? (
-        <p>No tienes indicaciones registradas.</p>
+
+        <div className="empty-state">
+          No tienes indicaciones registradas.
+        </div>
+
       ) : (
+
         indicaciones.map((item) => (
+
           <div
-    key={item.id}
-    className="indicacion-titulo"
->
-            <strong>{item.titulo}</strong>
+            key={item.id}
+            className="indicacion-item"
+          >
 
-            <p>{item.descripcion}</p>
+            <h4 className="indicacion-titulo">
+              {item.titulo}
+            </h4>
 
-            <small>
-              Especialista: {item.especialista}
-            </small>
+            <p className="indicacion-descripcion">
+              {item.descripcion}
+            </p>
+
+            <span className="indicacion-especialista">
+              👨‍⚕️ {item.especialista}
+            </span>
+
           </div>
+
         ))
+
       )}
 
     </div>
+
   </div>
+
 </section>
 
       {/* Tabs mejorados */}
