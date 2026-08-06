@@ -64,6 +64,54 @@ class MedicinaController
                 $data['notas'] ?? null
             ]
         );
+        // Revisar si la glucosa representa un riesgo
+
+if ($valor >= 250) {
+
+    $this->crearAlertaClinica(
+
+        $data['paciente_id'],
+
+        'glucosa',
+
+        'Glucosa muy elevada',
+
+        "Se registró una glucosa de {$valor} mg/dL.",
+
+        'alta',
+
+        [
+            'medicina',
+            'fisioterapia',
+            'ortesis'
+        ]
+
+    );
+
+}
+elseif ($valor <= 60) {
+
+    $this->crearAlertaClinica(
+
+        $data['paciente_id'],
+
+        'glucosa',
+
+        'Hipoglucemia',
+
+        "Se registró una glucosa de {$valor} mg/dL.",
+
+        'critica',
+
+        [
+            'medicina',
+            'fisioterapia',
+            'ortesis'
+        ]
+
+    );
+
+}
 
         return Response::success(null, 'Nivel de glucosa registrado', 201);
     }
@@ -113,6 +161,57 @@ class MedicinaController
                 $data['notas'] ?? null
             ]
         );
+        // Revisar presión arterial
+
+$sistolica = (int)$data['sistolica'];
+$diastolica = (int)$data['diastolica'];
+
+if ($sistolica >= 180 || $diastolica >= 120) {
+
+    $this->crearAlertaClinica(
+
+        $data['paciente_id'],
+
+        'presion',
+
+        'Presión arterial crítica',
+
+        "Se registró una presión de {$sistolica}/{$diastolica} mmHg.",
+
+        'critica',
+
+        [
+            'medicina',
+            'fisioterapia',
+            'ortesis'
+        ]
+
+    );
+
+}
+elseif ($sistolica >= 160 || $diastolica >= 100) {
+
+    $this->crearAlertaClinica(
+
+        $data['paciente_id'],
+
+        'presion',
+
+        'Presión arterial elevada',
+
+        "Se registró una presión de {$sistolica}/{$diastolica} mmHg.",
+
+        'alta',
+
+        [
+            'medicina',
+            'fisioterapia'
+        ]
+
+    );
+
+}
+        
 
         return Response::success(null, 'Presión arterial registrada', 201);
     }
@@ -165,6 +264,53 @@ class MedicinaController
                 $data['notas'] ?? null
             ]
         );
+        // Revisar nivel de dolor
+
+$nivelDolor = (int)$data['nivel_dolor'];
+
+if ($nivelDolor >= 8) {
+
+    $this->crearAlertaClinica(
+
+        $data['paciente_id'],
+
+        'dolor',
+
+        'Dolor intenso',
+
+        "Paciente registró un dolor de {$nivelDolor}/10.",
+
+        'alta',
+
+        [
+            'medicina',
+            'fisioterapia'
+        ]
+
+    );
+
+}
+elseif ($nivelDolor >= 6) {
+
+    $this->crearAlertaClinica(
+
+        $data['paciente_id'],
+
+        'dolor',
+
+        'Dolor moderado',
+
+        "Paciente registró un dolor de {$nivelDolor}/10.",
+
+        'media',
+
+        [
+            'fisioterapia'
+        ]
+
+    );
+
+}
 
         return Response::success(null, 'Dolor registrado', 201);
     }
@@ -261,6 +407,51 @@ class MedicinaController
                 $fecha
             ]
         );
+        // Revisar HbA1c
+
+if ($valor >= 9.0) {
+
+    $this->crearAlertaClinica(
+
+        $data['paciente_id'],
+
+        'hba1c',
+
+        'Hemoglobina glicosilada elevada',
+
+        "Paciente registró una HbA1c de {$valor}%",
+
+        'alta',
+
+        [
+            'medicina',
+            'fisioterapia'
+        ]
+
+    );
+
+}
+elseif ($valor >= 7.0) {
+
+    $this->crearAlertaClinica(
+
+        $data['paciente_id'],
+
+        'hba1c',
+
+        'HbA1c fuera de rango',
+
+        "Paciente registró una HbA1c de {$valor}%",
+
+        'media',
+
+        [
+            'medicina'
+        ]
+
+    );
+
+}
 
         return Response::success(null, 'Hemoglobina glicosilada registrada', 201);
     }
@@ -445,4 +636,63 @@ class MedicinaController
 
         return Response::success(null, 'Medicamento desactivado');
     }
+    /**
+ * Crear alerta clínica
+ */
+private function crearAlertaClinica(
+    $pacienteId,
+    $tipo,
+    $titulo,
+    $descripcion,
+    $prioridad,
+    $areas
+)
+{
+    foreach ($areas as $area) {
+
+        // Evitar duplicados
+        $existe = $this->db->query(
+            "SELECT id
+             FROM alertas_clinicas
+             WHERE paciente_id = ?
+             AND tipo_alerta = ?
+             AND area_destino = ?
+             AND estado = 'pendiente'
+             LIMIT 1",
+            [
+                $pacienteId,
+                $tipo,
+                $area
+            ]
+        )->fetch();
+
+        if ($existe) {
+            continue;
+        }
+
+        $this->db->query(
+            "INSERT INTO alertas_clinicas
+            (
+                paciente_id,
+                area_destino,
+                tipo_alerta,
+                titulo,
+                descripcion,
+                prioridad,
+                estado,
+                created_at
+            )
+            VALUES
+            (?, ?, ?, ?, ?, ?, 'pendiente', NOW())",
+            [
+                $pacienteId,
+                $area,
+                $tipo,
+                $titulo,
+                $descripcion,
+                $prioridad
+            ]
+        );
+    }
+}
 }

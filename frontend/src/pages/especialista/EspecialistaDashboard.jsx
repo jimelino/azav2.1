@@ -105,6 +105,8 @@ const AREAS_CONFIG = {
       { id: 'estudios', nombre: 'Estudios Clínicos', icon: 'microscope', descripcion: 'Ver estudios de usuarios', view: 'mod-estudios' },
       { id: 'recetas-medicas', nombre: 'Recetas Médicas', icon: 'pill', descripcion: 'Generar recetas para usuarios', view: 'mod-recetas' },
       { id: 'indicaciones', nombre: 'Indicaciones Médicas', icon: 'clipboard', descripcion: 'Registrar indicaciones para los usuarios', view: 'mod-indicaciones'},
+      {id: 'alertas-clinicas', nombre: 'Alertas Clínicas', icon: 'bell-ring', descripcion: 'Alertas de riesgo registradas por los pacientes', view: 'mod-alertas-clinicas'
+},
     ],
     herramientas: [
       { nombre: 'Calculadora de Dosis', icon: 'syringe' },

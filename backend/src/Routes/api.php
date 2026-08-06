@@ -26,6 +26,7 @@ use App\Middleware\RateLimitMiddleware;
 use App\Controllers\EquivalentesController;
 use App\Controllers\ExternalPatientController;
 use App\Controllers\IndicacionesController;
+use App\Controllers\AlertasClinicasController;
 
 // Función helper para rutas
 function route($method, $path, $callback, $middleware = []) {
@@ -335,6 +336,28 @@ route('DELETE', '/api/indicaciones/(\d+)', function ($id) {
     $controller->eliminar($id);
 }, ['auth']);
 
+// ======================================================
+// RUTAS DE ALERTAS CLÍNICAS
+// ======================================================
+
+// Obtener alertas por área
+route('GET', '/api/alertas/([a-zA-Z_-]+)', function ($area) {
+
+    $controller = new AlertasClinicasController();
+
+    $controller->obtenerPorArea($area);
+
+}, ['auth']);
+
+
+// Marcar alerta como atendida
+route('PUT', '/api/alertas/(\d+)/atender', function ($id) {
+
+    $controller = new AlertasClinicasController();
+
+    $controller->atender($id);
+
+}, ['auth']);
 // =============================
 // RUTAS DE ESPECIALISTAS
 // =============================
