@@ -165,11 +165,13 @@ const IndicacionesFisioterapia = ({
 
     <div className="paciente-info">
 
-        <h2>{nombrePaciente}</h2>
+    <h2>Paciente #{pacienteId}</h2>
 
-        <p>ID del paciente: {pacienteId}</p>
+    <p>
+        Área: Fisioterapia
+    </p>
 
-    </div>
+</div>
 
     <div className="paciente-extra">
 
