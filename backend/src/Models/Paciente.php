@@ -33,7 +33,7 @@ class Paciente
 
         $db->query($query, [
             $data['user_id'],
-            $data['fase_actual'] ?? FASE_PREOPERATORIA,
+            $data['fase_actual'] ?? FASE_PRECONSULTA,
             $data['fecha_amputacion'] ?? null,
             $data['tipo_amputacion'] ?? null,
             $data['causa_amputacion'] ?? null,

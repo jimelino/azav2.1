@@ -6,10 +6,14 @@ define('ROLE_ESPECIALISTA', 'especialista');
 define('ROLE_PACIENTE', 'paciente');
 
 // Fases de rehabilitación
-define('FASE_PREOPERATORIA', 1);
-define('FASE_POSTOPERATORIA', 2);
+define('FASE_PRECONSULTA', 1);
+define('FASE_ADAPTACION_EJERCICIO', 2);
 define('FASE_PREPROTESICA', 3);
 define('FASE_PROTESICA', 4);
+define('FASE_POSPROTESICA', 5);
+define('FASE_ALTA_GRADUACION', 6);
+define('FASE_SEGUIMIENTO_6_MESES', 7);
+define('FASE_SEGUIMIENTO_12_MESES', 8);
 
 // Estados de citas
 define('CITA_PENDIENTE', 'pendiente');
@@ -61,7 +65,16 @@ define('ANIMO_MUY_BIEN', 5);
 
 return [
     'roles' => [ROLE_ADMIN, ROLE_ESPECIALISTA, ROLE_PACIENTE],
-    'fases' => [FASE_PREOPERATORIA, FASE_POSTOPERATORIA, FASE_PREPROTESICA, FASE_PROTESICA],
+    'fases' => [
+        FASE_PRECONSULTA,
+        FASE_ADAPTACION_EJERCICIO,
+        FASE_PREPROTESICA,
+        FASE_PROTESICA,
+        FASE_POSPROTESICA,
+        FASE_ALTA_GRADUACION,
+        FASE_SEGUIMIENTO_6_MESES,
+        FASE_SEGUIMIENTO_12_MESES
+    ],
     'especialidades' => [
         ESPECIALIDAD_NUTRICION,
         ESPECIALIDAD_MEDICINA,

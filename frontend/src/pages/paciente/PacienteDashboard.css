@@ -315,12 +315,19 @@
 
 .progress-route-map {
   position: relative;
-  min-height: 220px;
   margin: var(--spacing-md) 0;
-  overflow: hidden;
+  overflow-x: auto;
+  overflow-y: hidden;
   border-radius: var(--border-radius-lg);
   background: linear-gradient(145deg, #f8fbfd, #eef3f6);
   border: 1px solid rgba(21, 101, 192, 0.12);
+  scrollbar-width: thin;
+}
+
+.progress-route-canvas {
+  position: relative;
+  min-width: 820px;
+  height: 300px;
 }
 
 .progress-route-svg {
@@ -359,13 +366,17 @@
   color: var(--text-secondary);
   font-size: var(--font-size-sm);
   font-weight: 600;
+  text-align: center;
 }
 
-.progress-route-point.point-0 { left: 7%; top: 64%; }
-.progress-route-point.point-1 { left: 28%; top: 78%; }
-.progress-route-point.point-2 { left: 48%; top: 48%; }
-.progress-route-point.point-3 { left: 72%; top: 22%; }
-.progress-route-point.point-4 { left: 93%; top: 48%; }
+.progress-route-point.point-0 { left: 6%; top: 68%; }
+.progress-route-point.point-1 { left: 19%; top: 83%; }
+.progress-route-point.point-2 { left: 32%; top: 72%; }
+.progress-route-point.point-3 { left: 43%; top: 46%; }
+.progress-route-point.point-4 { left: 56%; top: 25%; }
+.progress-route-point.point-5 { left: 70%; top: 33%; }
+.progress-route-point.point-6 { left: 82%; top: 57%; }
+.progress-route-point.point-7 { left: 94%; top: 42%; }
 
 .progress-route-dot {
   display: grid;
@@ -378,16 +389,26 @@
   color: #78909c;
 }
 
-.progress-route-point.is-complete .progress-route-dot {
+.progress-route-point.is-complete .progress-route-dot,
+.progress-route-point.is-current .progress-route-dot {
   border-color: #7b1fa2;
   background: #7b1fa2;
   color: #fff;
 }
 
-.progress-route-point:last-child.is-complete .progress-route-dot {
+.progress-route-point.is-current .progress-route-dot {
+  box-shadow: 0 0 0 6px rgba(123, 31, 162, 0.16);
+}
+
+.progress-route-point:last-child.is-current .progress-route-dot {
   border-color: #00a884;
   background: #fff;
   color: #00a884;
+}
+
+.progress-route-label {
+  width: 116px;
+  line-height: 1.25;
 }
 
 .category-card {
@@ -758,7 +779,7 @@
     flex-basis: 68px;
   }
 
-  .progress-route-map { min-height: 180px; }
+  .progress-route-canvas { height: 280px; }
   .progress-route-label { font-size: 0.7rem; }
 }
 
@@ -945,6 +966,20 @@
 }
 
 [data-theme="dark"] .progress-card {
+  background: var(--surface-primary);
+  border-color: var(--border-color);
+}
+
+[data-theme="dark"] .progress-route-map {
+  background: linear-gradient(145deg, var(--surface-secondary), var(--surface-tertiary));
+  border-color: var(--border-color);
+}
+
+[data-theme="dark"] .progress-route-track {
+  stroke: var(--border-color);
+}
+
+[data-theme="dark"] .progress-route-point.is-pending .progress-route-dot {
   background: var(--surface-primary);
   border-color: var(--border-color);
 }
