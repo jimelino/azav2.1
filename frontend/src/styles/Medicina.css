@@ -1090,9 +1090,9 @@
   flex-wrap: wrap;
   gap: 8px;
   padding: 12px 16px;
-  background: var(--surface-primary, #161B22);
+  background: var(--surface-primary, #a90d0d);
   border-radius: var(--radius-md, 12px);
-  border: 1px solid var(--border-color, #30363D);
+  border: 1px solid var(--border-color, #d11818);
   margin-bottom: 12px;
 }
 
@@ -2040,4 +2040,125 @@
 
 [data-reduced-motion="true"] .toggle-chevron {
   transition: none;
+}
+/*==========================================
+  TARJETA DE INDICACIONES
+==========================================*/
+
+.indicaciones-card{
+    width: 50%;
+    max-width: 700px;
+    min-width: 350px;
+    margin: 0 auto 20px auto;
+    background: #fff;
+    border-radius: 20px;
+    padding: 16px;
+    box-shadow: 0 4px 12px rgba(0,0,0,.08);
+    border: 1px solid #ececec;
+    transition: .3s;
+}
+
+.indicaciones-title{
+    color:#d11818;
+    font-size:24px;
+    font-weight:700;
+    margin-bottom:18px;
+}
+
+.indicaciones-content{
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+    max-height:320px;
+    overflow-y:auto;
+}
+
+.indicacion-item{
+    background:#f8fbff;
+    border:1px solid #d8e8ff;
+    border-left:5px solid #d11818;
+    border-radius:16px;
+    padding:16px;
+    transition:.25s;
+}
+
+.indicacion-item:hover{
+    transform:translateY(-2px);
+    box-shadow:0 6px 14px rgba(203,16,16,.15);
+}
+
+.indicacion-titulo{
+    margin:0;
+    color:#d11818;
+    font-size:18px;
+    font-weight:700;
+}
+
+.indicacion-descripcion{
+    margin:10px 0;
+    color:#444;
+    line-height:1.5;
+}
+
+.indicacion-especialista{
+    display:block;
+    color:#666;
+    font-size:14px;
+    font-weight:600;
+}
+
+/* ===========================
+   TABLET
+=========================== */
+
+@media (max-width: 1024px){
+
+    .indicaciones-card{
+        width:75%;
+        min-width:unset;
+    }
+
+}
+
+/* ===========================
+   CELULAR
+=========================== */
+
+@media (max-width:768px){
+
+    .indicaciones-card{
+        width:95%;
+        padding:14px;
+    }
+
+    .indicaciones-title{
+        font-size:20px;
+    }
+
+    .indicacion-titulo{
+        font-size:16px;
+    }
+
+    .indicacion-descripcion{
+        font-size:14px;
+    }
+
+}
+
+/* ===========================
+   CELULARES MUY PEQUEÑOS
+=========================== */
+
+@media (max-width:480px){
+
+    .indicaciones-card{
+        width:98%;
+        border-radius:14px;
+        padding:12px;
+    }
+
+    .indicaciones-content{
+        max-height:260px;
+    }
+
 }
