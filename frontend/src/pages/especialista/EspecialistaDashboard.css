@@ -1818,6 +1818,39 @@ button.section-link {
   color: var(--text-secondary);
 }
 
+.consulta-notes-edit {
+  grid-column: span 2;
+  margin-top: var(--spacing-md);
+  padding-top: var(--spacing-md);
+  border-top: 1px solid var(--border-color);
+}
+
+.consulta-notes-edit label {
+  display: block;
+  margin-bottom: var(--spacing-xs, 6px);
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.consulta-notes-edit textarea {
+  width: 100%;
+  padding: var(--spacing-sm, 10px);
+  border-radius: var(--radius-sm, 8px);
+  border: 1px solid var(--border-color);
+  background: var(--surface-secondary, #21262D);
+  color: var(--text-primary);
+  font-size: var(--font-size-base, 15px);
+  resize: vertical;
+}
+
+.consulta-notes-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm, 10px);
+  margin-top: var(--spacing-sm, 10px);
+}
+
 /* ===== VITALS GRID ===== */
 .vitals-summary {
   margin-top: var(--spacing-lg);

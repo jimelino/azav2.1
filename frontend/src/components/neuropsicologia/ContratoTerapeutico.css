@@ -1,0 +1,84 @@
+/* Contrato terapéutico — CSS autocontenido: se monta tanto en la vista del
+   paciente (MapaCaminoFases) como en la del especialista
+   (MapaFasesNeuropsicologia). */
+
+.contrato-terapeutico {
+  background: var(--surface-primary, #161B22);
+  border: 1px solid var(--border-color, #30363D);
+  border-radius: var(--radius-md, 12px);
+  padding: var(--spacing-md, 16px);
+}
+
+.contrato-terapeutico-title {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs, 6px);
+  margin: 0 0 var(--spacing-sm, 12px);
+  font-size: var(--font-size-base, 16px);
+  color: var(--text-primary, #E6EDF3);
+}
+
+.contrato-terapeutico-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs, 8px);
+  padding: var(--spacing-sm, 10px) var(--spacing-md, 16px);
+  border-radius: var(--radius-sm, 8px);
+  background: rgba(156, 39, 176, 0.12);
+  color: #CE93D8;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.contrato-terapeutico-link:hover {
+  background: rgba(156, 39, 176, 0.2);
+}
+
+.contrato-terapeutico-empty {
+  margin: 0;
+  color: var(--text-muted, #6E7681);
+}
+
+.contrato-terapeutico-upload {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm, 10px);
+  margin-top: var(--spacing-md, 12px);
+}
+
+.contrato-terapeutico-file-label {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs, 6px);
+  padding: 0 var(--spacing-md, 14px);
+  min-height: var(--touch-target-min, 48px);
+  border: 1px dashed var(--border-color, #30363D);
+  border-radius: var(--radius-sm, 8px);
+  color: var(--text-secondary, #8B949E);
+  cursor: pointer;
+}
+
+.contrato-terapeutico-btn-subir {
+  min-height: var(--touch-target-min, 48px);
+  padding: 0 var(--spacing-lg, 20px);
+  border: none;
+  border-radius: var(--radius-sm, 8px);
+  background: linear-gradient(135deg, #9C27B0, #6A1B9A);
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.contrato-terapeutico-btn-subir:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+[data-theme="light"] .contrato-terapeutico {
+  background: #FFFFFF;
+  border-color: #E0E0E0;
+}
+
+[data-theme="light"] .contrato-terapeutico-title {
+  color: #212121;
+}

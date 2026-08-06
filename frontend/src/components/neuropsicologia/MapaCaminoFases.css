@@ -8,6 +8,51 @@
   gap: var(--spacing-md, 16px);
 }
 
+.camino-fases-resultados {
+  width: 100%;
+  max-width: 640px;
+}
+
+.camino-fases-section-title {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs, 6px);
+  margin: 0 0 var(--spacing-sm, 10px);
+  font-size: var(--font-size-base, 16px);
+  color: var(--text-primary, #E6EDF3);
+}
+
+.camino-fases-resultados-empty {
+  margin: 0;
+  color: var(--text-muted, #6E7681);
+}
+
+.camino-fases-resultados-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs, 8px);
+}
+
+.camino-fases-resultado-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs, 8px);
+  padding: var(--spacing-sm, 10px) var(--spacing-md, 16px);
+  border-radius: var(--radius-sm, 8px);
+  background: rgba(156, 39, 176, 0.12);
+  color: #CE93D8;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.camino-fases-resultado-link:hover {
+  background: rgba(156, 39, 176, 0.2);
+}
+
+[data-theme="light"] .camino-fases-section-title {
+  color: #212121;
+}
+
 .camino-fases-loading {
   display: flex;
   flex-direction: column;

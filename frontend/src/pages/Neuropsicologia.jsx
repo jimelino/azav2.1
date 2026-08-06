@@ -812,7 +812,7 @@ const Neuropsicologia = () => {
         <div className="tab-content">
           {/* ===== TAB: FASES DEL TRATAMIENTO ===== */}
           {activeTab === 'fases' && (
-            <MapaCaminoFases pacienteId={user.paciente_id || user.id} />
+            <MapaCaminoFases pacienteId={user.paciente_id || user.id} documentos={externalContext.documents} />
           )}
 
           {/* ===== TAB: HERRAMIENTAS ACT ===== */}

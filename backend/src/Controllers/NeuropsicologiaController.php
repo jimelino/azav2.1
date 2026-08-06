@@ -4,6 +4,7 @@ namespace App\Controllers;
 
 use App\Models\EstadoAnimo;
 use App\Models\CuestionarioBienestar;
+use App\Models\NeuroFase;
 use App\Services\DatabaseService;
 use App\Utils\Response;
 use App\Utils\Validator;
@@ -245,6 +246,13 @@ class NeuropsicologiaController
         );
 
         if ($result) {
+            // Avance automático 1→2: completar el primer cuestionario marca
+            // el paso de "Consulta inicial" a "Evaluación". Solo avanza si
+            // el paciente ya tiene un especialista de neuro asignado (si no,
+            // no hay a quién atribuir el cambio y se omite).
+            $especialistaId = NeuroFase::getEspecialistaAsignado($data['paciente_id']);
+            NeuroFase::avanzarSiCorresponde($data['paciente_id'], $especialistaId, 2, 'Avance automático: primer cuestionario completado');
+
             return Response::success([
                 'id' => $this->db->lastInsertId(),
                 'tipo_cuestionario' => $data['tipo_cuestionario'],
@@ -516,6 +524,10 @@ class NeuropsicologiaController
         );
 
         if ($result) {
+            // Avance automático 2→3: cuando el especialista concluye la
+            // evaluación clínica formal, el paciente pasa a "Intervención".
+            NeuroFase::avanzarSiCorresponde($data['paciente_id'], $data['especialista_id'], 3, 'Avance automático: evaluación clínica concluida');
+
             return Response::success([
                 'id' => $this->db->lastInsertId()
             ], 'Evaluación neuropsicológica guardada', 201);

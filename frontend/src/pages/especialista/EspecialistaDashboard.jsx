@@ -126,6 +126,7 @@ const AREAS_CONFIG = {
       { id: 'emocional', nombre: 'Estado Emocional', icon: 'smile', descripcion: 'Ver evaluación emocional', view: 'mod-emocional' },
       { id: 'alertas-animo', nombre: 'Alertas de ánimo', icon: 'bell-ring', descripcion: 'Atender alertas urgentes', view: 'mod-alertas-animo' },
       { id: 'fases-neuro', nombre: 'Fases del Tratamiento', icon: 'map-pin', descripcion: 'Ver y cambiar la fase del usuario', view: 'mod-fases-neuro' },
+      { id: 'consultas-neuro', nombre: 'Historial de Consultas', icon: 'stethoscope', descripcion: 'Notas y notificaciones por consulta', view: 'mod-consultas' },
     ],
     herramientas: []
   },
@@ -517,6 +518,9 @@ const EspecialistaDashboard = () => {
   const [selectedPaciente, setSelectedPaciente] = useState(null);
   const [pacienteData, setPacienteData] = useState(null);
   const [loadingPacienteData, setLoadingPacienteData] = useState(false);
+  const [notasCitaBorrador, setNotasCitaBorrador] = useState({});
+  const [citaGuardandoId, setCitaGuardandoId] = useState(null);
+  const [citaNotificandoId, setCitaNotificandoId] = useState(null);
   const [dashboardData, setDashboardData] = useState({
     todayCitas: [],
     proximasCitas: [],
@@ -669,6 +673,37 @@ const EspecialistaDashboard = () => {
       setPacienteData(null);
     } finally {
       setLoadingPacienteData(false);
+    }
+  };
+
+  // Guardar las notas de una cita (sin notificar todavía)
+  const handleGuardarNotasCita = async (citaId) => {
+    setCitaGuardandoId(citaId);
+    try {
+      await api.put(`/citas/${citaId}/notas`, { notas: notasCitaBorrador[citaId] ?? '' });
+      setPacienteData(prev => prev ? {
+        ...prev,
+        citas: prev.citas.map(c => c.id === citaId ? { ...c, notas: notasCitaBorrador[citaId] ?? '' } : c)
+      } : prev);
+    } catch (error) {
+      console.error('Error al guardar notas de la cita:', error);
+      alert('No se pudieron guardar las notas. Intenta de nuevo.');
+    } finally {
+      setCitaGuardandoId(null);
+    }
+  };
+
+  // Notificar al paciente el contenido actual de notas_consulta de la cita
+  const handleNotificarCita = async (citaId) => {
+    setCitaNotificandoId(citaId);
+    try {
+      await api.post(`/citas/${citaId}/notificar`);
+      alert('Se notificó al usuario.');
+    } catch (error) {
+      console.error('Error al notificar la cita:', error);
+      alert('No se pudo enviar la notificación. Guarda las notas primero.');
+    } finally {
+      setCitaNotificandoId(null);
     }
   };
 
@@ -1599,8 +1634,8 @@ const EspecialistaDashboard = () => {
             <div className="consultas-list">
               <h3 className="subsection-title">Historial de Consultas</h3>
               {pacienteData?.citas?.length > 0 ? (
-                pacienteData.citas.map((cita, idx) => (
-                  <div key={idx} className="consulta-card">
+                pacienteData.citas.map((cita) => (
+                  <div key={cita.id} className="consulta-card">
                     <div className="consulta-date">
                       <span className="date">{cita.fecha}</span>
                       <span className="time">{cita.hora}</span>
@@ -1609,11 +1644,34 @@ const EspecialistaDashboard = () => {
                       <span className="consulta-type">{cita.tipo}</span>
                       <span className={`consulta-status ${cita.estado}`}>{cita.estado}</span>
                     </div>
-                    {cita.notas && (
-                      <div className="consulta-notes">
-                        <strong>Notas:</strong> {cita.notas}
+                    <div className="consulta-notes-edit">
+                      <label htmlFor={`notas-cita-${cita.id}`}>Notas de la consulta</label>
+                      <textarea
+                        id={`notas-cita-${cita.id}`}
+                        rows={3}
+                        placeholder="¿Qué se trabajó/pidió en esta consulta?"
+                        value={notasCitaBorrador[cita.id] ?? cita.notas ?? ''}
+                        onChange={e => setNotasCitaBorrador(prev => ({ ...prev, [cita.id]: e.target.value }))}
+                      />
+                      <div className="consulta-notes-actions">
+                        <button
+                          type="button"
+                          className="btn-secondary"
+                          onClick={() => handleGuardarNotasCita(cita.id)}
+                          disabled={citaGuardandoId === cita.id}
+                        >
+                          {citaGuardandoId === cita.id ? 'Guardando...' : 'Guardar notas'}
+                        </button>
+                        <button
+                          type="button"
+                          className="btn-primary"
+                          onClick={() => handleNotificarCita(cita.id)}
+                          disabled={citaNotificandoId === cita.id || !(notasCitaBorrador[cita.id] ?? cita.notas)}
+                        >
+                          {citaNotificandoId === cita.id ? 'Enviando...' : 'Notificar al usuario'}
+                        </button>
                       </div>
-                    )}
+                    </div>
                   </div>
                 ))
               ) : (

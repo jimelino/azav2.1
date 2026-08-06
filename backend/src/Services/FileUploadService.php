@@ -16,10 +16,10 @@ class FileUploadService
         $this->maxFileSize = $config['upload']['max_file_size'];
     }
 
-    public function upload($file, $folder = '')
+    public function upload($file, $folder = '', $allowedTypes = null)
     {
         // Validar archivo
-        if (!$this->validateFile($file)) {
+        if (!$this->validateFile($file, $allowedTypes)) {
             throw new \Exception('Archivo inválido');
         }
 
@@ -42,7 +42,7 @@ class FileUploadService
         throw new \Exception('Error al subir archivo');
     }
 
-    private function validateFile($file)
+    private function validateFile($file, $allowedTypes = null)
     {
         // Verificar errores
         if ($file['error'] !== UPLOAD_ERR_OK) {
@@ -54,9 +54,11 @@ class FileUploadService
             return false;
         }
 
-        // Verificar tipo
+        // Verificar tipo. Por defecto usa la lista de imágenes configurada,
+        // pero un llamador puede pasar su propia lista (ej. ['pdf']) para
+        // archivos que no son imágenes.
         $extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
-        if (!in_array($extension, $this->allowedTypes)) {
+        if (!in_array($extension, $allowedTypes ?? $this->allowedTypes)) {
             return false;
         }
 

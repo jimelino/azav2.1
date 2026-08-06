@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import api from '../../services/api';
 import LucideIcon from '../LucideIcon';
+import ContratoTerapeutico from './ContratoTerapeutico';
 import './MapaCaminoFases.css';
 
 const ICONOS_FASE = {
@@ -27,7 +28,7 @@ const MENSAJES_MOTIVACIONALES = {
   4: '¡Felicidades! Completaste tu camino en Neuropsicología.',
 };
 
-const MapaCaminoFases = ({ pacienteId }) => {
+const MapaCaminoFases = ({ pacienteId, documentos = [] }) => {
   const [fase, setFase] = useState(null);
   const [catalogo, setCatalogo] = useState({});
   const [loading, setLoading] = useState(true);
@@ -126,6 +127,34 @@ const MapaCaminoFases = ({ pacienteId }) => {
       </div>
 
       <p className="camino-fases-mensaje">{MENSAJES_MOTIVACIONALES[faseActualNum]}</p>
+
+      {faseActualNum >= 2 && (
+        <section className="camino-fases-resultados" aria-labelledby="camino-resultados-heading">
+          <h3 id="camino-resultados-heading" className="camino-fases-section-title">
+            <LucideIcon name="file-text" size={18} /> Resultados de tu evaluación
+          </h3>
+          {documentos.length === 0 ? (
+            <p className="camino-fases-resultados-empty">Aún no hay resultados disponibles.</p>
+          ) : (
+            <div className="camino-fases-resultados-list">
+              {documentos.map((documento, index) => (
+                <a
+                  key={documento.id || index}
+                  href={documento.url || documento.enlace || '#'}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="camino-fases-resultado-link"
+                >
+                  <LucideIcon name="file-text" size={18} />
+                  <span>{documento.titulo || documento.nombre || `Documento ${index + 1}`}</span>
+                </a>
+              ))}
+            </div>
+          )}
+        </section>
+      )}
+
+      <ContratoTerapeutico pacienteId={pacienteId} />
     </div>
   );
 };

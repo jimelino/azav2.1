@@ -544,6 +544,17 @@ route('PUT', '/api/neuropsicologia/fases/(\d+)', function($pacienteId) {
     $controller->cambiarFase($pacienteId, $data);
 }, ['auth']);
 
+// Contrato terapéutico: lo sube el especialista, lo descarga el paciente
+route('GET', '/api/neuropsicologia/contrato/(\d+)', function($pacienteId) {
+    $controller = new \App\Controllers\NeuroContratoController();
+    $controller->getActual($pacienteId);
+}, ['auth']);
+
+route('POST', '/api/neuropsicologia/contrato/(\d+)', function($pacienteId) {
+    $controller = new \App\Controllers\NeuroContratoController();
+    $controller->subir($pacienteId);
+}, ['auth']);
+
 // RUTAS DE NOTIFICACIONES (bandeja persistente, campanita del header)
 route('GET', '/api/notificaciones', function() {
     $controller = new \App\Controllers\NotificacionesController();
@@ -921,6 +932,17 @@ route('POST', '/api/citas', function() {
     $data = json_decode(file_get_contents('php://input'), true);
     $controller = new CitasController();
     $controller->agendarCita($data);
+}, ['auth']);
+
+route('PUT', '/api/citas/(\d+)/notas', function($citaId) {
+    $data = json_decode(file_get_contents('php://input'), true) ?? [];
+    $controller = new CitasController();
+    $controller->agregarNotasCita($citaId, $data);
+}, ['auth']);
+
+route('POST', '/api/citas/(\d+)/notificar', function($citaId) {
+    $controller = new CitasController();
+    $controller->notificarNotasCita($citaId);
 }, ['auth']);
 
 // RUTAS DE CHAT

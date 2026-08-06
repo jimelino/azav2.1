@@ -307,16 +307,68 @@ class CitasController
     }
 
     /**
-     * Agregar notas a una cita
+     * Agregar notas a una cita (solo el especialista dueño de la cita)
      */
     public function agregarNotasCita($citaId, $data)
     {
+        $user = \App\Middleware\AuthMiddleware::getCurrentUser();
+        $cita = $this->db->query("SELECT especialista_id FROM citas WHERE id = ?", [$citaId])->fetch();
+
+        if (!$cita) {
+            return Response::error('Cita no encontrada', 404);
+        }
+
+        if (!$user || (int) $cita['especialista_id'] !== (int) $user['id']) {
+            return Response::error('No autorizado', 403);
+        }
+
         $this->db->query(
             "UPDATE citas SET notas_consulta = ? WHERE id = ?",
             [$data['notas'] ?? '', $citaId]
         );
 
         return Response::success(null, 'Notas guardadas');
+    }
+
+    /**
+     * Notificar al paciente el contenido de notas_consulta de una cita
+     * (solo el especialista dueño de la cita)
+     */
+    public function notificarNotasCita($citaId)
+    {
+        $user = \App\Middleware\AuthMiddleware::getCurrentUser();
+
+        $cita = $this->db->query(
+            "SELECT c.especialista_id, c.notas_consulta, c.fecha, p.usuario_id AS paciente_usuario_id
+             FROM citas c
+             INNER JOIN pacientes p ON p.id = c.paciente_id
+             WHERE c.id = ?",
+            [$citaId]
+        )->fetch();
+
+        if (!$cita) {
+            return Response::error('Cita no encontrada', 404);
+        }
+
+        if (!$user || (int) $cita['especialista_id'] !== (int) $user['id']) {
+            return Response::error('No autorizado', 403);
+        }
+
+        if (empty(trim((string) $cita['notas_consulta']))) {
+            return Response::error('No hay notas para notificar', 422);
+        }
+
+        (new \App\Services\NotificationService())->crear(
+            $cita['paciente_usuario_id'],
+            NOTIF_CITA,
+            'Notas de tu consulta',
+            $cita['notas_consulta'],
+            ['fecha' => $cita['fecha']],
+            'cita',
+            $citaId
+        );
+
+        return Response::success(null, 'Notificación enviada al paciente');
     }
 
     // AGENDAR CITA

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import api from '../../services/api';
 import LucideIcon from '../LucideIcon';
+import ContratoTerapeutico from './ContratoTerapeutico';
 import './MapaFasesNeuropsicologia.css';
 
 const ICONOS_FASE = {
@@ -151,6 +152,8 @@ const MapaFasesNeuropsicologia = ({ pacienteId, esEspecialista = false, onBack }
           <p className="neuro-fases-empty">Aún no hay cambios de fase registrados.</p>
         )}
       </section>
+
+      <ContratoTerapeutico pacienteId={pacienteId} esEspecialista={esEspecialista} />
 
       {showModal && (
         <div className="neuro-fases-modal-overlay" onClick={() => setShowModal(false)}>
