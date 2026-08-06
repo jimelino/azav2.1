@@ -14,7 +14,7 @@ const InstitutionalFooter = () => {
             <img
               src="/assets/images/ENES VECTOR AZUL.png"
               alt="ENES Logo"
-              className="institutional-footer-logo"
+              className="institutional-footer-logo institutional-footer-logo-enes"
             />
             <img
               src="/icon-192.png"

@@ -39,7 +39,7 @@ const InstitutionalHeader = ({
         <div className="institutional-bar-content">
           <div className="institutional-logos">
             <LogoImage
-              src="/assets/images/ENES VECTOR AZUL.PNG"
+              src="/assets/images/ENES VECTOR AZUL.png"
               alt="ENES Logo"
               className="institutional-logo-enes"
               fallbackText="ENES UNAM"
