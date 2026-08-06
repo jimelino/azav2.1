@@ -7,10 +7,13 @@ const AlertasClinicas = ({
     area,
     onBack
 }) => {
+    console.log("Entré al módulo de Alertas");
 
     const [alertas, setAlertas] = useState([]);
 
     const cargarAlertas = async () => {
+        console.log("Área recibida:", area);
+
 
         try {
 
@@ -33,11 +36,13 @@ const AlertasClinicas = ({
         }
 
     };
+    
 
    useEffect(() => {
+    console.log("Cargando alertas...");
 
     if (area) {
-
+    
         cargarAlertas();
 
     }

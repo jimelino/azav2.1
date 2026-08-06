@@ -2184,6 +2184,7 @@ const renderModAlertasClinicas = () => {
       case 'mod-porciones-nutricionales':return renderPorcionesNutricionales();
       case 'mod-indicaciones': return renderModIndicaciones();
       case 'mod-alertas-clinicas': return renderModAlertasClinicas();
+      
 
       // Módulos de Fisioterapia
       case 'mod-ejercicios':
