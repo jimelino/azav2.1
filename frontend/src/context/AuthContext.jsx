@@ -12,21 +12,13 @@ export const useAuth = () => {
 };
 
 export const AuthProvider = ({ children }) => {
-  // ⚡ TRUCO: Forzamos que el usuario logueado por defecto sea el Técnico de Prótesis
-  const [user, setUser] = useState({
-    id: 5, // ID simulado en la base de datos
-    email: "lic.rodriguez@azaria.app",
-    role: "medicina", // o "protesis"/"tecnico" según los nombres de tu sistema
-    nombre: "medicina"
-  });
-  
-  // ⚡ TRUCO: Desactivamos la pantalla de carga para que cargue la interfaz directo
-  const [loading, setLoading] = useState(false);
-  const [token, setToken] = useState('token-falso-de-prueba');
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [token, setToken] = useState(localStorage.getItem('token'));
 
   useEffect(() => {
-    // Comentamos la revisión de sesión original para que no intente buscar en internet
-    // checkSession();
+    checkSession();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const checkSession = async () => {
@@ -50,9 +42,6 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, credential, remember = false) => {
     try {
       const response = await authService.login(email, credential, remember);
-
-      console.log('Login response:', response);
-      console.log('Usuario:', response.data.data);
 
       if (response && response.success) {
         setUser(response.data.user);
