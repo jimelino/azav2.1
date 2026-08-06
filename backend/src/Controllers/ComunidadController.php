@@ -82,6 +82,8 @@ class ComunidadController
         $result = Publicacion::create($data);
 
         if ($result) {
+            $result = $this->resolveImageUrl($result);
+
             if ($data['estado'] === CONTENIDO_PENDIENTE) {
                 return Response::success($result, 'Publicación enviada a moderación', 201);
             }
@@ -106,11 +108,8 @@ class ComunidadController
             return Response::error('No tienes permiso para editar esta publicación', 403);
         }
 
-        if (isset($_FILES['imagen'])) {
-            $imagePath = $this->fileUploadService->upload($_FILES['imagen'], 'comunidad');
-            $data['imagen'] = $imagePath;
-        }
-
+        // Nota: esta ruta recibe JSON (no multipart), así que no se puede
+        // cambiar la imagen desde aquí — solo título/contenido/tema/anónimo.
         $result = Publicacion::update($id, $data);
 
         if ($result) {
@@ -139,6 +138,9 @@ class ComunidadController
         $result = Publicacion::delete($id);
 
         if ($result) {
+            if (!empty($publicacion['imagen_url'])) {
+                $this->fileUploadService->delete($publicacion['imagen_url']);
+            }
             return Response::success(null, 'Publicación eliminada exitosamente');
         }
 
