@@ -161,7 +161,7 @@ const AlertasClinicas = ({
     className="btn-atender-alerta"
     onClick={() => atenderAlerta(a.id)}
 >
-    ✅ Marcar como atendida
+    Marcar como atendida
 </button>
 
                         </div>
