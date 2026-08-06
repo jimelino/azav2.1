@@ -41,10 +41,21 @@ const IndicacionesFisioterapia = ({
     const [guardando, setGuardando] = useState(false);
 
     const [cargando, setCargando] = useState(true);
+    const [paciente, setPaciente] = useState(null);
 
     const cargarInformacion = async () => {
 
         try {
+
+            const infoPaciente = await api.get(
+    `/fisioterapia/paciente/${pacienteId}`
+);
+
+if (infoPaciente.success) {
+
+    setPaciente(infoPaciente.data);
+
+}
 
             const res = await api.get(
 
@@ -165,24 +176,51 @@ const IndicacionesFisioterapia = ({
 
     <div className="paciente-info">
 
-    <h2>Paciente #{pacienteId}</h2>
+        <h2>
 
-    <p>
-        Área: Fisioterapia
-    </p>
+            {paciente?.nombre_completo || "Paciente"}
 
-</div>
+        </h2>
+
+        <p>
+
+             {paciente?.email || "Correo no disponible"}
+
+        </p>
+
+    </div>
 
     <div className="paciente-extra">
 
-        <span>Especialista</span>
+        <span>
 
-        <strong>Fisioterapia</strong>
+            Especialista
+
+        </span>
+
+        <strong>
+
+            {paciente?.especialista || "Sin asignar"}
+
+        </strong>
+
+        <br /><br />
+
+        <span>
+
+            Área
+
+        </span>
+
+        <strong>
+
+            {paciente?.area || "Fisioterapia"}
+
+        </strong>
 
     </div>
 
 </div>
-
             </div>
 
             {
@@ -221,94 +259,88 @@ const IndicacionesFisioterapia = ({
 
                         </div>
 
-                        <div className="campo">
+                        <div className="formulario-indicaciones">
 
-                            <label>
+    <div className="campo">
 
-                                Fase del tratamiento
+        <label>
 
-                            </label>
+            Fase del tratamiento
 
-                            <select
+        </label>
 
-                                value={faseActual}
+        <select
+            value={faseActual}
+            onChange={(e)=>setFaseActual(Number(e.target.value))}
+        >
 
-                                onChange={(e)=>setFaseActual(Number(e.target.value))}
+            {fases.map((fase)=>(
 
-                            >
+                <option
+                    key={fase.id}
+                    value={fase.id}
+                >
+                    {fase.nombre}
+                </option>
 
-                                {
+            ))}
 
-                                    fases.map((fase)=>(
+        </select>
 
-                                        <option
+    </div>
 
-                                            key={fase.id}
 
-                                            value={fase.id}
+    <div className="campo">
 
-                                        >
+        <label>
 
-                                            {fase.nombre}
+            Indicaciones para el paciente
 
-                                        </option>
+        </label>
 
-                                    ))
+        <textarea
 
-                                }
+            value={indicaciones}
 
-                            </select>
+            onChange={(e)=>setIndicaciones(e.target.value)}
 
-                        </div>
+            placeholder="Escriba aquí las indicaciones que deberá seguir el paciente..."
 
-                        <div className="campo">
+        />
 
-                            <label>
+    </div>
 
-                                Indicaciones para el paciente
+</div>
 
-                            </label>
+                       <div className="boton-guardar">
 
-                            <textarea
+    <button
 
-                                rows="8"
+        className="btn-guardar"
 
-                                value={indicaciones}
+        onClick={guardarCambios}
 
-                                onChange={(e)=>setIndicaciones(e.target.value)}
+        disabled={guardando}
 
-                                placeholder="Escriba aquí las indicaciones que deberá seguir el paciente..."
+    >
 
-                            />
+        {
 
-                        </div>
+            guardando
 
-                        <button
+            ?
 
-                            className="btn-guardar"
+            "Guardando..."
 
-                            onClick={guardarCambios}
+            :
 
-                            disabled={guardando}
+            "Guardar cambios"
 
-                        >
+        }
 
-                            {
+    </button>
 
-                                guardando
-
-                                ?
-
-                                "Guardando..."
-
-                                :
-
-                                "Guardar cambios"
-
-                            }
-
-                        </button>
-
+</div>
                         
 
                     </div>

@@ -528,6 +528,14 @@ route('GET', '/api/fisioterapia/stats/paciente/(\d+)', function($pacienteId) {
     $controller->getEstadisticasPaciente($pacienteId);
 }, ['auth']);
 
+route('GET', '/api/fisioterapia/paciente/(\d+)', function($pacienteId) {
+
+    $controller = new FisioterapiaController();
+
+    $controller->obtenerInformacionPaciente($pacienteId);
+
+}, ['auth']);
+
 // RUTAS DE NEUROPSICOLOGÍA
 route('GET', '/api/neuropsicologia/estados-animo/(\d+)', function($pacienteId) {
     $controller = new NeuropsicologiaController();
