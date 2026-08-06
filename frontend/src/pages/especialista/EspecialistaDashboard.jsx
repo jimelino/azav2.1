@@ -2127,6 +2127,8 @@ const renderModAlertasClinicas = () => {
 
             especialistaId={user?.especialista_id || user?.id}
 
+            area={areaCodigo}
+
             onBack={() => setActiveView('inicio')}
 
         />

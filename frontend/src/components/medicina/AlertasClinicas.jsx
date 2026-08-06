@@ -15,10 +15,12 @@ const AlertasClinicas = ({
         try {
 
             const res = await api.get(`/alertas/${area}`);
+            console.log("Respuesta:", res);
 
             console.log(res);
 
             if (res.success) {
+                console.log("Alertas:", res.data);
 
                 setAlertas(res.data);
 
@@ -32,11 +34,15 @@ const AlertasClinicas = ({
 
     };
 
-    useEffect(() => {
+   useEffect(() => {
+
+    if (area) {
 
         cargarAlertas();
 
-    }, []);
+    }
+
+}, [area]);
 
     return (
 
