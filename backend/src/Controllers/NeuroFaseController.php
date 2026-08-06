@@ -104,11 +104,25 @@ class NeuroFaseController
 
         $nombreFase = NEURO_FASES[$faseNumero];
 
+        $titulos = [
+            1 => 'Bienvenido al Servicio de Neuropsicología',
+            2 => 'Concluiste tu evaluación inicial',
+            3 => 'Comenzaste tu intervención neuropsicológica',
+            4 => '¡Concluiste tu proceso en Neuropsicología!',
+        ];
+
+        $mensajes = [
+            1 => 'Enhorabuena, usted ingresó al Servicio de Neuropsicología. En este servicio tenemos cuatro etapas. En breve programaremos su evaluación.',
+            2 => 'Usted concluyó la evaluación inicial del Servicio de Neuropsicología.',
+            3 => 'Usted comenzó la intervención neuropsicológica. Tendrá sesiones periódicas de entrenamiento mental hasta su alta.',
+            4 => 'Felicidades, usted ha concluido su entrenamiento mental con el Servicio de Neuropsicología. Recuerde practicar las habilidades aprendidas; con gusto puede agendar una sesión de seguimiento.',
+        ];
+
         (new NotificationService())->crear(
             $paciente['usuario_id'],
             NOTIF_NEURO_FASE,
-            'Cambio de fase - Neuropsicología',
-            "Tu fase de tratamiento en Neuropsicología cambió a: {$nombreFase}",
+            $titulos[$faseNumero] ?? 'Cambio de fase - Neuropsicología',
+            $mensajes[$faseNumero] ?? "Tu fase de tratamiento en Neuropsicología cambió a: {$nombreFase}",
             ['fase_numero' => $faseNumero, 'fase_nombre' => $nombreFase],
             'neuro_fase',
             $pacienteId

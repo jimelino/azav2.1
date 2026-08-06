@@ -1,0 +1,150 @@
+/* Mapa de camino de fases (vista del paciente) — CSS autocontenido, mismo
+   criterio que MapaFasesNeuropsicologia.css: nombres de clase propios. */
+
+.camino-fases-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-md, 16px);
+}
+
+.camino-fases-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm, 8px);
+  padding: var(--spacing-xl, 32px);
+  color: var(--text-secondary, #8B949E);
+}
+
+.camino-fases-spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid var(--border-color, #30363D);
+  border-top-color: #9C27B0;
+  border-radius: 50%;
+  animation: camino-fases-spin 0.8s linear infinite;
+}
+
+@keyframes camino-fases-spin {
+  to { transform: rotate(360deg); }
+}
+
+.camino-fases-actual {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs, 8px);
+  color: #9C27B0;
+  font-weight: 700;
+  font-size: var(--font-size-base, 16px);
+}
+
+.camino-fases-mapa {
+  position: relative;
+  width: 100%;
+  max-width: 640px;
+  aspect-ratio: 16 / 6;
+  min-height: 160px;
+  padding: var(--spacing-lg, 24px) var(--spacing-md, 16px);
+  background: var(--surface-primary, #161B22);
+  border: 1px solid var(--border-color, #30363D);
+  border-radius: var(--radius-lg, 16px);
+}
+
+.camino-fases-svg {
+  position: absolute;
+  inset: var(--spacing-lg, 24px) var(--spacing-md, 16px);
+  width: calc(100% - 2 * var(--spacing-md, 16px));
+  height: calc(100% - 2 * var(--spacing-lg, 24px));
+}
+
+.camino-fases-path {
+  fill: none;
+  stroke: var(--border-color, #30363D);
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+
+.camino-fases-path.recorrido {
+  stroke: #9C27B0;
+}
+
+.camino-fases-nodo {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  transform: translate(-50%, -50%);
+}
+
+.camino-fases-punto {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-weight: 700;
+  background: var(--surface-tertiary, #30363D);
+  color: var(--text-muted, #6E7681);
+  border: 3px solid var(--surface-primary, #161B22);
+}
+
+.camino-fases-nodo.completed .camino-fases-punto {
+  background: #9C27B0;
+  color: #fff;
+}
+
+.camino-fases-nodo.current .camino-fases-punto {
+  background: #9C27B0;
+  color: #fff;
+  box-shadow: 0 0 0 4px rgba(156, 39, 176, 0.3);
+  animation: camino-fases-pulse 2s infinite;
+}
+
+@keyframes camino-fases-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(156, 39, 176, 0.5); }
+  70% { box-shadow: 0 0 0 10px rgba(156, 39, 176, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(156, 39, 176, 0); }
+}
+
+.camino-fases-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary, #8B949E);
+  white-space: nowrap;
+  text-align: center;
+}
+
+.camino-fases-nodo.current .camino-fases-label {
+  color: #CE93D8;
+}
+
+.camino-fases-mensaje {
+  margin: 0;
+  text-align: center;
+  color: var(--text-secondary, #8B949E);
+  font-style: italic;
+}
+
+@media (max-width: 480px) {
+  .camino-fases-label {
+    font-size: 10px;
+  }
+
+  .camino-fases-punto {
+    width: 32px;
+    height: 32px;
+  }
+}
+
+[data-theme="light"] .camino-fases-mapa {
+  background: #FFFFFF;
+  border-color: #E0E0E0;
+}
+
+[data-theme="light"] .camino-fases-punto {
+  border-color: #FFFFFF;
+}
