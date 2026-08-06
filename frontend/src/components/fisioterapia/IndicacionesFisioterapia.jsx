@@ -284,13 +284,13 @@ const IndicacionesFisioterapia = ({
 
                                 <h3>
 
-                                    📋 Panel de seguimiento del paciente
+                                    Panel de seguimiento del paciente
 
                                 </h3>
 
                                 <p>
 
-                                    Seleccione la fase actual del tratamiento y escriba las indicaciones que el paciente visualizará dentro de su aplicación.
+                                    Seleccione la fase actual del tratamiento/ indicaciones para el paciente.
 
                                 </p>
 
@@ -366,7 +366,7 @@ const IndicacionesFisioterapia = ({
 
                                     }
 
-                                    placeholder="Escriba aquí todas las indicaciones que deberá seguir el paciente durante esta fase del tratamiento."
+                                    placeholder="Escriba aquí  las indicaciones que deberá seguir el paciente"
 
                                 />
 

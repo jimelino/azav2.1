@@ -5,14 +5,16 @@
 .indicaciones-fisio{
 
     width:100%;
+
     max-width:1400px;
 
-    margin:0 auto;
+    margin:25px auto;
 
-    padding:35px;
+    padding:25px;
+
+    box-sizing:border-box;
 
 }
-
 /* =====================================================
    ENCABEZADO
 ===================================================== */
@@ -488,16 +490,29 @@
 
     .campo textarea{
 
-        min-height:220px;
-
-    }
-
-    .btn-guardar{
-
         width:100%;
 
+    min-height:220px;
+
+        
+
     }
 
+    .boton-guardar{
+
+    width:100%;
+
+    margin-top:35px;
+
+}
+
+.btn-guardar{
+
+    width:100%;
+
+}
+
+   
 }
 
 @media (max-width:480px){
