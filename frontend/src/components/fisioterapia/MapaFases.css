@@ -89,3 +89,38 @@
     color:#444;
 
 }
+.leyenda-fases{
+    display:flex;
+    justify-content:center;
+    gap:35px;
+    margin-top:18px;
+    flex-wrap:wrap;
+}
+
+.leyenda-item{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    font-size:14px;
+    color:#555;
+    font-weight:500;
+}
+
+.leyenda-color{
+    width:14px;
+    height:14px;
+    border-radius:50%;
+}
+
+.leyenda-color.verde{
+    background:#2e7d32;
+}
+
+.leyenda-color.naranja{
+    background:#ff9800;
+}
+
+.leyenda-color.gris{
+    background:#d9d9d9;
+}
+

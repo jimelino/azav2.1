@@ -55,6 +55,24 @@ const MapaFases = ({ faseActual = 1 }) => {
                                 </span>
 
                             </div>
+                            <div className="leyenda-fases">
+
+    <div className="leyenda-item">
+        <span className="leyenda-color verde"></span>
+        <span>Fase completada</span>
+    </div>
+
+    <div className="leyenda-item">
+        <span className="leyenda-color naranja"></span>
+        <span>Fase actual</span>
+    </div>
+
+    <div className="leyenda-item">
+        <span className="leyenda-color gris"></span>
+        <span>Fase pendiente</span>
+    </div>
+
+</div>
 
                             {
 
