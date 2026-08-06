@@ -488,6 +488,40 @@ route('PUT', '/api/neuropsicologia/alertas/(\d+)/atendida', function($alertaId) 
     $controller->marcarAlertaAtendida($alertaId);
 }, ['auth']);
 
+// Fases de tratamiento de Neuropsicología (Consulta inicial, Evaluación,
+// Intervención, Alta) — sistema propio del módulo, separado del de /api/fases
+route('GET', '/api/neuropsicologia/fases/(\d+)', function($pacienteId) {
+    $controller = new \App\Controllers\NeuroFaseController();
+    $controller->getFaseActual($pacienteId);
+}, ['auth']);
+
+route('GET', '/api/neuropsicologia/fases/(\d+)/historial', function($pacienteId) {
+    $controller = new \App\Controllers\NeuroFaseController();
+    $controller->getHistorial($pacienteId);
+}, ['auth']);
+
+route('PUT', '/api/neuropsicologia/fases/(\d+)', function($pacienteId) {
+    $data = json_decode(file_get_contents('php://input'), true) ?? [];
+    $controller = new \App\Controllers\NeuroFaseController();
+    $controller->cambiarFase($pacienteId, $data);
+}, ['auth']);
+
+// RUTAS DE NOTIFICACIONES (bandeja persistente, campanita del header)
+route('GET', '/api/notificaciones', function() {
+    $controller = new \App\Controllers\NotificacionesController();
+    $controller->getMisNotificaciones();
+}, ['auth']);
+
+route('PUT', '/api/notificaciones/(\d+)/leida', function($id) {
+    $controller = new \App\Controllers\NotificacionesController();
+    $controller->marcarLeida($id);
+}, ['auth']);
+
+route('PUT', '/api/notificaciones/leer-todas', function() {
+    $controller = new \App\Controllers\NotificacionesController();
+    $controller->marcarTodasLeidas();
+}, ['auth']);
+
 route('GET', '/api/neuropsicologia/ejercicios', function() {
     $controller = new NeuropsicologiaController();
     $controller->getEjercicios();

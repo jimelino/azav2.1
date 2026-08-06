@@ -251,7 +251,8 @@
     margin-left: auto;
   }
 
-  .institutional-actions .tts-button {
+  .institutional-actions .tts-button,
+  .institutional-actions .notification-bell-btn {
     width: 38px;
     height: 38px;
     flex-basis: 38px;

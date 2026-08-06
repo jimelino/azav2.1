@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import TextToSpeechButton from '../accessibility/TextToSpeechButton';
+import NotificationBell from '../notifications/NotificationBell';
 
 const LogoImage = ({ src, alt, className, fallbackText }) => {
   const [hasError, setHasError] = useState(false);
@@ -57,6 +58,7 @@ const InstitutionalHeader = ({
             <span className="institutional-service-desc">Plataforma de Rehabilitacion</span>
           </div>
           <div className="institutional-actions">
+            <NotificationBell />
             <TextToSpeechButton
               text={speechText}
               label="Leer encabezado de la página"
