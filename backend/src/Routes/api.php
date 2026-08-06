@@ -1258,62 +1258,7 @@ route('DELETE', '/api/admin/usuarios/(\d+)', function($id) {
 
 route('PUT', '/api/admin/usuarios/(\d+)/toggle', function($id) {
     $controller = new AdminController();
-    $controller->toggleUsuarioActivo($id);
-}, ['auth', 'role:administrador']);
-
-route('GET', '/api/admin/especialistas', function() {
-    $controller = new AdminController();
-    $controller->getEspecialistas();
-}, ['auth', 'role:administrador']);
-
-route('DELETE', '/api/admin/especialistas/(\d+)', function($id) {
-    $controller = new AdminController();
-    $controller->deleteUsuario($id);
-}, ['auth', 'role:administrador']);
-
-route('GET', '/api/admin/especialistas/(\d+)/asignaciones', function($id) {
-    $controller = new AdminController();
-    $controller->getAsignacionesEspecialista($id);
-}, ['auth', 'role:administrador']);
-
-route('GET', '/api/admin/pacientes', function() {
-    $controller = new AdminController();
-    $controller->getPacientes();
-}, ['auth', 'role:administrador']);
-
-route('POST', '/api/admin/asignaciones', function() {
-    $controller = new AdminController();
-    $controller->crearAsignacion(json_decode(file_get_contents('php://input'), true) ?? []);
-}, ['auth', 'role:administrador']);
-
-route('DELETE', '/api/admin/asignaciones/(\d+)', function($id) {
-    $controller = new AdminController();
-    $controller->eliminarAsignacion($id);
-}, ['auth', 'role:administrador']);
-
-route('GET', '/api/admin/blogs/metricas', function() {
-    $controller = new AdminController();
-    $controller->getBlogMetricas();
-}, ['auth', 'role:administrador']);
-
-route('GET', '/api/admin/faqs', function() {
-    $controller = new AdminController();
-    $controller->getFAQs();
-}, ['auth', 'role:administrador']);
-
-route('POST', '/api/admin/faqs', function() {
-    $controller = new AdminController();
-    $controller->createFAQ(json_decode(file_get_contents('php://input'), true) ?? []);
-}, ['auth', 'role:administrador']);
-
-route('PUT', '/api/admin/faqs/(\d+)', function($id) {
-    $controller = new AdminController();
-    $controller->updateFAQ($id, json_decode(file_get_contents('php://input'), true) ?? []);
-}, ['auth', 'role:administrador']);
-
-route('DELETE', '/api/admin/faqs/(\d+)', function($id) {
-    $controller = new AdminController();
-    $controller->deleteFAQ($id);
+    $controller->toggleUsuarioEstado($id);
 }, ['auth', 'role:administrador']);
 
 route('GET', '/api/nutricion/plan-paciente/(\d+)', function($id) {
