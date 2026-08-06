@@ -13,6 +13,7 @@ class CorsMiddleware {
         'https://dtai.uteq.edu.mx',         // Produccion UTEQ
         'http://dtai.uteq.edu.mx',          // Produccion UTEQ (http)
         'https://azav2-1.onrender.com',
+        'https://azav21-production.up.railway.app',
     ];
 
     /**
