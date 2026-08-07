@@ -13,11 +13,38 @@ const ICONOS_FASE = {
   7: 'activity',
 };
 
+// Catálogo de las 7 fases, fijo y conocido de antemano (coincide con
+// ORTESIS_FASES en backend/config/constants.php). Se usa como valor por
+// defecto para que el mapa siempre se vea completo desde el primer
+// render, sin esperar a la respuesta del servidor: el layout del mapa no
+// depende de que la API/BD ya estén listas, solo el detalle de en qué
+// fase está cada paciente y el historial de cambios sí dependen de eso.
+const CATALOGO_FALLBACK = {
+  1: 'Valoración',
+  2: 'Cotización',
+  3: 'Espera de componentes',
+  4: 'Toma de medidas / Molde',
+  5: 'Prueba y ajustes de órtesis',
+  6: 'Entrega de órtesis',
+  7: 'Seguimiento',
+};
+
+const FASE_FALLBACK = {
+  id: null,
+  paciente_id: null,
+  fase_numero: 1,
+  especialista_id: null,
+  especialista_nombre: null,
+  notas: null,
+  created_at: null,
+};
+
 const MapaFasesOrtesis = ({ pacienteId, esEspecialista = false, onBack }) => {
-  const [fase, setFase] = useState(null);
-  const [catalogo, setCatalogo] = useState({});
+  const [fase, setFase] = useState(FASE_FALLBACK);
+  const [catalogo, setCatalogo] = useState(CATALOGO_FALLBACK);
   const [historial, setHistorial] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [syncError, setSyncError] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [saving, setSaving] = useState(false);
   const [nuevaFase, setNuevaFase] = useState('');
@@ -33,11 +60,16 @@ const MapaFasesOrtesis = ({ pacienteId, esEspecialista = false, onBack }) => {
       ]);
       const faseData = faseRes?.data || faseRes;
       const historialData = historialRes?.data || historialRes;
-      setFase(faseData?.fase || null);
-      setCatalogo(faseData?.catalogo || {});
+      setFase(faseData?.fase || FASE_FALLBACK);
+      setCatalogo(faseData?.catalogo || CATALOGO_FALLBACK);
       setHistorial(historialData?.historial || []);
-    } catch (error) {
-      console.error('Error al cargar fases de órtesis:', error);
+      setSyncError('');
+    } catch (err) {
+      console.error('Error al cargar fases de órtesis:', err);
+      // El mapa se queda visible con el catálogo/estado por defecto (fase 1);
+      // solo se avisa que no se pudo sincronizar con el servidor, sin tapar
+      // el mapa con una pantalla de error.
+      setSyncError(err?.message || 'No se pudo sincronizar con el servidor.');
     } finally {
       setLoading(false);
     }
@@ -61,7 +93,7 @@ const MapaFasesOrtesis = ({ pacienteId, esEspecialista = false, onBack }) => {
       await cargarDatos();
     } catch (error) {
       console.error('Error al cambiar fase:', error);
-      alert('No se pudo cambiar la fase. Intenta de nuevo.');
+      alert(error?.message || 'No se pudo cambiar la fase. Intenta de nuevo.');
     } finally {
       setSaving(false);
     }
@@ -100,6 +132,14 @@ const MapaFasesOrtesis = ({ pacienteId, esEspecialista = false, onBack }) => {
         <div className="module-header">
           <button className="back-btn" onClick={onBack}><LucideIcon name="arrow-left" size={18} /> Volver</button>
           <h2 className="module-title"><LucideIcon name="map-pin" size={22} /> Fases del Tratamiento</h2>
+        </div>
+      )}
+
+      {syncError && (
+        <div className="ortesis-fases-warning" role="alert">
+          <LucideIcon name="alert-triangle" size={16} />
+          <span>{syncError} Mostrando la fase por defecto mientras se resuelve.</span>
+          <button className="ortesis-fases-retry-link" onClick={cargarDatos}>Reintentar</button>
         </div>
       )}
 

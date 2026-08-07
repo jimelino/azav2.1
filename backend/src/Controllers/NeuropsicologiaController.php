@@ -6,6 +6,7 @@ use App\Models\EstadoAnimo;
 use App\Models\CuestionarioBienestar;
 use App\Models\NeuroFase;
 use App\Services\DatabaseService;
+use App\Services\NotificationService;
 use App\Utils\Response;
 use App\Utils\Validator;
 
@@ -68,6 +69,14 @@ class NeuropsicologiaController
 
             if ((int)$data['nivel_animo'] === ANIMO_MUY_MAL) {
                 EstadoAnimo::crearAlertaCritica($data['paciente_id']);
+            }
+
+            // Emoción negativa (enojo, desprecio, asco, tristeza, miedo): se
+            // notifica de inmediato al especialista de neuro asignado, sin
+            // esperar a que se acumulen 3 registros negativos consecutivos
+            // como exige checkAlertaPsicologica().
+            if ((int)$data['nivel_animo'] <= ANIMO_MAL) {
+                $this->notificarEmocionNegativa($data['paciente_id'], $data['nivel_animo'], $data['notas'] ?? null);
             }
 
             return Response::success($result, 'Estado de ánimo registrado', 201);
@@ -196,6 +205,40 @@ class NeuropsicologiaController
         if ($todosNegativos && count($registrosRecientes) >= 3) {
             EstadoAnimo::crearAlerta($pacienteId);
         }
+    }
+
+    private function notificarEmocionNegativa($pacienteId, $nivelAnimo, $notas = null)
+    {
+        $especialistaId = NeuroFase::getEspecialistaAsignado($pacienteId);
+        if (!$especialistaId) {
+            return;
+        }
+
+        $paciente = $this->db->query(
+            "SELECT u.nombre_completo FROM pacientes p INNER JOIN usuarios u ON u.id = p.usuario_id WHERE p.id = ?",
+            [$pacienteId]
+        )->fetch();
+        if (!$paciente) {
+            return;
+        }
+
+        $descripciones = [ANIMO_MUY_MAL => 'muy mal', ANIMO_MAL => 'mal'];
+        $descripcion = $descripciones[(int) $nivelAnimo] ?? 'negativo';
+
+        $mensaje = "{$paciente['nombre_completo']} registró un estado de ánimo {$descripcion}.";
+        if (!empty($notas)) {
+            $mensaje .= " Nota: \"{$notas}\"";
+        }
+
+        (new NotificationService())->crear(
+            $especialistaId,
+            NOTIF_ALERTA,
+            'Alerta de estado de ánimo',
+            $mensaje,
+            ['paciente_id' => $pacienteId, 'nivel_animo' => (int) $nivelAnimo],
+            'estado_animo',
+            $pacienteId
+        );
     }
 
     private function checkAlertaPuntuacion($pacienteId, $puntuacion)

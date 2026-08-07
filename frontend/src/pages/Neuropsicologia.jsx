@@ -7,7 +7,7 @@ import CuestionarioResultado from '../components/neuropsicologia/CuestionarioRes
 import ACTEjercicioActivo from '../components/neuropsicologia/ACTEjercicioActivo';
 import MapaCaminoFases from '../components/neuropsicologia/MapaCaminoFases';
 import { CUESTIONARIOS, ACT_CATEGORIAS, ACT_HERRAMIENTAS, getHerramientasByCategoria, getCuestionarioById, calcularPuntuacion } from '../data/neuropsicologiaData';
-import { Bar, Line } from 'react-chartjs-2';
+import { Bar } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, PointElement, LineElement, Filler, Title, Tooltip, Legend } from 'chart.js';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
@@ -22,9 +22,7 @@ const Neuropsicologia = () => {
   const { user } = useAuth();
   const { settings } = useAccessibility();
   const [activeTab, setActiveTab] = useState('fases');
-  const [estadosAnimo, setEstadosAnimo] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [loadingAnimo, setLoadingAnimo] = useState(true);
   const [externalLoading, setExternalLoading] = useState(true);
   const [externalError, setExternalError] = useState('');
   const [externalContext, setExternalContext] = useState({ appointments: [], documents: [], specialist: null });
@@ -112,11 +110,6 @@ const Neuropsicologia = () => {
   }, [activeTab]);
 
   useEffect(() => {
-    if (user?.paciente_id || user?.id) cargarEstadosAnimo();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.paciente_id, user?.id]);
-
-  useEffect(() => {
     let mounted = true;
 
     const cargarContextoExterno = async () => {
@@ -152,18 +145,6 @@ const Neuropsicologia = () => {
     if (user?.id) cargarContextoExterno();
     return () => { mounted = false; };
   }, [user?.id]);
-
-  const cargarEstadosAnimo = async () => {
-    setLoadingAnimo(true);
-    try {
-      const response = await api.get(`/neuropsicologia/estados-animo/${user.paciente_id || user.id}`);
-      setEstadosAnimo(response.data || []);
-    } catch (err) {
-      console.error('Error al cargar estado de ánimo:', err);
-    } finally {
-      setLoadingAnimo(false);
-    }
-  };
 
   const cargarDatos = async () => {
     setLoading(true);
@@ -213,45 +194,9 @@ const Neuropsicologia = () => {
       setShowModal(false);
       setEmocionSeleccionada(null);
       setNotasAnimo('');
-      cargarEstadosAnimo();
     } catch (err) {
       console.error('Error al registrar estado de ánimo:', err);
     }
-  };
-
-  const getEmocionInfo = (emocionId) => {
-    return emociones.find(e => e.id === emocionId) || { icon: 'circle-help', nombre: emocionId, color: '#9E9E9E' };
-  };
-
-  const mapNivelToEmocion = (nivel) => {
-    const map = { 1: 'enojo', 2: 'tristeza', 3: 'sorpresa', 4: 'disfrute', 5: 'disfrute' };
-    return map[nivel] || 'sorpresa';
-  };
-
-  const mapBackendEmocion = (emocionBackend) => {
-    if (!emocionBackend) return null;
-    const map = {
-      'alegria': 'disfrute', 'calma': 'disfrute', 'gratitud': 'disfrute',
-      'confusion': 'sorpresa', 'ansiedad': 'miedo', 'tristeza': 'tristeza',
-      'frustracion': 'enojo', 'enojo': 'enojo', 'esperanza': 'disfrute',
-      'miedo': 'miedo', 'motivacion': 'disfrute', 'soledad': 'tristeza',
-      'asco': 'asco', 'desprecio': 'desprecio', 'sorpresa': 'sorpresa',
-      'feliz': 'disfrute', 'tranquilo': 'disfrute', 'neutral': 'sorpresa',
-      'ansioso': 'miedo', 'enojado': 'enojo', 'frustrado': 'enojo',
-      'agradecido': 'disfrute', 'triste': 'tristeza'
-    };
-    return map[emocionBackend.toLowerCase()] || emocionBackend;
-  };
-
-  const calcularEstadisticas = () => {
-    if (estadosAnimo.length === 0) return null;
-    const conteo = {};
-    estadosAnimo.forEach(estado => {
-      const emocion = estado.emocion || mapBackendEmocion(estado.emociones_nombres) || mapNivelToEmocion(estado.nivel_animo);
-      if (emocion) conteo[emocion] = (conteo[emocion] || 0) + 1;
-    });
-    const emocionMasComun = Object.entries(conteo).sort((a, b) => b[1] - a[1])[0];
-    return { total: estadosAnimo.length, emocionMasComun: emocionMasComun ? emocionMasComun[0] : null, conteo };
   };
 
   // --- ACT handlers ---
@@ -567,8 +512,6 @@ const Neuropsicologia = () => {
     }
   };
 
-  const stats = calcularEstadisticas();
-
   return (
     <div className="neuropsicologia-page">
       <header className="page-header">
@@ -577,194 +520,11 @@ const Neuropsicologia = () => {
       </header>
 
       {/* ===== ESTADO DE ÁNIMO (siempre visible, junto al encabezado) ===== */}
-      {loadingAnimo ? (
-        <div className="loading-container">
-          <div className="spinner"></div>
-          <p>Cargando...</p>
-        </div>
-      ) : (
-        <div className="animo-section">
-          <button className="btn btn-primary btn-lg btn-block" onClick={() => setShowModal(true)}>
-            ¿Cómo te sientes ahora?
-          </button>
-
-          {stats && (
-            <div className="stats-animo">
-              <h3>Resumen de esta semana</h3>
-              <div className="stats-grid">
-                <div className="stat-card">
-                  <span className="stat-value">{stats.total}</span>
-                  <span className="stat-label">Registros</span>
-                </div>
-                {stats.emocionMasComun && (
-                  <div className="stat-card">
-                    <span className="stat-emoji"><LucideIcon name={getEmocionInfo(stats.emocionMasComun).icon} size={24} /></span>
-                    <span className="stat-label">Más frecuente</span>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Gráficas de Estado de Ánimo */}
-          {estadosAnimo.length >= 3 && (
-            <div className="animo-charts">
-              {/* Gráfica de tendencia de ánimo */}
-              <div className="animo-chart-card">
-                <h3>Tendencia de ánimo</h3>
-                <div className="animo-chart-wrapper">
-                  <Line
-                    data={{
-                      labels: [...estadosAnimo].reverse().slice(-14).map(e => {
-                        const f = new Date(e.fecha_hora || e.fecha);
-                        return `${f.getDate()}/${f.getMonth() + 1}`;
-                      }),
-                      datasets: [{
-                        label: 'Nivel de ánimo',
-                        data: [...estadosAnimo].reverse().slice(-14).map(e => e.nivel_animo || 3),
-                        borderColor: '#9C27B0',
-                        backgroundColor: 'rgba(156, 39, 176, 0.1)',
-                        pointBackgroundColor: [...estadosAnimo].reverse().slice(-14).map(e => {
-                          const emocionId = e.emocion || mapBackendEmocion(e.emociones_nombres) || mapNivelToEmocion(e.nivel_animo);
-                          return getEmocionInfo(emocionId).color;
-                        }),
-                        pointBorderColor: '#fff',
-                        pointBorderWidth: 2,
-                        pointRadius: 6,
-                        pointHoverRadius: 8,
-                        tension: 0.3,
-                        fill: true,
-                      }]
-                    }}
-                    options={{
-                      responsive: true,
-                      maintainAspectRatio: false,
-                      scales: {
-                        y: {
-                          min: 0.5,
-                          max: 5.5,
-                          ticks: {
-                            stepSize: 1,
-                            callback: (val) => {
-                              const labels = { 1: 'Muy Mal', 2: 'Mal', 3: 'Neutral', 4: 'Bien', 5: 'Muy Bien' };
-                              return labels[val] || '';
-                            },
-                            color: 'var(--text-secondary, #6B6B6B)',
-                            font: { size: 11 }
-                          },
-                          grid: { color: 'rgba(0,0,0,0.06)' }
-                        },
-                        x: {
-                          ticks: {
-                            color: 'var(--text-secondary, #6B6B6B)',
-                            font: { size: 11 }
-                          },
-                          grid: { display: false }
-                        }
-                      },
-                      plugins: {
-                        legend: { display: false },
-                        tooltip: {
-                          backgroundColor: 'rgba(0,0,0,0.8)',
-                          padding: 10,
-                          callbacks: {
-                            label: (ctx) => {
-                              const labels = { 1: 'Muy Mal', 2: 'Mal', 3: 'Neutral', 4: 'Bien', 5: 'Muy Bien' };
-                              return labels[ctx.raw] || `Nivel ${ctx.raw}`;
-                            }
-                          }
-                        }
-                      }
-                    }}
-                  />
-                </div>
-              </div>
-
-              {/* Gráfica de frecuencia de emociones */}
-              {stats?.conteo && Object.keys(stats.conteo).length > 0 && (
-                <div className="animo-chart-card">
-                  <h3>Frecuencia de emociones</h3>
-                  <div className="animo-chart-wrapper">
-                    <Bar
-                      data={{
-                        labels: Object.keys(stats.conteo).map(e => {
-                          const info = getEmocionInfo(e);
-                          return info.nombre;
-                        }),
-                        datasets: [{
-                          label: 'Veces registrado',
-                          data: Object.values(stats.conteo),
-                          backgroundColor: Object.keys(stats.conteo).map(e => getEmocionInfo(e).color + 'CC'),
-                          borderColor: Object.keys(stats.conteo).map(e => getEmocionInfo(e).color),
-                          borderWidth: 1,
-                          borderRadius: 6,
-                          barThickness: 28,
-                        }]
-                      }}
-                      options={{
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        indexAxis: 'y',
-                        scales: {
-                          x: {
-                            beginAtZero: true,
-                            ticks: {
-                              stepSize: 1,
-                              color: 'var(--text-secondary, #6B6B6B)',
-                              font: { size: 11 }
-                            },
-                            grid: { color: 'rgba(0,0,0,0.06)' }
-                          },
-                          y: {
-                            ticks: {
-                              color: 'var(--text-primary, #1A1A1A)',
-                              font: { size: 13, weight: '500' }
-                            },
-                            grid: { display: false }
-                          }
-                        },
-                        plugins: {
-                          legend: { display: false },
-                          tooltip: {
-                            backgroundColor: 'rgba(0,0,0,0.8)',
-                            padding: 10,
-                          }
-                        }
-                      }}
-                    />
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-
-          <h3>Historial reciente</h3>
-          <div className="historial-animo">
-            {estadosAnimo.length > 0 ? estadosAnimo.slice(0, 10).map(estado => {
-              const emocionId = estado.emocion || mapBackendEmocion(estado.emociones_nombres) || mapNivelToEmocion(estado.nivel_animo);
-              const emocion = getEmocionInfo(emocionId);
-              const fechaStr = estado.fecha_hora || `${estado.fecha} ${estado.created_at?.split(' ')[1] || '00:00:00'}`;
-              return (
-                <div key={estado.id} className="estado-card" style={{ borderLeftColor: emocion.color }}>
-                  <div className="estado-header">
-                    <span className="estado-emoji"><LucideIcon name={emocion.icon} size={20} /></span>
-                    <span className="estado-nombre">{emocion.nombre}</span>
-                    <span className="estado-fecha">
-                      {new Date(fechaStr).toLocaleString('es-MX', { weekday: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                    </span>
-                  </div>
-                  {estado.notas && <p className="estado-notas">{estado.notas}</p>}
-                </div>
-              );
-            }) : (
-              <div className="empty-state">
-                <p>No hay registros de estado de ánimo</p>
-                <p className="help-text">Registra cómo te sientes para entender mejor tu proceso</p>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
+      <div className="animo-section">
+        <button className="btn btn-primary btn-lg btn-block" onClick={() => setShowModal(true)}>
+          ¿Cómo te sientes ahora?
+        </button>
+      </div>
 
       <section className="neuro-external-context" aria-label="Información clínica externa">
         <div className="neuro-external-heading">
