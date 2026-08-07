@@ -375,18 +375,26 @@ class MensajesController
         }
 
         if ((int)$usuario['rol_id'] === 2) {
+            // Otros especialistas: contacto libre. Pacientes: solo los que
+            // tienen una asignación activa con este especialista (mismo
+            // criterio que enviarMensaje/enviarMensajeLegacy al validar el
+            // envío, para que el buscador no ofrezca contactos que luego
+            // el backend va a rechazar).
             $contactos = $this->db->query(
-                "SELECT DISTINCT u.id, u.nombre_completo AS nombre, u.email
+                "SELECT u.id, u.nombre_completo AS nombre, u.email, 0 AS orden
                  FROM usuarios u
-                 WHERE u.activo = 1
-                   AND u.id != ?
-                   AND u.rol_id IN (2, 3)
+                 WHERE u.activo = 1 AND u.id != ? AND u.rol_id = 2
                    AND (? = '' OR u.email LIKE ?)
-                 ORDER BY
-                   CASE WHEN u.rol_id = 2 THEN 0 ELSE 1 END,
-                   u.nombre_completo
+                 UNION
+                 SELECT u.id, u.nombre_completo AS nombre, u.email, 1 AS orden
+                 FROM asignaciones_especialista ae
+                 INNER JOIN pacientes p ON p.id = ae.paciente_id
+                 INNER JOIN usuarios u ON u.id = p.usuario_id
+                 WHERE ae.especialista_id = ? AND ae.activo = 1 AND u.activo = 1
+                   AND (? = '' OR u.email LIKE ?)
+                 ORDER BY orden, nombre
                  LIMIT 30",
-                [$usuarioId, $email, $emailLike]
+                [$usuarioId, $email, $emailLike, $usuarioId, $email, $emailLike]
             )->fetchAll();
 
             return Response::success(['contactos' => $contactos]);
