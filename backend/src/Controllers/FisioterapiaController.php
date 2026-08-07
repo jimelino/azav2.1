@@ -450,9 +450,7 @@ public function guardarIndicaciones()
         "Indicaciones guardadas correctamente"
 
     );
-
-}
-// ==========================================
+    // ==========================================
 // RQF8 - ALERTA AUTOMÁTICA A ORTESIS
 // ==========================================
 
@@ -526,6 +524,9 @@ if ((int)$data["fase_actual"] === 4) {
     }
 
 }
+
+}
+
 
 //obtener indicacion
 public function obtenerIndicaciones($pacienteId)
