@@ -141,7 +141,7 @@
 
 .indicaciones-texto p::before{
 
-    content:"📝 ";
+    content:" ";
 
     font-size:24px;
 

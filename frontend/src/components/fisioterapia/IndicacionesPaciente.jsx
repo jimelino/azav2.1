@@ -59,7 +59,7 @@ const IndicacionesPaciente = ({ fase, indicaciones }) => {
 
             <h2>
 
-                📋 Indicaciones de tu fisioterapeuta
+                Indicaciones
 
             </h2>
 
