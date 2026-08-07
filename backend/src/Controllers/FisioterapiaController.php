@@ -452,7 +452,80 @@ public function guardarIndicaciones()
     );
 
 }
+// ==========================================
+// RQF8 - ALERTA AUTOMÁTICA A ORTESIS
+// ==========================================
 
+if ((int)$data["fase_actual"] === 4) {
+
+    $db = DatabaseService::getInstance();
+
+    // Verificar que no exista una alerta pendiente
+    $existe = $db->query(
+
+        "SELECT id
+         FROM alertas_clinicas
+         WHERE paciente_id = ?
+         AND area_destino = 'ortesis'
+         AND tipo_alerta = 'fin_fisioterapia'
+         AND estado = 'pendiente'
+         LIMIT 1",
+
+        [
+
+            $data["paciente_id"]
+
+        ]
+
+    )->fetch();
+
+    if (!$existe) {
+
+        $db->query(
+
+            "INSERT INTO alertas_clinicas(
+
+                paciente_id,
+
+                area_destino,
+
+                tipo_alerta,
+
+                titulo,
+
+                descripcion,
+
+                prioridad
+
+            )
+
+            VALUES(
+
+                ?,?,?,?,?,?
+
+            )",
+
+            [
+
+                $data["paciente_id"],
+
+                "ortesis",
+
+                "fin_fisioterapia",
+
+                "Paciente listo para valoración",
+
+                "El paciente concluyó satisfactoriamente la fase de Fisioterapia y puede continuar con la valoración del área de Ortesis y Prótesis.",
+
+                "alta"
+
+            ]
+
+        );
+
+    }
+
+}
 
 //obtener indicacion
 public function obtenerIndicaciones($pacienteId)
