@@ -6,6 +6,8 @@ import api from '../services/api';
 import LucideIcon from '../components/LucideIcon';
 import '../styles/Chat.css';
 
+const NOTIFICACIONES_REFRESH_EVENT = 'azaria:notificaciones-actualizadas';
+
 const Chat = () => {
   const { conversacionId } = useParams();
   const { user } = useAuth();
@@ -103,11 +105,17 @@ const Chat = () => {
       const response = await api.get(`/mensajes/conversaciones/${userId}`);
       // response ya es response.data por el interceptor
       // Backend retorna: { success, data: { conversaciones: [...] } }
-      const convs = response?.data?.conversaciones || response?.conversaciones || [];
+      const convsRaw = response?.data?.conversaciones || response?.conversaciones || [];
+      const conversacionActivaId = conversacionActiva?.id;
+      const convs = convsRaw.map(conv => (
+        Number(conv.id) === Number(conversacionActivaId)
+          ? { ...conv, no_leidos: 0 }
+          : conv
+      ));
       setConversaciones(convs);
 
       if (conversacionActiva) {
-        const convActualizada = convs.find(c => c.id === conversacionActiva.id);
+        const convActualizada = convs.find(c => Number(c.id) === Number(conversacionActiva.id));
         if (convActualizada) {
           setConversacionActiva(prev => prev ? { ...prev, ...convActualizada } : convActualizada);
         }
@@ -121,9 +129,9 @@ const Chat = () => {
 
       // Si hay un ID de conversación en la URL, seleccionar esa
       if (conversacionId && convs.length > 0) {
-        const convFromUrl = convs.find(c => c.id === parseInt(conversacionId));
+        const convFromUrl = convs.find(c => Number(c.id) === Number(conversacionId));
         if (convFromUrl) {
-          setConversacionActiva(convFromUrl);
+          setConversacionActiva({ ...convFromUrl, no_leidos: 0 });
           return;
         }
       }
@@ -140,6 +148,24 @@ const Chat = () => {
     } finally {
       if (!silencioso) setLoading(false);
     }
+  };
+
+  const avisarNotificacionesActualizadas = () => {
+    window.dispatchEvent(new CustomEvent(NOTIFICACIONES_REFRESH_EVENT));
+  };
+
+  const limpiarNoLeidosConversacion = (conversacionId) => {
+    setConversaciones(prev => prev.map(conv => (
+      Number(conv.id) === Number(conversacionId)
+        ? { ...conv, no_leidos: 0 }
+        : conv
+    )));
+    setConversacionActiva(prev => (
+      prev && Number(prev.id) === Number(conversacionId)
+        ? { ...prev, no_leidos: 0 }
+        : prev
+    ));
+    avisarNotificacionesActualizadas();
   };
 
   const cargarContactos = async (email = '') => {
@@ -183,6 +209,7 @@ const Chat = () => {
       const mensajesCargados = data?.mensajes || [];
       setMensajes(mensajesCargados);
       setOtroUsuario(data?.otro_usuario || null);
+      limpiarNoLeidosConversacion(conversacionId);
 
       // Recuerda el id más alto para que el polling solo pida "lo nuevo"
       const maxId = mensajesCargados.reduce((max, m) => Math.max(max, Number(m.id) || 0), 0);
@@ -204,6 +231,7 @@ const Chat = () => {
       );
       const data = response?.data || response;
       const nuevos = data?.mensajes || [];
+      limpiarNoLeidosConversacion(conversacionIdActivo);
       if (nuevos.length === 0) return;
 
       setMensajes(prev => {
@@ -434,8 +462,11 @@ const Chat = () => {
               {conversaciones.map(conv => (
                 <div
                   key={conv.id}
-                  className={`conversacion-item ${conversacionActiva?.id === conv.id ? 'active' : ''}`}
-                  onClick={() => setConversacionActiva(conv)}
+                  className={`conversacion-item ${Number(conversacionActiva?.id) === Number(conv.id) ? 'active' : ''}`}
+                  onClick={() => {
+                    setConversacionActiva({ ...conv, no_leidos: 0 });
+                    limpiarNoLeidosConversacion(conv.id);
+                  }}
                 >
                   <div className="conv-avatar">
                     <span>{conv.otro_usuario_nombre?.charAt(0) || '?'}</span>

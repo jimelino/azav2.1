@@ -94,6 +94,30 @@ class MensajesController
         return $participantes;
     }
 
+    private function marcarConversacionLeida($conversacionId, $usuarioId)
+    {
+        $this->db->query(
+            "UPDATE mensajes_chat
+             SET leido = 1, leido_at = COALESCE(leido_at, NOW())
+             WHERE conversacion_id = ? AND remitente_id != ? AND leido = 0",
+            [$conversacionId, $usuarioId]
+        );
+
+        try {
+            $this->db->query(
+                "UPDATE notificaciones
+                 SET leida = 1, leida_en = COALESCE(leida_en, NOW())
+                 WHERE usuario_id = ?
+                   AND referencia_tipo = 'mensaje'
+                   AND referencia_id = ?
+                   AND leida = 0",
+                [$usuarioId, $conversacionId]
+            );
+        } catch (\Exception $e) {
+            // La lectura del chat no debe fallar si la bandeja de notificaciones no esta disponible.
+        }
+    }
+
     private function getDatosCompatibles($usuarioA, $usuarioB, $tipo)
     {
         if ($tipo === 'especialista_especialista') {
@@ -159,10 +183,7 @@ class MensajesController
             ? $conversacion['participante_2_id']
             : $conversacion['participante_1_id'];
 
-        $this->db->query(
-            "UPDATE mensajes_chat SET leido = 1, leido_at = NOW() WHERE conversacion_id = ? AND remitente_id != ?",
-            [$conversacionId, $usuarioId]
-        );
+        $this->marcarConversacionLeida($conversacionId, $usuarioId);
 
         $mensajes = $this->db->query(
             "SELECT m.id, m.remitente_id AS emisor_id, m.contenido AS mensaje, m.leido, m.created_at,
@@ -179,6 +200,64 @@ class MensajesController
             'mensajes' => $mensajes,
             'otro_usuario' => $this->getUsuario($otroUsuarioId)
         ]);
+    }
+
+    public function getMensajesNuevos($conversacionId, $usuarioId, $ultimoId)
+    {
+        if ($this->soportaChatUniversal()) {
+            $conversacion = $this->db->query(
+                "SELECT id FROM conversaciones WHERE id = ? AND (participante_1_id = ? OR participante_2_id = ?)",
+                [$conversacionId, $usuarioId, $usuarioId]
+            )->fetch();
+        } else {
+            $usuario = $this->getUsuario($usuarioId);
+            if (!$usuario) {
+                return Response::error('Usuario no encontrado', 404);
+            }
+            if ((int)$usuario['rol_id'] === 3) {
+                $paciente = $this->db->query("SELECT id FROM pacientes WHERE usuario_id = ?", [$usuarioId])->fetch();
+                $conversacion = $paciente ? $this->db->query(
+                    "SELECT id FROM conversaciones WHERE id = ? AND paciente_id = ?",
+                    [$conversacionId, $paciente['id']]
+                )->fetch() : null;
+            } else {
+                $conversacion = $this->db->query(
+                    "SELECT id FROM conversaciones WHERE id = ? AND especialista_id = ?",
+                    [$conversacionId, $usuarioId]
+                )->fetch();
+            }
+        }
+
+        if (!$conversacion) {
+            return Response::error('No tienes acceso a esta conversacion', 403);
+        }
+
+        $this->marcarConversacionLeida($conversacionId, $usuarioId);
+
+        $mensajes = $this->db->query(
+            "SELECT m.id, m.remitente_id AS emisor_id, m.contenido AS mensaje, m.leido, m.created_at,
+                    u.nombre_completo AS emisor_nombre
+             FROM mensajes_chat m
+             INNER JOIN usuarios u ON m.remitente_id = u.id
+             WHERE m.conversacion_id = ? AND m.id > ?
+             ORDER BY m.created_at ASC",
+            [$conversacionId, (int)$ultimoId]
+        )->fetchAll();
+
+        return Response::success(['mensajes' => $mensajes]);
+    }
+
+    private function notificarNuevoMensaje($receptorUsuarioId, $emisorNombre, $mensaje, $conversacionId)
+    {
+        (new \App\Services\NotificationService())->crear(
+            $receptorUsuarioId,
+            NOTIF_MENSAJE,
+            'Nuevo mensaje de ' . $emisorNombre,
+            mb_strimwidth(trim($mensaje), 0, 120, '...'),
+            [],
+            'mensaje',
+            $conversacionId
+        );
     }
 
     public function enviarMensaje($data)
@@ -227,6 +306,8 @@ class MensajesController
             "UPDATE conversaciones SET ultimo_mensaje_at = NOW() WHERE id = ?",
             [$conversacionId]
         );
+
+        $this->notificarNuevoMensaje($receptor['id'], $emisor['nombre_completo'], $data['mensaje'], $conversacionId);
 
         return Response::success([
             'id' => $mensajeId,
@@ -312,18 +393,26 @@ class MensajesController
         }
 
         if ((int)$usuario['rol_id'] === 2) {
+            // Otros especialistas: contacto libre. Pacientes: solo los que
+            // tienen una asignación activa con este especialista (mismo
+            // criterio que enviarMensaje/enviarMensajeLegacy al validar el
+            // envío, para que el buscador no ofrezca contactos que luego
+            // el backend va a rechazar).
             $contactos = $this->db->query(
-                "SELECT DISTINCT u.id, u.nombre_completo AS nombre, u.email
+                "SELECT u.id, u.nombre_completo AS nombre, u.email, 0 AS orden
                  FROM usuarios u
-                 WHERE u.activo = 1
-                   AND u.id != ?
-                   AND u.rol_id IN (2, 3)
+                 WHERE u.activo = 1 AND u.id != ? AND u.rol_id = 2
                    AND (? = '' OR u.email LIKE ?)
-                 ORDER BY
-                   CASE WHEN u.rol_id = 2 THEN 0 ELSE 1 END,
-                   u.nombre_completo
+                 UNION
+                 SELECT u.id, u.nombre_completo AS nombre, u.email, 1 AS orden
+                 FROM asignaciones_especialista ae
+                 INNER JOIN pacientes p ON p.id = ae.paciente_id
+                 INNER JOIN usuarios u ON u.id = p.usuario_id
+                 WHERE ae.especialista_id = ? AND ae.activo = 1 AND u.activo = 1
+                   AND (? = '' OR u.email LIKE ?)
+                 ORDER BY orden, nombre
                  LIMIT 30",
-                [$usuarioId, $email, $emailLike]
+                [$usuarioId, $email, $emailLike, $usuarioId, $email, $emailLike]
             )->fetchAll();
 
             return Response::success(['contactos' => $contactos]);
@@ -461,10 +550,7 @@ class MensajesController
             return Response::error('No tienes acceso a esta conversacion', 403);
         }
 
-        $this->db->query(
-            "UPDATE mensajes_chat SET leido = 1, leido_at = NOW() WHERE conversacion_id = ? AND remitente_id != ?",
-            [$conversacionId, $usuarioId]
-        );
+        $this->marcarConversacionLeida($conversacionId, $usuarioId);
 
         $mensajes = $this->db->query(
             "SELECT m.id, m.remitente_id AS emisor_id, m.contenido AS mensaje, m.leido, m.created_at,
@@ -498,7 +584,7 @@ class MensajesController
         $mensaje = trim($data['mensaje']);
 
         $emisor = $this->db->query(
-            "SELECT id, rol_id FROM usuarios WHERE id = ?",
+            "SELECT id, rol_id, nombre_completo FROM usuarios WHERE id = ?",
             [$emisorId]
         )->fetch();
 
@@ -560,6 +646,8 @@ class MensajesController
             "UPDATE conversaciones SET ultimo_mensaje_at = NOW() WHERE id = ?",
             [$conversacionId]
         );
+
+        $this->notificarNuevoMensaje($receptorId, $emisor['nombre_completo'] ?? 'un usuario', $mensaje, $conversacionId);
 
         return Response::success([
             'id' => $mensajeId,

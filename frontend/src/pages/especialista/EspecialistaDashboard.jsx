@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useAccessibility } from '../../context/AccessibilityContext';
@@ -42,6 +42,8 @@ import PorcionesNutricionales from './PorcionesNutricionales';
 import IndicacionesMedicas from '../../components/medicina/IndicacionesMedicas';
 import AlertasClinicas from '../../components/medicina/AlertasClinicas';
 import IndicacionesFisioterapia from '../../components/fisioterapia/IndicacionesFisioterapia';
+
+const NOTIFICACIONES_REFRESH_EVENT = 'azaria:notificaciones-actualizadas';
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Filler, Title, Tooltip, Legend);
 
 /**
@@ -557,6 +559,8 @@ const EspecialistaDashboard = () => {
   const [contactosChat, setContactosChat] = useState([]);
   const [contactosSearchEmail, setContactosSearchEmail] = useState('');
   const [loadingContactos, setLoadingContactos] = useState(false);
+  const ultimoMensajeChatIdRef = useRef(0);
+  const pestanaVisibleChatRef = useRef(true);
 
   // Estados para modal de nueva cita
   const [citaForm, setCitaForm] = useState({
@@ -613,11 +617,45 @@ const EspecialistaDashboard = () => {
 
   // Cargar conversaciones cuando se abre la vista de mensajes
   useEffect(() => {
-    if (activeView === 'mensajes') {
-      loadConversaciones();
-    }
+    if (activeView !== 'mensajes' || !user?.id) return;
+
+    loadConversaciones();
+    const interval = setInterval(() => {
+      if (pestanaVisibleChatRef.current) {
+        loadConversaciones(true);
+      }
+    }, 8000);
+
+    return () => clearInterval(interval);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeView]);
+  }, [activeView, user?.id]);
+
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      pestanaVisibleChatRef.current = document.visibilityState === 'visible';
+      if (pestanaVisibleChatRef.current && activeView === 'mensajes' && conversacionActiva?.id) {
+        pollMensajesNuevosChat(conversacionActiva.id);
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeView, conversacionActiva?.id]);
+
+  useEffect(() => {
+    if (activeView !== 'mensajes' || !conversacionActiva?.id || !user?.id) return;
+
+    loadMensajes(conversacionActiva.id, true);
+    const interval = setInterval(() => {
+      if (pestanaVisibleChatRef.current) {
+        pollMensajesNuevosChat(conversacionActiva.id);
+      }
+    }, 3000);
+
+    return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeView, conversacionActiva?.id, user?.id]);
 
   useEffect(() => {
     if (showModal !== 'nueva-conversacion') return;
@@ -637,7 +675,7 @@ const EspecialistaDashboard = () => {
       const [citasRes, pacientesRes, mensajesRes, citasFuturasRes] = await Promise.all([
         api.get(`/especialistas/${especialistaId}/citas-hoy`).catch(() => ({ data: null })),
         api.get(`/especialistas/${especialistaId}/pacientes`).catch(() => ({ data: null })),
-        api.get(`/mensajes/no-leidos/${especialistaId}`).catch(() => ({ data: null })),
+        api.get(`/mensajes/no-leidos/${user?.id}`).catch(() => ({ data: null })),
         api.get(`/citas/especialista/${especialistaId}`).catch(() => ({ data: null })),
       ]);
 
@@ -840,6 +878,39 @@ const EspecialistaDashboard = () => {
 
   // ===== FUNCIONES DE CHAT =====
 
+  const avisarNotificacionesActualizadas = () => {
+    window.dispatchEvent(new CustomEvent(NOTIFICACIONES_REFRESH_EVENT));
+  };
+
+  const normalizarConversacionesChat = (convs, conversacionActivaId = conversacionActiva?.id) => (
+    convs.map(conv => (
+      Number(conv.id) === Number(conversacionActivaId)
+        ? { ...conv, no_leidos: 0 }
+        : conv
+    ))
+  );
+
+  const actualizarTotalNoLeidosChat = (convs) => {
+    const total = convs.reduce((sum, conv) => sum + (Number(conv.no_leidos) || 0), 0);
+    setDashboardData(prev => ({ ...prev, mensajesNuevos: total }));
+  };
+
+  const limpiarNoLeidosChat = (conversacionId) => {
+    setConversaciones(prev => {
+      const actualizadas = normalizarConversacionesChat(prev, conversacionId);
+      actualizarTotalNoLeidosChat(actualizadas);
+      return actualizadas;
+    });
+
+    setConversacionActiva(prev => (
+      prev && Number(prev.id) === Number(conversacionId)
+        ? { ...prev, no_leidos: 0 }
+        : prev
+    ));
+
+    avisarNotificacionesActualizadas();
+  };
+
   const loadContactosChat = async (email = '') => {
     if (!user?.id) return;
 
@@ -858,37 +929,85 @@ const EspecialistaDashboard = () => {
   };
 
   // Cargar conversaciones del especialista
-  const loadConversaciones = async () => {
-    setLoadingChat(true);
+  const loadConversaciones = async (silencioso = false) => {
+    if (!silencioso) setLoadingChat(true);
     try {
       const userId = user?.id;
       const response = await api.get(`/mensajes/conversaciones/${userId}`);
-      setConversaciones(response.data?.conversaciones || []);
+      const convsRaw = response?.data?.conversaciones || response?.conversaciones || [];
+      const convs = normalizarConversacionesChat(Array.isArray(convsRaw) ? convsRaw : []);
+      setConversaciones(convs);
+      actualizarTotalNoLeidosChat(convs);
+
+      if (conversacionActiva) {
+        const convActualizada = convs.find(c => Number(c.id) === Number(conversacionActiva.id));
+        if (convActualizada) {
+          setConversacionActiva(prev => prev ? { ...prev, ...convActualizada } : convActualizada);
+        }
+      }
     } catch (error) {
-      console.error('Error cargando conversaciones:', error);
+      if (!silencioso) console.error('Error cargando conversaciones:', error);
       // Datos de ejemplo si falla
-      setConversaciones([]);
+      if (!silencioso) setConversaciones([]);
     } finally {
-      setLoadingChat(false);
+      if (!silencioso) setLoadingChat(false);
     }
   };
 
   // Cargar mensajes de una conversación
-  const loadMensajes = async (conversacionId) => {
+  const loadMensajes = async (conversacionId, silencioso = false) => {
     try {
       const userId = user?.id;
       const response = await api.get(`/mensajes/conversacion/${conversacionId}/${userId}`);
-      setMensajes(response.data?.mensajes || []);
-      setOtroUsuarioChat(response.data?.otro_usuario || null);
+      const data = response?.data || response;
+      const mensajesCargados = data?.mensajes || [];
+      setMensajes(mensajesCargados);
+      setOtroUsuarioChat(data?.otro_usuario || null);
+      ultimoMensajeChatIdRef.current = mensajesCargados.reduce(
+        (max, mensaje) => Math.max(max, Number(mensaje.id) || 0),
+        0
+      );
+      limpiarNoLeidosChat(conversacionId);
     } catch (error) {
-      console.error('Error cargando mensajes:', error);
-      setMensajes([]);
+      if (!silencioso) {
+        console.error('Error cargando mensajes:', error);
+        setMensajes([]);
+      }
+    }
+  };
+
+  const pollMensajesNuevosChat = async (conversacionId) => {
+    try {
+      const userId = user?.id;
+      const response = await api.get(
+        `/mensajes/conversacion/${conversacionId}/${userId}/nuevos/${ultimoMensajeChatIdRef.current}`
+      );
+      const data = response?.data || response;
+      const nuevos = data?.mensajes || [];
+
+      limpiarNoLeidosChat(conversacionId);
+      if (nuevos.length === 0) return;
+
+      setMensajes(prev => {
+        const idsExistentes = new Set(prev.map(mensaje => Number(mensaje.id)));
+        const soloNuevos = nuevos.filter(mensaje => !idsExistentes.has(Number(mensaje.id)));
+        return soloNuevos.length > 0 ? [...prev, ...soloNuevos] : prev;
+      });
+
+      ultimoMensajeChatIdRef.current = nuevos.reduce(
+        (max, mensaje) => Math.max(max, Number(mensaje.id) || 0),
+        ultimoMensajeChatIdRef.current
+      );
+      loadConversaciones(true);
+    } catch (error) {
+      // Polling silencioso para no interrumpir la consulta del especialista.
     }
   };
 
   // Seleccionar conversación
   const handleSelectConversacion = (conv) => {
-    setConversacionActiva(conv);
+    setConversacionActiva({ ...conv, no_leidos: 0 });
+    limpiarNoLeidosChat(conv.id);
     loadMensajes(conv.id);
   };
 
@@ -903,17 +1022,24 @@ const EspecialistaDashboard = () => {
     };
 
     try {
-      await api.post('/mensajes/enviar', mensaje);
+      const response = await api.post('/mensajes/enviar', mensaje);
+      const data = response?.data || response;
+      const mensajeId = data?.id || Date.now();
 
       // Agregar mensaje localmente
       setMensajes(prev => [...prev, {
-        id: Date.now(),
+        id: mensajeId,
         ...mensaje,
         created_at: new Date().toISOString(),
         emisor_nombre: user?.nombre || 'Yo'
       }]);
 
+      if (data?.id) {
+        ultimoMensajeChatIdRef.current = Math.max(ultimoMensajeChatIdRef.current, Number(data.id));
+      }
+
       setNuevoMensaje('');
+      loadConversaciones(true);
     } catch (error) {
       console.error('Error enviando mensaje:', error);
       // Agregar localmente de todas formas
@@ -933,7 +1059,8 @@ const EspecialistaDashboard = () => {
     setOtroUsuarioChat(null);
     try {
       const response = await api.post(`/mensajes/iniciar/${user?.id}/${receptorId}`);
-      const convId = response.data?.conversacion_id;
+      const data = response?.data || response;
+      const convId = data?.conversacion_id;
 
       if (convId) {
         setConversacionActiva({
@@ -942,6 +1069,7 @@ const EspecialistaDashboard = () => {
           otro_usuario_nombre: paciente.nombre
         });
         loadMensajes(convId);
+        loadConversaciones(true);
       }
     } catch (error) {
       console.error('Error iniciando conversación:', error);
@@ -1427,7 +1555,7 @@ const EspecialistaDashboard = () => {
                 {conversaciones.map((conv) => (
                   <button
                     key={conv.id}
-                    className={`conversacion-item ${conversacionActiva?.id === conv.id ? 'active' : ''}`}
+                    className={`conversacion-item ${Number(conversacionActiva?.id) === Number(conv.id) ? 'active' : ''}`}
                     onClick={() => handleSelectConversacion(conv)}
                     style={{ '--area-color': areaConfig.color }}
                   >

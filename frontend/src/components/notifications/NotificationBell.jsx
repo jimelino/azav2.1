@@ -8,7 +8,10 @@ import './NotificationBell.css';
 // Adónde navegar según el tipo de referencia de la notificación.
 const RUTAS_POR_REFERENCIA = {
   neuro_fase: () => '/neuropsicologia',
+  mensaje: (id) => `/chat/${id}`,
 };
+
+const NOTIFICACIONES_REFRESH_EVENT = 'azaria:notificaciones-actualizadas';
 
 const NotificationBell = () => {
   const { user } = useAuth();
@@ -50,6 +53,12 @@ const NotificationBell = () => {
   }, [user, cargar]);
 
   useEffect(() => {
+    if (!user) return undefined;
+    window.addEventListener(NOTIFICACIONES_REFRESH_EVENT, cargar);
+    return () => window.removeEventListener(NOTIFICACIONES_REFRESH_EVENT, cargar);
+  }, [user, cargar]);
+
+  useEffect(() => {
     if (!showPanel) return;
     const cerrarSiFuera = (e) => {
       if (panelRef.current && !panelRef.current.contains(e.target)) {
@@ -86,7 +95,7 @@ const NotificationBell = () => {
 
     setShowPanel(false);
     const irA = RUTAS_POR_REFERENCIA[notif.referencia_tipo];
-    if (irA) navigate(irA());
+    if (irA) navigate(irA(notif.referencia_id));
   };
 
   const handleMarcarTodas = async () => {

@@ -1270,6 +1270,31 @@ route('PUT', '/api/admin/usuarios/(\d+)/toggle', function($id) {
     $controller->toggleUsuarioEstado($id);
 }, ['auth', 'role:administrador']);
 
+route('GET', '/api/admin/especialistas', function() {
+    $controller = new AdminController();
+    $controller->getEspecialistas();
+}, ['auth', 'role:administrador']);
+
+route('GET', '/api/admin/pacientes', function() {
+    $controller = new AdminController();
+    $controller->getPacientes();
+}, ['auth', 'role:administrador']);
+
+route('GET', '/api/admin/especialistas/(\d+)/asignaciones', function($especialistaId) {
+    $controller = new AdminController();
+    $controller->getAsignacionesEspecialista($especialistaId);
+}, ['auth', 'role:administrador']);
+
+route('POST', '/api/admin/asignaciones', function() {
+    $controller = new AdminController();
+    $controller->crearAsignacion(json_decode(file_get_contents('php://input'), true) ?? []);
+}, ['auth', 'role:administrador']);
+
+route('DELETE', '/api/admin/asignaciones/(\d+)', function($id) {
+    $controller = new AdminController();
+    $controller->eliminarAsignacion($id);
+}, ['auth', 'role:administrador']);
+
 route('GET', '/api/nutricion/plan-paciente/(\d+)', function($id) {
     $controller = new \App\Controllers\NutricionController();
     $controller->obtenerPlanPaciente($id);
