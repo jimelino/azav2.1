@@ -20,6 +20,28 @@
   color: var(--text-secondary, #8B949E);
 }
 
+.ortesis-fases-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--spacing-sm, 10px);
+  padding: var(--spacing-lg, 24px);
+  background: rgba(198, 40, 40, 0.1);
+  border: 1px solid rgba(198, 40, 40, 0.35);
+  border-radius: var(--radius-md, 12px);
+  color: #EF9A9A;
+}
+
+.ortesis-fases-error p {
+  margin: 0;
+  color: var(--text-primary, #E6EDF3);
+}
+
+[data-theme="light"] .ortesis-fases-error p {
+  color: #212121;
+}
+
 .ortesis-fases-spinner {
   width: 36px;
   height: 36px;

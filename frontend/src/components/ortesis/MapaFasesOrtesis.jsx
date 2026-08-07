@@ -18,6 +18,7 @@ const MapaFasesOrtesis = ({ pacienteId, esEspecialista = false, onBack }) => {
   const [catalogo, setCatalogo] = useState({});
   const [historial, setHistorial] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [saving, setSaving] = useState(false);
   const [nuevaFase, setNuevaFase] = useState('');
@@ -26,6 +27,7 @@ const MapaFasesOrtesis = ({ pacienteId, esEspecialista = false, onBack }) => {
   const cargarDatos = useCallback(async () => {
     if (!pacienteId) return;
     setLoading(true);
+    setError('');
     try {
       const [faseRes, historialRes] = await Promise.all([
         api.get(`/ortesis/fases/${pacienteId}`),
@@ -36,8 +38,11 @@ const MapaFasesOrtesis = ({ pacienteId, esEspecialista = false, onBack }) => {
       setFase(faseData?.fase || null);
       setCatalogo(faseData?.catalogo || {});
       setHistorial(historialData?.historial || []);
-    } catch (error) {
-      console.error('Error al cargar fases de órtesis:', error);
+    } catch (err) {
+      console.error('Error al cargar fases de órtesis:', err);
+      setError(err?.message || 'No se pudieron cargar las fases del tratamiento.');
+      setCatalogo({});
+      setHistorial([]);
     } finally {
       setLoading(false);
     }
@@ -91,6 +96,24 @@ const MapaFasesOrtesis = ({ pacienteId, esEspecialista = false, onBack }) => {
         <div className="ortesis-fases-spinner" aria-hidden="true"></div>
         <p>Cargando fases...</p>
       </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <section className={onBack ? 'module-view ortesis-fases-container' : 'ortesis-fases-container'}>
+        {onBack && (
+          <div className="module-header">
+            <button className="back-btn" onClick={onBack}><LucideIcon name="arrow-left" size={18} /> Volver</button>
+            <h2 className="module-title"><LucideIcon name="map-pin" size={22} /> Fases del Tratamiento</h2>
+          </div>
+        )}
+        <div className="ortesis-fases-error" role="alert">
+          <LucideIcon name="alert-triangle" size={20} />
+          <p>{error}</p>
+          <button className="ortesis-fases-btn-cambiar" onClick={cargarDatos}>Reintentar</button>
+        </div>
+      </section>
     );
   }
 
