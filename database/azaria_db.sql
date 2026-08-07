@@ -238,14 +238,23 @@ CREATE TABLE IF NOT EXISTS asignaciones_especialista (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
+    -- Columna generada: solo tiene valor cuando la asignación está activa,
+    -- así la UNIQUE KEY de abajo solo exige unicidad entre activas (MySQL
+    -- permite múltiples NULL en una UNIQUE KEY) y el historial de
+    -- reasignaciones (activo=0) no choca entre sí.
+    activo_unico VARCHAR(40) GENERATED ALWAYS AS (
+        IF(activo = 1, CONCAT(paciente_id, '-', area_medica_id), NULL)
+    ) STORED,
+
     FOREIGN KEY (paciente_id) REFERENCES pacientes(id) ON DELETE CASCADE,
     FOREIGN KEY (especialista_id) REFERENCES usuarios(id),
     FOREIGN KEY (area_medica_id) REFERENCES areas_medicas(id),
     FOREIGN KEY (asignado_por) REFERENCES usuarios(id),
 
-    UNIQUE KEY unique_asignacion (paciente_id, area_medica_id, activo),
+    UNIQUE KEY unique_asignacion_activa (activo_unico),
     INDEX idx_especialista (especialista_id),
-    INDEX idx_area (area_medica_id)
+    INDEX idx_area (area_medica_id),
+    INDEX idx_paciente (paciente_id)
 ) ENGINE=InnoDB;
 
 -- =====================================================
