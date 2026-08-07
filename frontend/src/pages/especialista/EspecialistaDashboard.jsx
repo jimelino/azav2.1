@@ -615,6 +615,34 @@ const EspecialistaDashboard = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Mantiene el badge de "Mensajes" (barra inferior) al día aunque el
+  // especialista esté en otra pestaña. loadConversaciones()/
+  // actualizarTotalNoLeidosChat() solo corren dentro de la vista de
+  // Mensajes, así que sin este polling el contador se quedaba congelado
+  // hasta la próxima vez que se entrara a esa pestaña.
+  useEffect(() => {
+    if (!user?.id) return;
+
+    const actualizarBadgeGlobal = async () => {
+      try {
+        const res = await api.get(`/mensajes/no-leidos/${user.id}`);
+        const total = res?.data?.total ?? res?.total ?? 0;
+        setDashboardData(prev => ({ ...prev, mensajesNuevos: total }));
+      } catch (error) {
+        // silencioso: polling de fondo
+      }
+    };
+
+    const interval = setInterval(() => {
+      if (pestanaVisibleChatRef.current && activeView !== 'mensajes') {
+        actualizarBadgeGlobal();
+      }
+    }, 15000);
+
+    return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id, activeView]);
+
   // Cargar conversaciones cuando se abre la vista de mensajes
   useEffect(() => {
     if (activeView !== 'mensajes' || !user?.id) return;
