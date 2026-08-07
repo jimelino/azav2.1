@@ -3,6 +3,7 @@ import LucideIcon from '../LucideIcon';
 import api from '../../services/api';
 import './ProgresoPacientes.css';
 
+
 const ProgresoPacientes = ({ pacienteId, onBack }) => {
   const [stats, setStats] = useState(null);
   const [evaluaciones, setEvaluaciones] = useState([]);
@@ -81,6 +82,7 @@ const ProgresoPacientes = ({ pacienteId, onBack }) => {
   const adherencia = getAdherencia();
   const dolorTrend = getDolorTrend();
   const romTrend = getRomTrend();
+  
 
   return (
     <section className="module-view progreso-pacientes">

@@ -499,10 +499,41 @@ route('PUT', '/api/fisioterapia/planes/(\d+)/estado', function($id) {
     $controller->cambiarEstadoPlan($id);
 }, ['auth']);
 
+// ==========================================
+// INDICACIONES DE FISIOTERAPIA
+// ==========================================
+
+// Obtener las indicaciones de un paciente
+route('GET', '/api/fisioterapia/indicaciones/(\d+)', function($pacienteId) {
+
+    $controller = new FisioterapiaController();
+
+    $controller->obtenerIndicaciones($pacienteId);
+
+}, ['auth']);
+
+
+// Guardar o actualizar indicaciones
+route('POST', '/api/fisioterapia/indicaciones', function() {
+
+    $controller = new FisioterapiaController();
+
+    $controller->guardarIndicaciones();
+
+}, ['auth']);
+
 // Stats de fisioterapia para especialista
 route('GET', '/api/fisioterapia/stats/paciente/(\d+)', function($pacienteId) {
     $controller = new FisioterapiaController();
     $controller->getEstadisticasPaciente($pacienteId);
+}, ['auth']);
+
+route('GET', '/api/fisioterapia/paciente/(\d+)', function($pacienteId) {
+
+    $controller = new FisioterapiaController();
+
+    $controller->obtenerInformacionPaciente($pacienteId);
+
 }, ['auth']);
 
 // RUTAS DE NEUROPSICOLOGÍA

@@ -107,4 +107,44 @@ class Paciente
             [$pacienteId, $especialistaId]
         );
     }
+    public static function obtenerInformacion($pacienteId)
+{
+    $db = DatabaseService::getInstance();
+
+    return $db->query(
+
+        "SELECT
+
+            p.id,
+            u.nombre_completo,
+            u.email,
+            am.nombre AS area,
+            esp.nombre_completo AS especialista
+
+        FROM pacientes p
+
+        INNER JOIN usuarios u
+            ON p.usuario_id = u.id
+
+        LEFT JOIN asignaciones_especialista ae
+            ON ae.paciente_id = p.id
+            AND ae.activo = 1
+
+        LEFT JOIN usuarios esp
+            ON ae.especialista_id = esp.id
+
+        LEFT JOIN areas_medicas am
+            ON ae.area_medica_id = am.id
+
+        WHERE p.id = ?",
+
+        [
+
+            $pacienteId
+
+        ]
+
+    )->fetch();
+
+}
 }

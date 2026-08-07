@@ -12,6 +12,8 @@ use App\Services\FileUploadService;
 use App\Middleware\AuthMiddleware;
 use App\Utils\Response;
 use App\Utils\Validator;
+use App\Models\IndicacionFisioterapia;
+use App\Models\Paciente;
 
 class FisioterapiaController
 {
@@ -407,4 +409,82 @@ class FisioterapiaController
             'plan_activo' => $planActivo
         ]);
     }
+    // ==========================================
+// INDICACIONES DEL PACIENTE
+// ==========================================
+
+public function guardarIndicaciones()
+{
+
+    $data = json_decode(file_get_contents("php://input"), true);
+
+    $user = AuthMiddleware::getCurrentUser();
+
+    $validator = new Validator($data);
+
+    $validator->required([
+
+        "paciente_id",
+        "fase_actual",
+        "indicaciones"
+
+    ]);
+
+    if (!$validator->passes()) {
+
+        return Response::error(
+            $validator->errors(),
+            422
+        );
+
+    }
+
+    $data["especialista_id"] = $user["id"];
+
+    IndicacionFisioterapia::guardar($data);
+
+    return Response::success(
+
+        null,
+
+        "Indicaciones guardadas correctamente"
+
+    );
+
+}
+
+
+//obtener indicacion
+public function obtenerIndicaciones($pacienteId)
+{
+
+    $datos = IndicacionFisioterapia::obtener($pacienteId);
+
+    return Response::success($datos);
+
+}
+// ==========================================
+// INFORMACIÓN DEL PACIENTE
+// ==========================================
+
+public function obtenerInformacionPaciente($pacienteId)
+{
+
+    $datos = Paciente::obtenerInformacion($pacienteId);
+
+    if (!$datos) {
+
+        return Response::error(
+
+            "Paciente no encontrado",
+
+            404
+
+        );
+
+    }
+
+    return Response::success($datos);
+
+}
 }

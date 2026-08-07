@@ -1,6 +1,6 @@
 <?php
 // Cabeceras CORS manuales al inicio para asegurar Railway
-header("Access-Control-Allow-Origin: https://azaria-production.up.railway.app");
+header("Access-Control-Allow-Origin: https://azav21-production.up.railway.app");
 header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With, X-CSRF-Token");
 header("Access-Control-Allow-Methods: GET, POST, OPTIONS, PUT, DELETE");
 header("Access-Control-Allow-Credentials: true");
