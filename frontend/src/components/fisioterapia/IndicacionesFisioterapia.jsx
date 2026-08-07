@@ -134,6 +134,43 @@ const IndicacionesFisioterapia = ({
         }
 
     };
+    const eliminarIndicacion = async () => {
+
+    const confirmar = window.confirm(
+
+        "¿Desea eliminar las indicaciones de este paciente?"
+
+    );
+
+    if (!confirmar) return;
+
+    try {
+
+        const res = await api.delete(
+
+            `/fisioterapia/indicaciones/${pacienteId}`
+
+        );
+
+        if (res.success) {
+
+            setIndicaciones("");
+
+            setFaseActual(1);
+
+            alert("Indicaciones eliminadas correctamente.");
+
+        }
+
+    } catch (error) {
+
+        console.error(error);
+
+        alert("No fue posible eliminar las indicaciones.");
+
+    }
+
+};
         return (
 
         <section className="indicaciones-fisio">
@@ -361,35 +398,62 @@ const IndicacionesFisioterapia = ({
 
                             </div>
 
-                            <div className="boton-guardar">
+                            <div className="acciones-indicaciones">
 
-                                <button
+    <button
 
-                                    className="btn-guardar"
+        className="btn-guardar"
 
-                                    onClick={guardarCambios}
+        onClick={guardarCambios}
 
-                                    disabled={guardando}
+        disabled={guardando}
 
-                                >
+    >
 
-                                    {
+       {
 
-                                        guardando
+    guardando
 
-                                        ?
+    ?
 
-                                        "Guardando..."
+    "Guardando..."
 
-                                        :
+    :
 
-                                        "Guardar cambios"
+    indicaciones.trim() !== ""
 
-                                    }
+    ?
 
-                                </button>
+    "Actualizar indicación"
 
-                            </div>
+    :
+
+    "Guardar indicación"
+
+}
+    </button>
+
+    {
+
+    indicaciones.trim() !== "" && (
+
+        <button
+
+            className="btn-eliminar"
+
+            onClick={eliminarIndicacion}
+
+        >
+
+           Eliminar indicación
+
+        </button>
+
+    )
+
+}
+
+</div>
 
                         </div>
 

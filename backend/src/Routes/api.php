@@ -512,6 +512,15 @@ route('GET', '/api/fisioterapia/indicaciones/(\d+)', function($pacienteId) {
 
 }, ['auth']);
 
+// Eliminar indicaciones de un paciente
+route('DELETE', '/api/fisioterapia/indicaciones/(\d+)', function($pacienteId) {
+
+    $controller = new FisioterapiaController();
+
+    $controller->eliminarIndicacion($pacienteId);
+
+}, ['auth']);
+
 
 // Guardar o actualizar indicaciones
 route('POST', '/api/fisioterapia/indicaciones', function() {

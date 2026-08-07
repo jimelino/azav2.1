@@ -464,6 +464,37 @@ public function obtenerIndicaciones($pacienteId)
 
 }
 // ==========================================
+// ELIMINAR INDICACIÓN
+// ==========================================
+
+public function eliminarIndicacion($pacienteId)
+{
+
+    $db = DatabaseService::getInstance();
+
+    $db->query(
+
+        "DELETE FROM indicaciones_fisioterapia
+         WHERE paciente_id = ?",
+
+        [
+
+            $pacienteId
+
+        ]
+
+    );
+
+    return Response::success(
+
+        null,
+
+        "Indicación eliminada correctamente"
+
+    );
+
+}
+// ==========================================
 // INFORMACIÓN DEL PACIENTE
 // ==========================================
 
