@@ -11,6 +11,8 @@ const RUTAS_POR_REFERENCIA = {
   mensaje: (id) => `/chat/${id}`,
 };
 
+const NOTIFICACIONES_REFRESH_EVENT = 'azaria:notificaciones-actualizadas';
+
 const NotificationBell = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -48,6 +50,12 @@ const NotificationBell = () => {
       document.removeEventListener('visibilitychange', alCambiarVisibilidad);
       clearInterval(interval);
     };
+  }, [user, cargar]);
+
+  useEffect(() => {
+    if (!user) return undefined;
+    window.addEventListener(NOTIFICACIONES_REFRESH_EVENT, cargar);
+    return () => window.removeEventListener(NOTIFICACIONES_REFRESH_EVENT, cargar);
   }, [user, cargar]);
 
   useEffect(() => {

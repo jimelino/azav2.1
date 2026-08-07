@@ -94,6 +94,30 @@ class MensajesController
         return $participantes;
     }
 
+    private function marcarConversacionLeida($conversacionId, $usuarioId)
+    {
+        $this->db->query(
+            "UPDATE mensajes_chat
+             SET leido = 1, leido_at = COALESCE(leido_at, NOW())
+             WHERE conversacion_id = ? AND remitente_id != ? AND leido = 0",
+            [$conversacionId, $usuarioId]
+        );
+
+        try {
+            $this->db->query(
+                "UPDATE notificaciones
+                 SET leida = 1, leida_en = COALESCE(leida_en, NOW())
+                 WHERE usuario_id = ?
+                   AND referencia_tipo = 'mensaje'
+                   AND referencia_id = ?
+                   AND leida = 0",
+                [$usuarioId, $conversacionId]
+            );
+        } catch (\Exception $e) {
+            // La lectura del chat no debe fallar si la bandeja de notificaciones no esta disponible.
+        }
+    }
+
     private function getDatosCompatibles($usuarioA, $usuarioB, $tipo)
     {
         if ($tipo === 'especialista_especialista') {
@@ -159,10 +183,7 @@ class MensajesController
             ? $conversacion['participante_2_id']
             : $conversacion['participante_1_id'];
 
-        $this->db->query(
-            "UPDATE mensajes_chat SET leido = 1, leido_at = NOW() WHERE conversacion_id = ? AND remitente_id != ?",
-            [$conversacionId, $usuarioId]
-        );
+        $this->marcarConversacionLeida($conversacionId, $usuarioId);
 
         $mensajes = $this->db->query(
             "SELECT m.id, m.remitente_id AS emisor_id, m.contenido AS mensaje, m.leido, m.created_at,
@@ -211,10 +232,7 @@ class MensajesController
             return Response::error('No tienes acceso a esta conversacion', 403);
         }
 
-        $this->db->query(
-            "UPDATE mensajes_chat SET leido = 1, leido_at = NOW() WHERE conversacion_id = ? AND remitente_id != ? AND leido = 0",
-            [$conversacionId, $usuarioId]
-        );
+        $this->marcarConversacionLeida($conversacionId, $usuarioId);
 
         $mensajes = $this->db->query(
             "SELECT m.id, m.remitente_id AS emisor_id, m.contenido AS mensaje, m.leido, m.created_at,
@@ -532,10 +550,7 @@ class MensajesController
             return Response::error('No tienes acceso a esta conversacion', 403);
         }
 
-        $this->db->query(
-            "UPDATE mensajes_chat SET leido = 1, leido_at = NOW() WHERE conversacion_id = ? AND remitente_id != ?",
-            [$conversacionId, $usuarioId]
-        );
+        $this->marcarConversacionLeida($conversacionId, $usuarioId);
 
         $mensajes = $this->db->query(
             "SELECT m.id, m.remitente_id AS emisor_id, m.contenido AS mensaje, m.leido, m.created_at,

@@ -77,13 +77,14 @@ class DashboardController
         }
 
         // Mensajes no leídos (mensajes en conversaciones donde el usuario participa, que no fueron enviados por él)
+        // Usa participante_1_id/participante_2_id (no el JOIN viejo contra pacientes) para
+        // que también cuente conversaciones especialista<->especialista, que no tienen paciente_id.
         $mensajesNoLeidos = $this->db->query(
             "SELECT COUNT(*) as total FROM mensajes_chat mc
              INNER JOIN conversaciones c ON mc.conversacion_id = c.id
-             INNER JOIN pacientes p ON c.paciente_id = p.id
              WHERE mc.leido = 0
              AND mc.remitente_id != ?
-             AND (p.usuario_id = ? OR c.especialista_id = ?)",
+             AND (c.participante_1_id = ? OR c.participante_2_id = ?)",
             [$userId, $userId, $userId]
         )->fetch();
 
