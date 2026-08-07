@@ -8,6 +8,7 @@ import './NotificationBell.css';
 // Adónde navegar según el tipo de referencia de la notificación.
 const RUTAS_POR_REFERENCIA = {
   neuro_fase: () => '/neuropsicologia',
+  mensaje: (id) => `/chat/${id}`,
 };
 
 const NotificationBell = () => {
@@ -86,7 +87,7 @@ const NotificationBell = () => {
 
     setShowPanel(false);
     const irA = RUTAS_POR_REFERENCIA[notif.referencia_tipo];
-    if (irA) navigate(irA());
+    if (irA) navigate(irA(notif.referencia_id));
   };
 
   const handleMarcarTodas = async () => {

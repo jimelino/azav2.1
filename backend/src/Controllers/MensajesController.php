@@ -181,6 +181,67 @@ class MensajesController
         ]);
     }
 
+    public function getMensajesNuevos($conversacionId, $usuarioId, $ultimoId)
+    {
+        if ($this->soportaChatUniversal()) {
+            $conversacion = $this->db->query(
+                "SELECT id FROM conversaciones WHERE id = ? AND (participante_1_id = ? OR participante_2_id = ?)",
+                [$conversacionId, $usuarioId, $usuarioId]
+            )->fetch();
+        } else {
+            $usuario = $this->getUsuario($usuarioId);
+            if (!$usuario) {
+                return Response::error('Usuario no encontrado', 404);
+            }
+            if ((int)$usuario['rol_id'] === 3) {
+                $paciente = $this->db->query("SELECT id FROM pacientes WHERE usuario_id = ?", [$usuarioId])->fetch();
+                $conversacion = $paciente ? $this->db->query(
+                    "SELECT id FROM conversaciones WHERE id = ? AND paciente_id = ?",
+                    [$conversacionId, $paciente['id']]
+                )->fetch() : null;
+            } else {
+                $conversacion = $this->db->query(
+                    "SELECT id FROM conversaciones WHERE id = ? AND especialista_id = ?",
+                    [$conversacionId, $usuarioId]
+                )->fetch();
+            }
+        }
+
+        if (!$conversacion) {
+            return Response::error('No tienes acceso a esta conversacion', 403);
+        }
+
+        $this->db->query(
+            "UPDATE mensajes_chat SET leido = 1, leido_at = NOW() WHERE conversacion_id = ? AND remitente_id != ? AND leido = 0",
+            [$conversacionId, $usuarioId]
+        );
+
+        $mensajes = $this->db->query(
+            "SELECT m.id, m.remitente_id AS emisor_id, m.contenido AS mensaje, m.leido, m.created_at,
+                    u.nombre_completo AS emisor_nombre
+             FROM mensajes_chat m
+             INNER JOIN usuarios u ON m.remitente_id = u.id
+             WHERE m.conversacion_id = ? AND m.id > ?
+             ORDER BY m.created_at ASC",
+            [$conversacionId, (int)$ultimoId]
+        )->fetchAll();
+
+        return Response::success(['mensajes' => $mensajes]);
+    }
+
+    private function notificarNuevoMensaje($receptorUsuarioId, $emisorNombre, $mensaje, $conversacionId)
+    {
+        (new \App\Services\NotificationService())->crear(
+            $receptorUsuarioId,
+            NOTIF_MENSAJE,
+            'Nuevo mensaje de ' . $emisorNombre,
+            mb_strimwidth(trim($mensaje), 0, 120, '...'),
+            [],
+            'mensaje',
+            $conversacionId
+        );
+    }
+
     public function enviarMensaje($data)
     {
         if (!$this->soportaChatUniversal()) {
@@ -227,6 +288,8 @@ class MensajesController
             "UPDATE conversaciones SET ultimo_mensaje_at = NOW() WHERE id = ?",
             [$conversacionId]
         );
+
+        $this->notificarNuevoMensaje($receptor['id'], $emisor['nombre_completo'], $data['mensaje'], $conversacionId);
 
         return Response::success([
             'id' => $mensajeId,
@@ -498,7 +561,7 @@ class MensajesController
         $mensaje = trim($data['mensaje']);
 
         $emisor = $this->db->query(
-            "SELECT id, rol_id FROM usuarios WHERE id = ?",
+            "SELECT id, rol_id, nombre_completo FROM usuarios WHERE id = ?",
             [$emisorId]
         )->fetch();
 
@@ -560,6 +623,8 @@ class MensajesController
             "UPDATE conversaciones SET ultimo_mensaje_at = NOW() WHERE id = ?",
             [$conversacionId]
         );
+
+        $this->notificarNuevoMensaje($receptorId, $emisor['nombre_completo'] ?? 'un usuario', $mensaje, $conversacionId);
 
         return Response::success([
             'id' => $mensajeId,
