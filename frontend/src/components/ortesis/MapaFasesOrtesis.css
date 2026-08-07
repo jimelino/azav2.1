@@ -1,0 +1,364 @@
+/* Mapa de fases de Órtesis y Prótesis — variante HORIZONTAL del mismo
+   patrón usado en Neuropsicología (MapaFasesNeuropsicologia.css), con el
+   color de marca del módulo (--color-ortesis, cyan) en vez de morado.
+   Autocontenido: se monta tanto en Ortesis.jsx (paciente) como en
+   EspecialistaDashboard.jsx (especialista). */
+
+.ortesis-fases-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg, 24px);
+}
+
+.ortesis-fases-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm, 8px);
+  padding: var(--spacing-xl, 32px);
+  color: var(--text-secondary, #8B949E);
+}
+
+.ortesis-fases-spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid var(--border-color, #30363D);
+  border-top-color: #00BCD4;
+  border-radius: 50%;
+  animation: ortesis-fases-spin 0.8s linear infinite;
+}
+
+@keyframes ortesis-fases-spin {
+  to { transform: rotate(360deg); }
+}
+
+.ortesis-fases-btn-cambiar {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-sm, 8px);
+  align-self: flex-start;
+  min-height: var(--touch-target-comfortable, 56px);
+  padding: 0 var(--spacing-lg, 24px);
+  border: none;
+  border-radius: var(--radius-md, 12px);
+  background: linear-gradient(135deg, #00BCD4, #00838F);
+  color: #fff;
+  font-weight: 700;
+  font-size: var(--font-size-base, 16px);
+  cursor: pointer;
+}
+
+.ortesis-fases-btn-cambiar:hover {
+  filter: brightness(1.08);
+}
+
+/* Timeline horizontal: se desplaza lateralmente si no cabe (pantallas
+   angostas / 7 fases), sin salirse del contenedor padre. */
+.ortesis-fases-timeline {
+  position: relative;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 0;
+  overflow-x: auto;
+  padding: 24px 12px 12px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.ortesis-fases-item {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  flex: 1 1 0;
+  min-width: 168px;
+  padding: 0 10px;
+}
+
+/* Línea conectora: del centro de este nodo al centro del siguiente.
+   Funciona porque todos los items tienen el mismo ancho (flex: 1 1 0). */
+.ortesis-fases-item:not(:last-child)::before {
+  content: '';
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  width: 100%;
+  height: 3px;
+  background: var(--border-color, #30363D);
+  z-index: 0;
+}
+
+.ortesis-fases-item.completed:not(:last-child)::before {
+  background: #00BCD4;
+}
+
+.ortesis-fases-dot {
+  position: relative;
+  z-index: 1;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-weight: 700;
+  background: var(--surface-tertiary, #30363D);
+  color: var(--text-muted, #6E7681);
+  margin-bottom: var(--spacing-sm, 10px);
+}
+
+.ortesis-fases-item.completed .ortesis-fases-dot {
+  background: #00BCD4;
+  color: #fff;
+  box-shadow: 0 0 0 4px rgba(0, 188, 212, 0.2);
+}
+
+.ortesis-fases-item.current .ortesis-fases-dot {
+  background: #00BCD4;
+  color: #fff;
+  animation: ortesis-fases-pulse 2s infinite;
+}
+
+@keyframes ortesis-fases-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(0, 188, 212, 0.5); }
+  70% { box-shadow: 0 0 0 10px rgba(0, 188, 212, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(0, 188, 212, 0); }
+}
+
+.ortesis-fases-card {
+  width: 100%;
+  background: var(--surface-primary, #161B22);
+  border: 1px solid var(--border-color, #30363D);
+  border-radius: var(--radius-md, 12px);
+  padding: var(--spacing-sm, 10px);
+}
+
+.ortesis-fases-item.current .ortesis-fases-card {
+  border-color: rgba(0, 188, 212, 0.5);
+}
+
+.ortesis-fases-item.completed .ortesis-fases-card {
+  opacity: 0.85;
+}
+
+.ortesis-fases-card-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-xs, 6px);
+}
+
+.ortesis-fases-card-header h3 {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-xs, 6px);
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.3;
+  color: var(--text-primary, #E6EDF3);
+}
+
+.ortesis-fases-badge {
+  padding: 4px 10px;
+  border-radius: var(--radius-sm, 8px);
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.ortesis-fases-badge.completed { background: rgba(0, 188, 212, 0.15); color: #4DD0E1; }
+.ortesis-fases-badge.current { background: rgba(0, 188, 212, 0.25); color: #80DEEA; }
+.ortesis-fases-badge.future { background: rgba(158, 158, 158, 0.15); color: var(--text-muted, #9E9E9E); }
+
+/* Historial */
+.ortesis-fases-section-title {
+  margin: 0 0 var(--spacing-sm, 12px);
+  font-size: var(--font-size-base, 16px);
+  color: var(--text-primary, #E6EDF3);
+}
+
+.ortesis-fases-historial-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm, 12px);
+}
+
+.ortesis-fases-historial-item {
+  background: var(--surface-secondary, #21262D);
+  border: 1px solid var(--border-color, #30363D);
+  border-radius: var(--radius-md, 12px);
+  padding: var(--spacing-md, 12px);
+}
+
+.ortesis-fases-historial-fase {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs, 6px);
+  font-weight: 700;
+  color: #4DD0E1;
+}
+
+.ortesis-fases-historial-meta {
+  display: flex;
+  gap: var(--spacing-md, 16px);
+  flex-wrap: wrap;
+  margin-top: var(--spacing-xs, 6px);
+  font-size: 13px;
+  color: var(--text-secondary, #8B949E);
+}
+
+.ortesis-fases-historial-meta span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.ortesis-fases-historial-notas {
+  margin: var(--spacing-xs, 6px) 0 0;
+  font-style: italic;
+  color: var(--text-secondary, #8B949E);
+}
+
+.ortesis-fases-empty {
+  color: var(--text-muted, #6E7681);
+}
+
+/* Modal (autocontenido) */
+.ortesis-fases-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-md, 16px);
+  z-index: 1000;
+}
+
+.ortesis-fases-modal-content {
+  width: 100%;
+  max-width: 480px;
+  background: var(--surface-primary, #161B22);
+  border-radius: var(--radius-lg, 16px);
+  padding: var(--spacing-lg, 24px);
+}
+
+.ortesis-fases-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--spacing-md, 16px);
+}
+
+.ortesis-fases-modal-header h2 {
+  margin: 0;
+  color: var(--text-primary, #E6EDF3);
+}
+
+.ortesis-fases-modal-close {
+  background: none;
+  border: none;
+  color: var(--text-secondary, #8B949E);
+  font-size: 18px;
+  cursor: pointer;
+  min-width: var(--touch-target-min, 48px);
+  min-height: var(--touch-target-min, 48px);
+}
+
+.ortesis-fases-form-group {
+  margin-bottom: var(--spacing-md, 16px);
+}
+
+.ortesis-fases-form-group label {
+  display: block;
+  margin-bottom: var(--spacing-xs, 6px);
+  color: var(--text-secondary, #8B949E);
+  font-weight: 600;
+}
+
+.ortesis-fases-form-group select,
+.ortesis-fases-form-group textarea {
+  width: 100%;
+  min-height: var(--touch-target-min, 48px);
+  padding: var(--spacing-sm, 10px);
+  border-radius: var(--radius-sm, 8px);
+  border: 1px solid var(--border-color, #30363D);
+  background: var(--surface-secondary, #21262D);
+  color: var(--text-primary, #E6EDF3);
+  font-size: var(--font-size-base, 16px);
+}
+
+.ortesis-fases-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--spacing-sm, 12px);
+  margin-top: var(--spacing-lg, 20px);
+}
+
+.ortesis-fases-btn-cancel,
+.ortesis-fases-btn-confirm {
+  min-height: var(--touch-target-min, 48px);
+  padding: 0 var(--spacing-lg, 20px);
+  border-radius: var(--radius-sm, 8px);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.ortesis-fases-btn-cancel {
+  background: var(--surface-tertiary, #30363D);
+  border: 1px solid var(--border-color, #30363D);
+  color: var(--text-primary, #E6EDF3);
+}
+
+.ortesis-fases-btn-confirm {
+  background: linear-gradient(135deg, #00BCD4, #00838F);
+  border: none;
+  color: #fff;
+}
+
+.ortesis-fases-btn-confirm:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Tema claro */
+[data-theme="light"] .ortesis-fases-card,
+[data-theme="light"] .ortesis-fases-historial-item,
+[data-theme="light"] .ortesis-fases-modal-content {
+  background: #FFFFFF;
+  border-color: #E0E0E0;
+}
+
+[data-theme="light"] .ortesis-fases-card-header h3,
+[data-theme="light"] .ortesis-fases-modal-header h2,
+[data-theme="light"] .ortesis-fases-section-title {
+  color: #212121;
+}
+
+[data-theme="light"] .ortesis-fases-form-group select,
+[data-theme="light"] .ortesis-fases-form-group textarea {
+  background: #FAFAFA;
+  color: #212121;
+  border-color: #CCC;
+}
+
+[data-theme="light"] .ortesis-fases-btn-cancel {
+  background: #EEEEEE;
+  border-color: #CCC;
+  color: #212121;
+}
+
+/* Móvil: nodos un poco más angostos para que quepan más en pantalla sin
+   perder legibilidad, el scroll horizontal cubre el resto. */
+@media (max-width: 480px) {
+  .ortesis-fases-item {
+    min-width: 132px;
+  }
+  .ortesis-fases-card-header h3 {
+    font-size: 13px;
+  }
+}

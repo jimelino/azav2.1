@@ -838,6 +838,23 @@ CREATE TABLE IF NOT EXISTS neuro_contratos_terapeuticos (
 -- MÓDULO 7: ÓRTESIS
 -- =====================================================
 
+-- Historial de fases del proceso de fabricación/adaptación de Órtesis y
+-- Prótesis, propio del módulo (1: Valoración .. 7: Seguimiento). Mismo
+-- diseño que neuro_fases_historial: sin fila de "estado actual", la fase
+-- vigente es la fila más reciente de esta tabla para ese paciente.
+CREATE TABLE IF NOT EXISTS ortesis_fases_historial (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    paciente_id INT UNSIGNED NOT NULL,
+    fase_numero TINYINT UNSIGNED NOT NULL,
+    especialista_id INT UNSIGNED NOT NULL,
+    notas TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (paciente_id) REFERENCES pacientes(id) ON DELETE CASCADE,
+    FOREIGN KEY (especialista_id) REFERENCES usuarios(id),
+    INDEX idx_paciente_fecha (paciente_id, created_at)
+) ENGINE=InnoDB;
+
 -- Tipos de dispositivo
 CREATE TABLE IF NOT EXISTS tipos_dispositivo (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,

@@ -584,6 +584,26 @@ route('PUT', '/api/neuropsicologia/fases/(\d+)', function($pacienteId) {
     $controller->cambiarFase($pacienteId, $data);
 }, ['auth']);
 
+// Fases del proceso de fabricación/adaptación de Órtesis y Prótesis
+// (Valoración, Cotización, Espera de componentes, Toma de medidas/Molde,
+// Prueba y ajustes, Entrega, Seguimiento) — sistema propio del módulo,
+// separado del de /api/fases
+route('GET', '/api/ortesis/fases/(\d+)', function($pacienteId) {
+    $controller = new \App\Controllers\OrtesisFaseController();
+    $controller->getFaseActual($pacienteId);
+}, ['auth']);
+
+route('GET', '/api/ortesis/fases/(\d+)/historial', function($pacienteId) {
+    $controller = new \App\Controllers\OrtesisFaseController();
+    $controller->getHistorial($pacienteId);
+}, ['auth']);
+
+route('PUT', '/api/ortesis/fases/(\d+)', function($pacienteId) {
+    $data = json_decode(file_get_contents('php://input'), true) ?? [];
+    $controller = new \App\Controllers\OrtesisFaseController();
+    $controller->cambiarFase($pacienteId, $data);
+}, ['auth']);
+
 // Contrato terapéutico: lo sube el especialista, lo descarga el paciente
 route('GET', '/api/neuropsicologia/contrato/(\d+)', function($pacienteId) {
     $controller = new \App\Controllers\NeuroContratoController();

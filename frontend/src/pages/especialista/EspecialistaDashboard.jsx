@@ -28,6 +28,7 @@ import DispositivosPacientes from '../../components/ortesis/DispositivosPaciente
 import EspecialistaOrtesisPanel from '../../components/ortesis/EspecialistaOrtesisPanel';
 import EspecialistaAlertasAnimo from '../../components/neuropsicologia/EspecialistaAlertasAnimo';
 import MapaFasesNeuropsicologia from '../../components/neuropsicologia/MapaFasesNeuropsicologia';
+import MapaFasesOrtesis from '../../components/ortesis/MapaFasesOrtesis';
 import SeguimientoAdaptacion from '../../components/ortesis/SeguimientoAdaptacion';
 import MantenimientoAjustes from '../../components/ortesis/MantenimientoAjustes';
 import MedicionesMunon from '../../components/ortesis/MedicionesMunon';
@@ -138,6 +139,7 @@ const AREAS_CONFIG = {
     icon: 'accessibility',
     color: '#1565C0',
     modulos: [
+      { id: 'fases-ortesis', nombre: 'Fases del Tratamiento', icon: 'map-pin', descripcion: 'Ver y cambiar la fase del dispositivo', view: 'mod-fases-ortesis' },
       { id: 'dispositivos', nombre: 'Dispositivos', icon: 'accessibility', descripcion: 'Ver dispositivos de usuarios', view: 'mod-dispositivos' },
       { id: 'adaptacion', nombre: 'Adaptación', icon: 'wrench', descripcion: 'Ver seguimiento de adaptación', view: 'mod-adaptacion' },
       { id: 'mantenimiento', nombre: 'Mantenimiento y Ajustes', icon: 'hammer', descripcion: 'Historial de mantenimiento y ajustes', view: 'mod-mantenimiento' },
@@ -2480,6 +2482,9 @@ const renderModAlertasClinicas = () => {
         return <MapaFasesNeuropsicologia pacienteId={selectedPaciente.id} esEspecialista onBack={handleBackToPatientList} />;
       case 'mod-gestion-ortesis':
         return <EspecialistaOrtesisPanel />;
+      case 'mod-fases-ortesis':
+        if (!selectedPaciente) return renderPatientSelector('Fases del Tratamiento', 'map-pin');
+        return <MapaFasesOrtesis pacienteId={selectedPaciente.id} esEspecialista onBack={handleBackToPatientList} />;
       case 'mod-dispositivos':
         if (!selectedPaciente) return renderPatientSelector('Dispositivos', 'accessibility');
         return <DispositivosPacientes pacienteId={selectedPaciente.id} onBack={handleBackToPatientList} />;
