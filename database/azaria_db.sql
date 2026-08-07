@@ -244,7 +244,7 @@ CREATE TABLE IF NOT EXISTS asignaciones_especialista (
     -- reasignaciones (activo=0) no choca entre sí.
     activo_unico VARCHAR(40) GENERATED ALWAYS AS (
         IF(activo = 1, CONCAT(paciente_id, '-', area_medica_id), NULL)
-    ) STORED,
+    ) VIRTUAL,
 
     FOREIGN KEY (paciente_id) REFERENCES pacientes(id) ON DELETE CASCADE,
     FOREIGN KEY (especialista_id) REFERENCES usuarios(id),

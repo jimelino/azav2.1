@@ -9,10 +9,16 @@
 -- paciente_id (InnoDB exige un índice con esa columna como prefijo para
 -- cada FK); hay que darle uno nuevo antes de tumbar el viejo o el ALTER
 -- falla con errno 150 "Foreign key constraint is incorrectly formed".
+--
+-- La columna generada es VIRTUAL (no STORED): un STORED obliga a MySQL
+-- a reconstruir la tabla completa (ALGORITHM=COPY) y esa reconstrucción
+-- revalida las 4 foreign keys desde cero, lo que puede tronar con
+-- errno 1215 "Cannot add foreign key constraint" según el estado de los
+-- datos. VIRTUAL evita esa reconstrucción por completo.
 ALTER TABLE asignaciones_especialista
   ADD INDEX idx_paciente (paciente_id),
   DROP INDEX unique_asignacion,
   ADD COLUMN activo_unico VARCHAR(40) GENERATED ALWAYS AS (
     IF(activo = 1, CONCAT(paciente_id, '-', area_medica_id), NULL)
-  ) STORED,
+  ) VIRTUAL,
   ADD UNIQUE KEY unique_asignacion_activa (activo_unico);
