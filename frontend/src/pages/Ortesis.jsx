@@ -706,8 +706,6 @@ const Ortesis = () => {
     switch (activeTab) {
       case 'inicio':
         return renderInicio();
-      case 'fases':
-        return <MapaFasesOrtesis pacienteId={user?.paciente_id} />;
       case 'niveles-k':
         return seccionActiva === 'protesis' ? renderNivelesK() : renderInicio();
       case 'tipos':
@@ -1333,6 +1331,9 @@ const Ortesis = () => {
         </div>
       </header>
 
+      {/* Mapa de fases: siempre visible al entrar al módulo, no es una pestaña más */}
+      <MapaFasesOrtesis pacienteId={user?.paciente_id} />
+
       <section className="device-switch-shell" aria-label="Selector de sección">
         <div className="device-switch" role="tablist" aria-label="Tipo de dispositivo">
           <button
@@ -1362,12 +1363,6 @@ const Ortesis = () => {
           onClick={() => { setActiveTab('inicio'); setActiveSubTab(null); setSelectedItem(null); }}
         >
           Inicio
-        </button>
-        <button
-          className={`tab ${activeTab === 'fases' ? 'active' : ''}`}
-          onClick={() => { setActiveTab('fases'); setActiveSubTab(null); setSelectedItem(null); }}
-        >
-          Fases
         </button>
         {seccionActiva === 'protesis' && (
           <button
