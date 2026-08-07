@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import AccessibilityPanel, { AccessibilityFAB } from '../components/accessibility/AccessibilityPanel';
 import api from '../services/api';
 import LucideIcon from '../components/LucideIcon';
+import MapaFasesOrtesis from '../components/ortesis/MapaFasesOrtesis';
 import '../styles/Ortesis.css';
 
 const MODULO_NOMBRE = 'Órtesis y prótesis';
@@ -705,6 +706,8 @@ const Ortesis = () => {
     switch (activeTab) {
       case 'inicio':
         return renderInicio();
+      case 'fases':
+        return <MapaFasesOrtesis pacienteId={user?.paciente_id} />;
       case 'niveles-k':
         return seccionActiva === 'protesis' ? renderNivelesK() : renderInicio();
       case 'tipos':
@@ -1359,6 +1362,12 @@ const Ortesis = () => {
           onClick={() => { setActiveTab('inicio'); setActiveSubTab(null); setSelectedItem(null); }}
         >
           Inicio
+        </button>
+        <button
+          className={`tab ${activeTab === 'fases' ? 'active' : ''}`}
+          onClick={() => { setActiveTab('fases'); setActiveSubTab(null); setSelectedItem(null); }}
+        >
+          Fases
         </button>
         {seccionActiva === 'protesis' && (
           <button

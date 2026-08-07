@@ -40,6 +40,7 @@ define('NOTIF_MENSAJE', 'mensaje');
 define('NOTIF_ALERTA', 'alerta');
 define('NOTIF_SISTEMA', 'sistema');
 define('NOTIF_NEURO_FASE', 'neuro_fase_cambio');
+define('NOTIF_ORTESIS_FASE', 'ortesis_fase_cambio');
 
 // Fases de tratamiento de Neuropsicología (1..4, propio del módulo,
 // independiente de FASE_PREOPERATORIA/etc. que son del proceso protésico)
@@ -48,6 +49,19 @@ define('NEURO_FASES', [
     2 => 'Evaluación',
     3 => 'Intervención',
     4 => 'Alta',
+]);
+
+// Fases del proceso de fabricación/adaptación de Órtesis y Prótesis (1..7),
+// propio del módulo e independiente del sistema genérico de 8 fases de
+// rehabilitación (fases_tratamiento / pacientes.fase_actual_id)
+define('ORTESIS_FASES', [
+    1 => 'Valoración',
+    2 => 'Cotización',
+    3 => 'Espera de componentes',
+    4 => 'Toma de medidas / Molde',
+    5 => 'Prueba y ajustes de órtesis',
+    6 => 'Entrega de órtesis',
+    7 => 'Seguimiento',
 ]);
 
 // Tipos de reacción
