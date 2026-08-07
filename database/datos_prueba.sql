@@ -15,22 +15,22 @@ SET FOREIGN_KEY_CHECKS = 0;
 
 -- Administrador (rol_id = 1)
 INSERT INTO usuarios (id, email, password_hash, pin_hash, nombre_completo, fecha_nacimiento, rol_id, area_medica_id, activo, primer_acceso, email_verificado) VALUES
-(1, 'admin@azaria.app', '$2y$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', NULL, 'Administrador Sistema', '1985-03-15', 1, NULL, 1, 0, 1);
+(1, 'admin@azaria.app', '$2y$10$P7TbGEM/F8AlZJufrhEXZe9guh3VGhBc6F3QoM7ttXzMCjcK2313S', NULL, 'Administrador Sistema', '1985-03-15', 1, NULL, 1, 0, 1);
 
 -- Especialistas (rol_id = 2) - Uno por cada área médica
 -- area_medica_id: 1=fisioterapia, 2=nutricion, 3=medicina, 4=neuropsicologia, 5=ortesis
 INSERT INTO usuarios (id, email, password_hash, pin_hash, nombre_completo, fecha_nacimiento, rol_id, area_medica_id, activo, primer_acceso, email_verificado) VALUES
-(2, 'dr.garcia@azaria.app', '$2y$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', NULL, 'Dr. Carlos García López', '1978-06-20', 2, 1, 1, 0, 1),
-(3, 'dra.martinez@azaria.app', '$2y$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', NULL, 'Dra. María Martínez Ruiz', '1982-09-10', 2, 2, 1, 0, 1),
-(4, 'lic.rodriguez@azaria.app', '$2y$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', NULL, 'Lic. Ana Rodríguez Sánchez', '1990-01-25', 2, 3, 1, 0, 1),
-(5, 'psic.hernandez@azaria.app', '$2y$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', NULL, 'Psic. Roberto Hernández', '1988-11-30', 2, 4, 1, 0, 1),
-(6, 'tec.sanchez@azaria.app', '$2y$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', NULL, 'Téc. Laura Sánchez Mora', '1992-04-18', 2, 5, 1, 0, 1);
+(2, 'dr.garcia@azaria.app', '$2y$10$P7TbGEM/F8AlZJufrhEXZe9guh3VGhBc6F3QoM7ttXzMCjcK2313S', NULL, 'Dr. Carlos García López', '1978-06-20', 2, 1, 1, 0, 1),
+(3, 'dra.martinez@azaria.app', '$2y$10$P7TbGEM/F8AlZJufrhEXZe9guh3VGhBc6F3QoM7ttXzMCjcK2313S', NULL, 'Dra. María Martínez Ruiz', '1982-09-10', 2, 2, 1, 0, 1),
+(4, 'lic.rodriguez@azaria.app', '$2y$10$P7TbGEM/F8AlZJufrhEXZe9guh3VGhBc6F3QoM7ttXzMCjcK2313S', NULL, 'Lic. Ana Rodríguez Sánchez', '1990-01-25', 2, 3, 1, 0, 1),
+(5, 'psic.hernandez@azaria.app', '$2y$10$P7TbGEM/F8AlZJufrhEXZe9guh3VGhBc6F3QoM7ttXzMCjcK2313S', NULL, 'Psic. Roberto Hernández', '1988-11-30', 2, 4, 1, 0, 1),
+(6, 'tec.sanchez@azaria.app', '$2y$10$P7TbGEM/F8AlZJufrhEXZe9guh3VGhBc6F3QoM7ttXzMCjcK2313S', NULL, 'Téc. Laura Sánchez Mora', '1992-04-18', 2, 5, 1, 0, 1);
 
 -- Pacientes (rol_id = 3)
 INSERT INTO usuarios (id, email, password_hash, pin_hash, nombre_completo, fecha_nacimiento, rol_id, area_medica_id, activo, primer_acceso, email_verificado, usar_pin) VALUES
-(7, 'paciente1@test.com', '$2y$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', '$2y$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'Juan Pérez González', '1955-08-12', 3, NULL, 1, 0, 1, 1),
-(8, 'paciente2@test.com', '$2y$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', '$2y$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'María López Vega', '1960-12-03', 3, NULL, 1, 0, 1, 1),
-(9, 'paciente3@test.com', '$2y$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', '$2y$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'Roberto Díaz Mendoza', '1958-05-22', 3, NULL, 1, 0, 1, 1);
+(7, 'paciente1@test.com', '$2y$10$P7TbGEM/F8AlZJufrhEXZe9guh3VGhBc6F3QoM7ttXzMCjcK2313S', '$2y$10$P7TbGEM/F8AlZJufrhEXZe9guh3VGhBc6F3QoM7ttXzMCjcK2313S', 'Juan Pérez González', '1955-08-12', 3, NULL, 1, 0, 1, 1),
+(8, 'paciente2@test.com', '$2y$10$P7TbGEM/F8AlZJufrhEXZe9guh3VGhBc6F3QoM7ttXzMCjcK2313S', '$2y$10$P7TbGEM/F8AlZJufrhEXZe9guh3VGhBc6F3QoM7ttXzMCjcK2313S', 'María López Vega', '1960-12-03', 3, NULL, 1, 0, 1, 1),
+(9, 'paciente3@test.com', '$2y$10$P7TbGEM/F8AlZJufrhEXZe9guh3VGhBc6F3QoM7ttXzMCjcK2313S', '$2y$10$P7TbGEM/F8AlZJufrhEXZe9guh3VGhBc6F3QoM7ttXzMCjcK2313S', 'Roberto Díaz Mendoza', '1958-05-22', 3, NULL, 1, 0, 1, 1);
 
 -- =====================================================
 -- 2. PACIENTES (tabla pacientes)
@@ -363,7 +363,7 @@ PACIENTES:
 - paciente1@test.com (Juan Pérez) - PIN: 123456
 - paciente2@test.com (María López) - PIN: 123456
 - paciente3@test.com (Roberto Díaz) - PIN: 123456
-
+X  
 Todos los pacientes tienen:
 - Historial médico (glucosa, presión, dolor)
 - Citas programadas
