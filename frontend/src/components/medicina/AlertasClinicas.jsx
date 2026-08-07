@@ -20,11 +20,13 @@ const AlertasClinicas = ({
 
             const res = await api.get(`/alertas/${area}`);
             console.log("Respuesta:", res);
+            
 
             console.log(res);
 
             if (res.success) {
                 console.log("Alertas:", res.data);
+                console.log("Alertas recibidas:", res.data);
 
                 setAlertas(res.data);
 
