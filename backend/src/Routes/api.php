@@ -985,6 +985,11 @@ route('POST', '/api/citas/(\d+)/notificar', function($citaId) {
     $controller->notificarNotasCita($citaId);
 }, ['auth']);
 
+route('GET', '/api/citas/especialista/(\d+)', function($especialistaId) {
+    $controller = new CitasController();
+    $controller->getCitasEspecialistaFecha($especialistaId);
+}, ['auth']);
+
 // RUTAS DE CHAT
 route('GET', '/api/mensajes/conversaciones/(\d+)', function($usuarioId) {
     $user = AuthMiddleware::getCurrentUser();
