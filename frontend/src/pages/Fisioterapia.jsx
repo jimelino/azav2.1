@@ -8,6 +8,7 @@ import LucideIcon from '../components/LucideIcon';
 import '../styles/Fisioterapia.css';
 import MapaFases from '../components/fisioterapia/MapaFases';
 import InformacionFase from '../components/fisioterapia/InformacionFase';
+import IndicacionesPaciente from '../components/fisioterapia/IndicacionesPaciente';
 /**
  * Fisioterapia - Módulo de ejercicios y rehabilitación
  * Diseño accesible para usuarios de 10 a 80 años
@@ -26,6 +27,9 @@ const Fisioterapia = () => {
   const [selectedVideo, setSelectedVideo] = useState(null);
   const [completadosHoy, setCompletadosHoy] = useState(new Set());
   const [marcandoCompletado, setMarcandoCompletado] = useState(false);
+  const [fasePaciente, setFasePaciente] = useState(1);
+
+const [indicacionesPaciente, setIndicacionesPaciente] = useState("");
 
   useEffect(() => {
     cargarDatos();
@@ -41,6 +45,23 @@ const Fisioterapia = () => {
   const cargarDatos = async () => {
     setLoading(true);
     try {
+      // Obtener fase e indicaciones del paciente
+
+const indicacionesRes = await api.get(
+    `/fisioterapia/indicaciones/${user.paciente_id}`
+);
+
+if (indicacionesRes.success && indicacionesRes.data) {
+
+    setFasePaciente(
+        indicacionesRes.data.fase_actual || 1
+    );
+
+    setIndicacionesPaciente(
+        indicacionesRes.data.indicaciones || ""
+    );
+
+}
       if (activeTab === 'videos') {
         const response = await api.get('/fisioterapia/videos');
         setVideos(response.data || []);
@@ -154,11 +175,12 @@ const Fisioterapia = () => {
         </div>
       </header>
       <MapaFases
-    faseActual={2}
+    faseActual={fasePaciente}
 />
+
 <InformacionFase
-        faseActual={2}
-    />
+    faseActual={fasePaciente}
+/>
       {/* Navegación por pestañas */}
       
       <nav className="tabs" role="tablist" aria-label="Secciones de fisioterapia">
@@ -180,6 +202,27 @@ const Fisioterapia = () => {
           <span className="tab-icon" aria-hidden="true"><LucideIcon name="bar-chart" size={18} /></span>
           <span className="tab-text">Mi Progreso</span>
         </button>
+        <button
+    role="tab"
+    aria-selected={activeTab === 'indicaciones'}
+    className={`tab ${activeTab === 'indicaciones' ? 'active' : ''}`}
+    onClick={() => setActiveTab('indicaciones')}
+>
+
+    <span className="tab-icon" aria-hidden="true">
+
+        
+
+    </span>
+
+    <span className="tab-text">
+
+        Indicaciones
+
+    </span>
+
+</button>
+        
       </nav>
 
       {/* Contenido principal */}
@@ -263,6 +306,7 @@ const Fisioterapia = () => {
                           strokeWidth="3"
                           strokeDasharray={`${calcularProgresoRutina()}, 100`}
                         />
+                        
                       </svg>
                       <span className="progreso-text" aria-hidden="true">{calcularProgresoRutina()}%</span>
                     </div>
@@ -272,6 +316,7 @@ const Fisioterapia = () => {
                     </div>
                   </section>
                 </Speakable>
+                
 
                 {/* Calendario últimos 7 días */}
                 <div className="calendario-progreso" aria-labelledby="calendario-title">
@@ -321,6 +366,16 @@ const Fisioterapia = () => {
                 )}
               </div>
             )}
+
+            {/* Panel de Indicaciones */}
+{activeTab === 'indicaciones' && (
+
+    <IndicacionesPaciente
+        fase={fasePaciente}
+        indicaciones={indicacionesPaciente}
+    />
+
+)}
           </div>
         )}
       </main>
