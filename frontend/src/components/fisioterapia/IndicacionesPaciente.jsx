@@ -116,21 +116,7 @@ const IndicacionesPaciente = ({ fase, indicaciones }) => {
 
             </div>
 
-            <div className="recordatorio">
-
-                <strong>
-
-                    💙 Recuerda
-
-                </strong>
-
-                <p>
-
-                    Realiza tus ejercicios con calma, sigue las recomendaciones de tu fisioterapeuta y, si presentas dolor intenso o alguna molestia fuera de lo normal, comunícalo durante tu próxima consulta.
-
-                </p>
-
-            </div>
+        
 
         </div>
 
