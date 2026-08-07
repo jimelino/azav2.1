@@ -626,7 +626,15 @@ const EspecialistaDashboard = () => {
       }
     }, 8000);
 
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+      // Al salir de la pestaña de Mensajes, se limpia la conversación activa.
+      // Si no se hace esto, normalizarConversacionesChat() sigue tratando esa
+      // conversación como "abierta" en cada refresco posterior (aunque el
+      // usuario ya esté en otra vista) y le fuerza no_leidos a 0 para
+      // siempre, apagando su badge y el contador total de forma permanente.
+      setConversacionActiva(null);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeView, user?.id]);
 
