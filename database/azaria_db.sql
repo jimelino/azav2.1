@@ -68,7 +68,6 @@ CREATE TABLE IF NOT EXISTS usuarios (
     fecha_nacimiento DATE DEFAULT NULL,
     rol_id INT UNSIGNED NOT NULL,
     area_medica_id INT UNSIGNED DEFAULT NULL,
-    foto_perfil_url VARCHAR(500) DEFAULT NULL,
 
     -- Estado de cuenta
     activo TINYINT(1) DEFAULT 1,
@@ -835,22 +834,6 @@ CREATE TABLE IF NOT EXISTS neuro_contratos_terapeuticos (
     INDEX idx_paciente_fecha (paciente_id, created_at)
 ) ENGINE=InnoDB;
 
--- Resultados de evaluación (PDF) recibidos vía la API de integración del
--- sistema clínico externo. Historial append-only, igual criterio que
--- neuro_contratos_terapeuticos. id_externo permite hacer upsert idempotente
--- si el otro sistema reenvía el mismo resultado.
-CREATE TABLE IF NOT EXISTS neuro_resultados_evaluacion (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    paciente_id INT UNSIGNED NOT NULL,
-    id_externo VARCHAR(100) DEFAULT NULL,
-    archivo_url VARCHAR(500) NOT NULL,
-    titulo VARCHAR(200) DEFAULT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-
-    FOREIGN KEY (paciente_id) REFERENCES pacientes(id) ON DELETE CASCADE,
-    INDEX idx_paciente_fecha (paciente_id, created_at)
-) ENGINE=InnoDB;
-
 -- =====================================================
 -- MÓDULO 7: ÓRTESIS
 -- =====================================================
@@ -1007,11 +990,6 @@ CREATE TABLE IF NOT EXISTS citas (
     recordatorio_24h_enviado TINYINT(1) DEFAULT 0,
     recordatorio_1h_enviado TINYINT(1) DEFAULT 0,
 
-    -- Integración con sistemas externos (ej. citas empujadas por el
-    -- sistema clínico externo de Neuropsicología): permite upsert
-    -- idempotente por id_externo en vez de duplicar la cita en cada envío.
-    id_externo VARCHAR(100) DEFAULT NULL,
-
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
@@ -1024,8 +1002,7 @@ CREATE TABLE IF NOT EXISTS citas (
     INDEX idx_paciente (paciente_id),
     INDEX idx_especialista (especialista_id),
     INDEX idx_fecha (fecha),
-    INDEX idx_estado (estado),
-    INDEX idx_id_externo (id_externo)
+    INDEX idx_estado (estado)
 ) ENGINE=InnoDB;
 
 -- =====================================================

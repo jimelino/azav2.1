@@ -23,12 +23,10 @@ use App\Controllers\AdmisionesController;
 use App\Middleware\AuthMiddleware;
 use App\Middleware\RoleMiddleware;
 use App\Middleware\RateLimitMiddleware;
-use App\Middleware\ApiKeyMiddleware;
 use App\Controllers\EquivalentesController;
 use App\Controllers\ExternalPatientController;
 use App\Controllers\IndicacionesController;
 use App\Controllers\AlertasClinicasController;
-use App\Controllers\IngestNeuroController;
 
 // Función helper para rutas
 function route($method, $path, $callback, $middleware = []) {
@@ -47,8 +45,6 @@ function route($method, $path, $callback, $middleware = []) {
             } elseif (str_starts_with($mw, 'role:')) {
                 $roles = explode(',', substr($mw, 5));
                 RoleMiddleware::check($roles);
-            } elseif ($mw === 'api_key') {
-                (new ApiKeyMiddleware())->handle();
             }
         }
 
@@ -984,33 +980,6 @@ route('POST', '/api/ortesis/protocolo-uso/(\d+)/config', function($pacienteId) {
     $controller = new OrtesisController();
     $controller->guardarProtocoloConfig($pacienteId, $data);
 }, ['auth']);
-
-// RUTAS DE INTEGRACIÓN: el sistema clínico externo de Neuropsicología
-// empuja información hacia Azaria (sin sesión de usuario, autenticado con
-// api_key vía Authorization: Bearer <EXTERNAL_NEURO_INGEST_TOKEN>)
-route('POST', '/api/integracion/neuro/pacientes', function() {
-    $data = json_decode(file_get_contents('php://input'), true) ?? [];
-    (new IngestNeuroController())->postPaciente($data);
-}, ['api_key']);
-
-route('POST', '/api/integracion/neuro/especialistas', function() {
-    $data = json_decode(file_get_contents('php://input'), true) ?? [];
-    (new IngestNeuroController())->postEspecialista($data);
-}, ['api_key']);
-
-route('POST', '/api/integracion/neuro/asignaciones', function() {
-    $data = json_decode(file_get_contents('php://input'), true) ?? [];
-    (new IngestNeuroController())->postAsignacion($data);
-}, ['api_key']);
-
-route('POST', '/api/integracion/neuro/citas', function() {
-    $data = json_decode(file_get_contents('php://input'), true) ?? [];
-    (new IngestNeuroController())->postCita($data);
-}, ['api_key']);
-
-route('POST', '/api/integracion/neuro/resultados', function() {
-    (new IngestNeuroController())->postResultado($_POST, $_FILES);
-}, ['api_key']);
 
 // RUTAS DE CITAS
 route('GET', '/api/citas', function() {
