@@ -49,7 +49,23 @@ class NeuroFaseController
         }
 
         $fase = NeuroFase::getActual($pacienteId);
-        return Response::success(['fase' => $fase, 'catalogo' => NEURO_FASES]);
+
+        $evaluacion = $this->db->query(
+            "SELECT id FROM evaluaciones_neuropsicologicas WHERE paciente_id = ? LIMIT 1",
+            [$pacienteId]
+        )->fetch();
+
+        $sesiones = $this->db->query(
+            "SELECT COUNT(*) as total FROM act_sesiones WHERE paciente_id = ?",
+            [$pacienteId]
+        )->fetch();
+
+        return Response::success([
+            'fase' => $fase,
+            'catalogo' => NEURO_FASES,
+            'evaluacion_realizada' => (bool) $evaluacion,
+            'sesiones_registradas' => (int) ($sesiones['total'] ?? 0),
+        ]);
     }
 
     public function getHistorial($pacienteId)

@@ -313,102 +313,143 @@
   gap: var(--spacing-md);
 }
 
-.progress-route-map {
-  position: relative;
+.progress-estado-badge {
+  flex: 0 0 auto;
+  padding: 6px 14px;
+  border-radius: var(--border-radius-md, 12px);
+  background: color-mix(in srgb, var(--color-warning) 15%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-warning) 40%, transparent);
+  color: var(--color-warning);
+  font-size: var(--font-size-xs, 12px);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.fases-stepper {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 28px var(--spacing-sm, 10px);
   margin: var(--spacing-md) 0;
+  padding-top: 14px;
+  padding-bottom: 6px;
   overflow-x: auto;
-  overflow-y: hidden;
-  border-radius: var(--border-radius-lg);
-  background: linear-gradient(145deg, #f8fbfd, #eef3f6);
-  border: 1px solid rgba(21, 101, 192, 0.12);
-  scrollbar-width: thin;
 }
 
-.progress-route-canvas {
+.fases-stepper-card {
   position: relative;
-  min-width: 820px;
-  height: 300px;
-}
-
-.progress-route-svg {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-}
-
-.progress-route-track,
-.progress-route-active {
-  fill: none;
-  stroke-width: 8;
-  stroke-linecap: round;
-}
-
-.progress-route-track { stroke: #dce4ea; }
-.progress-route-active {
-  stroke: #7b1fa2;
-  stroke-dasharray: 100;
-  transition: stroke-dashoffset 0.5s ease;
-}
-
-.progress-route-points {
-  position: absolute;
-  inset: 0;
-}
-
-.progress-route-point {
-  position: absolute;
+  flex: 1 1 150px;
+  min-width: 150px;
   display: flex;
   flex-direction: column;
+  gap: 6px;
+  padding: var(--spacing-sm, 10px) var(--spacing-md, 14px);
+  background: var(--surface-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-md, 12px);
+}
+
+.fases-stepper-card.estado-bloqueada {
+  opacity: 0.65;
+}
+
+.fases-stepper-card.estado-completada {
+  border-color: var(--color-success);
+}
+
+.fases-stepper-card.estado-activa {
+  flex: 1 1 260px;
+  min-width: 220px;
+  border-color: var(--color-warning);
+  box-shadow: 0 6px 16px -8px color-mix(in srgb, var(--color-warning) 45%, transparent);
+}
+
+.fases-stepper-flotante {
+  position: absolute;
+  top: -13px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
-  transform: translate(-50%, -50%);
-  color: var(--text-secondary);
-  font-size: var(--font-size-sm);
-  font-weight: 600;
-  text-align: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--color-warning);
+  color: #1A1A1A;
+  font-size: 10px;
+  font-weight: 800;
+  white-space: nowrap;
 }
 
-.progress-route-point.point-0 { left: 6%; top: 68%; }
-.progress-route-point.point-1 { left: 19%; top: 83%; }
-.progress-route-point.point-2 { left: 32%; top: 72%; }
-.progress-route-point.point-3 { left: 43%; top: 46%; }
-.progress-route-point.point-4 { left: 56%; top: 25%; }
-.progress-route-point.point-5 { left: 70%; top: 33%; }
-.progress-route-point.point-6 { left: 82%; top: 57%; }
-.progress-route-point.point-7 { left: 94%; top: 42%; }
-
-.progress-route-dot {
-  display: grid;
-  place-items: center;
-  width: 34px;
-  height: 34px;
-  border: 4px solid #dce4ea;
-  border-radius: 50%;
-  background: #fff;
-  color: #78909c;
+.fases-stepper-card-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
-.progress-route-point.is-complete .progress-route-dot,
-.progress-route-point.is-current .progress-route-dot {
-  border-color: #7b1fa2;
-  background: #7b1fa2;
+.fases-stepper-icono {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.fases-stepper-icono.completada {
+  background: var(--color-success);
   color: #fff;
 }
 
-.progress-route-point.is-current .progress-route-dot {
-  box-shadow: 0 0 0 6px rgba(123, 31, 162, 0.16);
+.fases-stepper-icono.activa {
+  background: var(--color-warning);
+  color: #fff;
 }
 
-.progress-route-point:last-child.is-current .progress-route-dot {
-  border-color: #00a884;
-  background: #fff;
-  color: #00a884;
+.fases-stepper-icono.bloqueada {
+  background: var(--surface-tertiary);
+  color: var(--text-muted);
 }
 
-.progress-route-label {
-  width: 116px;
-  line-height: 1.25;
+.fases-stepper-nombre {
+  font-size: var(--font-size-sm, 14px);
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.fases-stepper-desc {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+
+.fases-stepper-badge {
+  align-self: flex-start;
+  margin-top: auto;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.fases-stepper-badge.completada {
+  background: color-mix(in srgb, var(--color-success) 18%, transparent);
+  color: var(--color-success);
+}
+
+.fases-stepper-badge.activa {
+  background: color-mix(in srgb, var(--color-warning) 18%, transparent);
+  color: var(--color-warning);
+}
+
+.fases-stepper-badge.bloqueada {
+  background: var(--surface-tertiary);
+  color: var(--text-muted);
 }
 
 .category-card {
@@ -522,8 +563,10 @@
 
 .progress-header {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
+  gap: var(--spacing-sm, 8px);
   margin-bottom: var(--spacing-md);
 }
 
@@ -966,20 +1009,6 @@
 }
 
 [data-theme="dark"] .progress-card {
-  background: var(--surface-primary);
-  border-color: var(--border-color);
-}
-
-[data-theme="dark"] .progress-route-map {
-  background: linear-gradient(145deg, var(--surface-secondary), var(--surface-tertiary));
-  border-color: var(--border-color);
-}
-
-[data-theme="dark"] .progress-route-track {
-  stroke: var(--border-color);
-}
-
-[data-theme="dark"] .progress-route-point.is-pending .progress-route-dot {
   background: var(--surface-primary);
   border-color: var(--border-color);
 }

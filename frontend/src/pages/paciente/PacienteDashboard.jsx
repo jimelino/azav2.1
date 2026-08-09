@@ -37,41 +37,49 @@ const ACCESOS_RAPIDOS = [
   { id: 'comunidad', nombre: 'Comunidad', icon: 'users', color: '#F06292', ruta: '/comunidad', desc: 'Conecta con otros' },
 ];
 
-const ProgressRouteMap = ({ currentPhase = 1 }) => {
+const FasesStepper = ({ currentPhase = 1 }) => {
   const requestedPhase = Number(currentPhase) || 1;
-  const foundIndex = REHABILITATION_PHASES.findIndex((fase) => fase.numero === requestedPhase);
-  const currentStep = foundIndex >= 0 ? foundIndex : 0;
-  const routeProgress = (currentStep / (REHABILITATION_PHASES.length - 1)) * 100;
-  const currentPhaseName = REHABILITATION_PHASES[currentStep].nombre;
+  const total = REHABILITATION_PHASES.length;
 
   return (
-    <div className="progress-route-map" aria-label={`Mapa de progreso. Fase actual: ${currentPhaseName}`}>
-      <div className="progress-route-canvas">
-        <svg className="progress-route-svg" viewBox="0 0 1000 360" aria-hidden="true" preserveAspectRatio="none">
-          <path className="progress-route-track" d="M60 245 C145 310 230 315 320 260 S425 145 560 90 S730 135 820 205 S900 195 940 150" />
-          <path className="progress-route-active" d="M60 245 C145 310 230 315 320 260 S425 145 560 90 S730 135 820 205 S900 195 940 150" pathLength="100" style={{ strokeDashoffset: 100 - routeProgress }} />
-        </svg>
-        <div className="progress-route-points" role="list">
-          {REHABILITATION_PHASES.map((fase, index) => {
-            const statusClass = index < currentStep ? 'is-complete' : index === currentStep ? 'is-current' : 'is-pending';
-            const statusLabel = index < currentStep ? 'completada' : index === currentStep ? 'en curso' : 'pendiente';
+    <div className="fases-stepper" role="list" aria-label={`Mapa de progreso de 8 fases. Fase actual: ${getRehabilitationPhase(requestedPhase)?.nombre || requestedPhase}`}>
+      {REHABILITATION_PHASES.map((fase) => {
+        const estado = fase.numero < requestedPhase ? 'completada' : fase.numero === requestedPhase ? 'activa' : 'bloqueada';
 
-            return (
-              <div
-                key={fase.numero}
-                className={`progress-route-point point-${index} ${statusClass}`}
-                role="listitem"
-                aria-label={`Fase ${fase.numero}: ${fase.nombre}, ${statusLabel}`}
-              >
-                <span className="progress-route-dot" aria-hidden="true">
-                  {index === currentStep ? <LucideIcon name="smile" size={18} /> : index < currentStep ? <LucideIcon name="check" size={17} /> : fase.numero}
+        return (
+          <div
+            key={fase.numero}
+            role="listitem"
+            className={`fases-stepper-card estado-${estado}`}
+            aria-current={estado === 'activa' ? 'step' : undefined}
+          >
+            {estado === 'activa' && (
+              <span className="fases-stepper-flotante">
+                <LucideIcon name="map-pin" size={12} /> Estás aquí
+              </span>
+            )}
+            <div className="fases-stepper-card-header">
+              {estado === 'completada' ? (
+                <span className="fases-stepper-icono completada" aria-label="Fase completada">
+                  <LucideIcon name="check" size={13} />
                 </span>
-                <span className="progress-route-label" aria-hidden="true">{fase.nombre}</span>
-              </div>
-            );
-          })}
-        </div>
-      </div>
+              ) : estado === 'bloqueada' ? (
+                <span className="fases-stepper-icono bloqueada" aria-hidden="true">{fase.numero}</span>
+              ) : (
+                <span className="fases-stepper-icono activa" aria-hidden="true">
+                  <LucideIcon name={fase.icono} size={13} />
+                </span>
+              )}
+              <span className="fases-stepper-nombre">{fase.nombre}</span>
+            </div>
+            {estado === 'activa' && <p className="fases-stepper-desc">{fase.descripcion}</p>}
+            <span className={`fases-stepper-badge ${estado}`}>
+              {estado === 'completada' ? 'Completado' : estado === 'activa' ? 'En proceso' : 'Próximo'}
+            </span>
+          </div>
+        );
+      })}
+      <span className="sr-only">{total} fases en total.</span>
     </div>
   );
 };
@@ -262,8 +270,11 @@ const PacienteDashboard = () => {
                   </span>
                   <span className="progress-phase">{getFaseNombre(faseActual.fase)}</span>
                 </div>
+                <span className="progress-estado-badge">
+                  Fase {faseActual.fase} de {REHABILITATION_PHASES.length} · {getFaseNombre(faseActual.fase)}
+                </span>
               </div>
-              <ProgressRouteMap currentPhase={faseActual.fase} />
+              <FasesStepper currentPhase={faseActual.fase} />
               <p className="progress-message">{faseActual.progreso >= 50 ? 'Excelente progreso. Sigue avanzando.' : 'Tu camino comienza aqui. Cada paso cuenta.'}</p>
             </Link>
           </section>

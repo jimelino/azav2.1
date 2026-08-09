@@ -4,22 +4,12 @@ import LucideIcon from '../LucideIcon';
 import ContratoTerapeutico from './ContratoTerapeutico';
 import './MapaCaminoFases.css';
 
-const ICONOS_FASE = {
-  1: 'search',
-  2: 'target',
-  3: 'sparkles',
-  4: 'circle-check',
+const DESCRIPCIONES_FASE = {
+  1: 'Entrevista inicial con el paciente y familiares para conocer su historial y definir objetivos.',
+  2: 'Aplicación de pruebas cognitivas y diagnóstico neuropsicológico completo.',
+  3: 'Sesiones periódicas de rehabilitación cognitiva y ejercicios de estimulación adaptados.',
+  4: 'Conclusión exitosa del proceso, con recomendaciones para continuar en casa.',
 };
-
-// Posiciones de los 4 nodos a lo largo del camino, en porcentaje del
-// contenedor (x desde la izquierda, y desde arriba). El zigzag imita el
-// mapa de referencia (nodos alternando arriba/abajo a lo largo de una curva).
-const POSICIONES = [
-  { x: 10, y: 70 },
-  { x: 37, y: 25 },
-  { x: 63, y: 70 },
-  { x: 90, y: 25 },
-];
 
 const MENSAJES_MOTIVACIONALES = {
   1: 'Tu camino comienza aquí. Cada paso cuenta.',
@@ -31,6 +21,8 @@ const MENSAJES_MOTIVACIONALES = {
 const MapaCaminoFases = ({ pacienteId, documentos = [] }) => {
   const [fase, setFase] = useState(null);
   const [catalogo, setCatalogo] = useState({});
+  const [evaluacionRealizada, setEvaluacionRealizada] = useState(false);
+  const [sesionesRegistradas, setSesionesRegistradas] = useState(0);
   const [loading, setLoading] = useState(true);
 
   const cargarDatos = useCallback(async () => {
@@ -41,6 +33,8 @@ const MapaCaminoFases = ({ pacienteId, documentos = [] }) => {
       const data = res?.data || res;
       setFase(data?.fase || null);
       setCatalogo(data?.catalogo || {});
+      setEvaluacionRealizada(Boolean(data?.evaluacion_realizada));
+      setSesionesRegistradas(Number(data?.sesiones_registradas) || 0);
     } catch (error) {
       console.error('Error al cargar el mapa de fases:', error);
     } finally {
@@ -53,74 +47,113 @@ const MapaCaminoFases = ({ pacienteId, documentos = [] }) => {
   }, [cargarDatos]);
 
   const faseActualNum = fase?.fase_numero || 1;
-  const numerosFase = [1, 2, 3, 4];
+  const numerosFase = Object.keys(catalogo).length
+    ? Object.keys(catalogo).map(Number).sort((a, b) => a - b)
+    : [1, 2, 3, 4];
+  const totalFases = numerosFase.length;
 
   const getEstado = (numero) => {
-    if (numero < faseActualNum) return 'completed';
-    if (numero === faseActualNum) return 'current';
-    return 'future';
+    if (numero < faseActualNum) return 'completada';
+    if (numero === faseActualNum) return 'activa';
+    return 'bloqueada';
   };
 
-  // Un segmento de curva por cada par de nodos consecutivos, para poder
-  // colorear por separado lo ya recorrido (morado) de lo pendiente (gris).
-  const segmentos = POSICIONES.slice(0, -1).map((pos, i) => {
-    const siguiente = POSICIONES[i + 1];
-    const medioX = (pos.x + siguiente.x) / 2;
-    return {
-      d: `M${pos.x},${pos.y} C${medioX},${pos.y} ${medioX},${siguiente.y} ${siguiente.x},${siguiente.y}`,
-      recorrido: (i + 2) <= faseActualNum
-    };
-  });
+  const progresoPct = totalFases > 1 ? ((faseActualNum - 1) / (totalFases - 1)) * 100 : 0;
 
   if (loading) {
     return (
       <div className="camino-fases-loading" role="status" aria-live="polite">
         <div className="camino-fases-spinner" aria-hidden="true"></div>
-        <p>Cargando tu camino...</p>
+        <p>Cargando tu progreso...</p>
       </div>
     );
   }
 
   return (
     <div className="camino-fases-container">
-      <div className="camino-fases-actual">
-        <LucideIcon name={ICONOS_FASE[faseActualNum] || 'circle'} size={22} />
-        <span>{catalogo[faseActualNum] || 'Consulta inicial'}</span>
-      </div>
+      <header className="camino-fases-header">
+        <div className="camino-fases-eyebrow">
+          <span className="camino-fases-eyebrow-dot" aria-hidden="true"></span>
+          Roadmap de Neuropsicología
+        </div>
+        <h2 className="camino-fases-titulo">Tu Progreso</h2>
+        <div className="camino-fases-estado-actual">
+          <span className="camino-fases-estado-dot" aria-hidden="true"></span>
+          <span className="camino-fases-estado-label">Estado actual:</span>
+          <span className="camino-fases-estado-valor">
+            {faseActualNum >= totalFases
+              ? `Fase ${faseActualNum} de ${totalFases} — Completado`
+              : `Fase ${faseActualNum} de ${totalFases} en progreso`}
+          </span>
+        </div>
+      </header>
 
-      <div className="camino-fases-mapa" role="list" aria-label="Fases del tratamiento de neuropsicología">
-        <svg
-          className="camino-fases-svg"
-          viewBox="0 0 100 100"
-          preserveAspectRatio="none"
-          aria-hidden="true"
-        >
-          {segmentos.map((seg, i) => (
-            <path
-              key={i}
-              d={seg.d}
-              className={`camino-fases-path ${seg.recorrido ? 'recorrido' : ''}`}
-              vectorEffect="non-scaling-stroke"
-            />
-          ))}
-        </svg>
+      <div className="camino-fases-track" role="list" aria-label="Etapas del roadmap de neuropsicología">
+        <div className="camino-fases-linea" aria-hidden="true">
+          <div className="camino-fases-linea-progreso" style={{ width: `${progresoPct}%` }}></div>
+        </div>
 
-        {numerosFase.map((numero, i) => {
+        {numerosFase.map((numero) => {
           const estado = getEstado(numero);
-          const pos = POSICIONES[i];
-          const labelArriba = pos.y > 50; // si el nodo está abajo, la etiqueta va arriba y viceversa
           return (
             <div
               key={numero}
-              className={`camino-fases-nodo ${estado} ${labelArriba ? 'label-arriba' : 'label-abajo'}`}
-              style={{ left: `${pos.x}%`, top: `${pos.y}%` }}
               role="listitem"
+              className={`camino-fase-card estado-${estado}`}
+              aria-current={estado === 'activa' ? 'step' : undefined}
+              aria-label={`Fase ${numero}: ${catalogo[numero] || ''} — ${estado}`}
             >
-              {labelArriba && <span className="camino-fases-label">{catalogo[numero] || `Fase ${numero}`}</span>}
-              <span className="camino-fases-punto" aria-hidden="true">
-                {estado === 'completed' ? <LucideIcon name="check" size={16} /> : numero}
-              </span>
-              {!labelArriba && <span className="camino-fases-label">{catalogo[numero] || `Fase ${numero}`}</span>}
+              {estado === 'activa' && (
+                <span className="camino-fase-flotante">
+                  <LucideIcon name="map-pin" size={12} /> Estás en esta etapa
+                </span>
+              )}
+
+              <div className="camino-fase-card-header">
+                <span className="camino-fase-numero">Fase {numero}</span>
+                {estado === 'completada' && (
+                  <span className="camino-fase-icono-estado completada" aria-label="Fase completada">
+                    <LucideIcon name="check" size={14} />
+                  </span>
+                )}
+                {estado === 'activa' && <span className="camino-fase-chip">En proceso</span>}
+                {estado === 'bloqueada' && (
+                  <span className="camino-fase-icono-estado bloqueada" aria-label="Fase bloqueada">
+                    <LucideIcon name="lock" size={14} />
+                  </span>
+                )}
+              </div>
+
+              <h3 className="camino-fase-titulo-etapa">{catalogo[numero] || `Fase ${numero}`}</h3>
+              <p className="camino-fase-desc">{DESCRIPCIONES_FASE[numero]}</p>
+
+              {numero === 2 && (
+                <div className="camino-fase-dato">
+                  <span className="camino-fase-dato-label">
+                    <LucideIcon name="brain" size={14} /> Diagnóstico
+                  </span>
+                  <span className={`camino-fase-pill ${evaluacionRealizada ? 'lista' : 'pendiente'}`}>
+                    {evaluacionRealizada ? 'Listo' : 'Pendiente'}
+                  </span>
+                </div>
+              )}
+
+              {numero === 3 && (
+                <div className="camino-fase-dato">
+                  <span className="camino-fase-dato-label">
+                    <LucideIcon name="sparkles" size={14} /> Sesiones registradas
+                  </span>
+                  <span className={`camino-fase-pill ${sesionesRegistradas > 0 ? 'lista' : 'pendiente'}`}>
+                    {sesionesRegistradas}
+                  </span>
+                </div>
+              )}
+
+              {numero === totalFases && estado === 'bloqueada' && (
+                <div className="camino-fase-proxima">
+                  <LucideIcon name="target" size={14} /> Próxima etapa
+                </div>
+              )}
             </div>
           );
         })}

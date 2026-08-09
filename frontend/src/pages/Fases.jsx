@@ -14,6 +14,7 @@ const Fases = () => {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
   const [cambioForm, setCambioForm] = useState({ nueva_fase: '', motivo: '' });
 
   const esEspecialista = user?.rol === 'especialista';
@@ -41,6 +42,7 @@ const Fases = () => {
 
   const handleCambiarFase = async () => {
     if (!cambioForm.nueva_fase || !cambioForm.motivo.trim()) return;
+    setError('');
     try {
       setSaving(true);
       await api.put(`/fases/cambiar/${pacienteId}`, {
@@ -51,6 +53,9 @@ const Fases = () => {
       setCambioForm({ nueva_fase: '', motivo: '' });
       await cargarDatos();
     } catch (error) {
+      const mensaje = error?.response?.data?.message
+        || 'No se pudo actualizar la fase. Revisa que el módulo de Fases esté activo e intenta de nuevo.';
+      setError(mensaje);
       console.error('Error cambiando fase:', error);
     } finally {
       setSaving(false);
@@ -135,18 +140,40 @@ const Fases = () => {
       </header>
 
       <main className="fases-content">
-        {/* Progreso general */}
-        <section className="progress-section" aria-labelledby="progress-heading">
-          <div className="progress-card">
-            <div className="progress-header">
-              <h3 id="progress-heading">Progreso General</h3>
-              <span className="progress-percentage">{Math.round(progreso)}%</span>
+        {/* Roadmap: progreso general + linea de tiempo unificados */}
+        <section className="roadmap-card" aria-labelledby="roadmap-heading">
+          <div className="roadmap-card-header">
+            <div>
+              <p className="roadmap-eyebrow">Roadmap</p>
+              <h2 id="roadmap-heading" className="roadmap-title">Tu camino de tratamiento</h2>
             </div>
-            <div className="progress-bar-container" role="progressbar" aria-valuenow={progreso} aria-valuemin="0" aria-valuemax="100" aria-label={`Progreso: ${Math.round(progreso)}%`}>
-              <div className="progress-bar-fill" style={{ width: `${progreso}%` }}></div>
-            </div>
-            <p className="progress-message">{getProgressMessage()}</p>
+            <span className="roadmap-badge">{faseActualNum} de {REHABILITATION_PHASES.length}</span>
           </div>
+
+          <div className="roadmap-segmented-bar" role="progressbar" aria-valuenow={progreso} aria-valuemin="0" aria-valuemax="100" aria-label={`Progreso: ${Math.round(progreso)}%`}>
+            {REHABILITATION_PHASES.map((fase) => (
+              <span key={fase.numero} className={`roadmap-segment ${getFaseEstado(fase.numero)}`}></span>
+            ))}
+          </div>
+
+          <ol className="roadmap-lista" aria-label="Fases del tratamiento">
+            {REHABILITATION_PHASES.map((fase) => {
+              const estado = getFaseEstado(fase.numero);
+              return (
+                <li key={fase.numero} className={`roadmap-item ${estado}`}>
+                  <span className="roadmap-item-dot" aria-hidden="true">
+                    {estado === 'completed' ? <LucideIcon name="check" size={16} /> : estado === 'current' ? <LucideIcon name="map-pin" size={16} /> : fase.numero}
+                  </span>
+                  <span className="roadmap-item-nombre">{fase.nombre}</span>
+                  <span className={`roadmap-item-estado ${estado}`}>
+                    {estado === 'completed' ? 'Completado' : estado === 'current' ? 'Estás aquí' : 'Próximo'}
+                  </span>
+                </li>
+              );
+            })}
+          </ol>
+
+          <p className="progress-message">{getProgressMessage()}</p>
         </section>
 
         {/* Stats */}
@@ -176,32 +203,6 @@ const Fases = () => {
             <span aria-hidden="true"><LucideIcon name="zap" size={18} /></span> Cambiar Fase del Usuario
           </button>
         )}
-
-        {/* Timeline */}
-        <section className="timeline-section" aria-labelledby="timeline-heading">
-          <h2 id="timeline-heading" className="section-title">Fases del Tratamiento</h2>
-          <div className="timeline" role="list" aria-label="Línea de tiempo de rehabilitación con ocho etapas">
-            {REHABILITATION_PHASES.map((fase) => {
-              const estado = getFaseEstado(fase.numero);
-              return (
-                <div key={fase.numero} className={`timeline-item ${estado}`} role="listitem">
-                  <div className="timeline-dot" aria-hidden="true">
-                    {estado === 'completed' ? '✓' : fase.numero}
-                  </div>
-                  <div className="timeline-card">
-                    <div className="timeline-card-header">
-                      <h3><LucideIcon name={fase.icono} size={18} /> {fase.nombre}</h3>
-                      <span className={`fase-badge ${estado === 'completed' ? 'completada' : estado === 'current' ? 'actual' : 'pendiente'}`}>
-                        {estado === 'completed' ? 'Completada' : estado === 'current' ? 'En curso' : 'Pendiente'}
-                      </span>
-                    </div>
-                    <p>{fase.descripcion}</p>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </section>
 
         {/* Historial */}
         <section className="historial-section" aria-labelledby="historial-heading">
@@ -272,8 +273,13 @@ const Fases = () => {
                   rows={3}
                 />
               </div>
+              {error && (
+                <div className="form-error" role="alert">
+                  {error}
+                </div>
+              )}
               <div className="modal-actions">
-                <button className="btn-cancel" onClick={() => setShowModal(false)}>Cancelar</button>
+                <button className="btn-cancel" onClick={() => { setShowModal(false); setError(''); }}>Cancelar</button>
                 <button
                   className="btn-confirm"
                   onClick={handleCambiarFase}

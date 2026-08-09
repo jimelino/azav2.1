@@ -46,7 +46,7 @@ export const REHABILITATION_PHASES = [
   {
     numero: FASES.SEGUIMIENTO_12_MESES,
     nombre: 'Seguimiento a 12 meses',
-    icono: 'calendar-check',
+    icono: 'calendar-days',
     descripcion: 'Evaluación de control anual y cierre de ciclo de seguimiento prolongado.'
   }
 ];
